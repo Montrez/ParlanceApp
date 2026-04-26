@@ -1,6 +1,6 @@
-# IMPORTANT: Config.plist contains your Anthropic API key.
-# Never commit this file to Git or share it publicly.
-Diario/Config.plist
+# Secrets — API keys and credentials (never commit)
+Parlance/Secrets.plist
+Secrets.plist
 
 # Xcode build artifacts
 build/

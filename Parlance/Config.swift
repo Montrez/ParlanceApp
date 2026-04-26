@@ -2,6 +2,13 @@ import Foundation
 
 enum Config {
 
+    private static var secretsDict: NSDictionary? {
+        guard let url = Bundle.main.url(forResource: "Secrets", withExtension: "plist") else {
+            return nil
+        }
+        return NSDictionary(contentsOf: url)
+    }
+
     private static var configDict: NSDictionary? {
         guard let url = Bundle.main.url(forResource: "Config", withExtension: "plist") else {
             return nil
@@ -9,29 +16,29 @@ enum Config {
         return NSDictionary(contentsOf: url)
     }
 
+    private static func value(forKey key: String) -> String? {
+        if let val = secretsDict?[key] as? String, !val.isEmpty {
+            return val
+        }
+        if let val = ProcessInfo.processInfo.environment[key], !val.isEmpty {
+            return val
+        }
+        if let val = configDict?[key] as? String, !val.isEmpty, !val.hasPrefix("YOUR_") {
+            return val
+        }
+        return nil
+    }
+
     static var anthropicAPIKey: String {
-        guard
-            let dict = configDict,
-            let key = dict["ANTHROPIC_API_KEY"] as? String,
-            !key.isEmpty,
-            key != "YOUR_API_KEY_HERE"
-        else {
-            print("⚠️ Parlance: No API key found in Config.plist")
+        guard let key = value(forKey: "ANTHROPIC_API_KEY") else {
+            print("⚠️ Parlance: No API key found. Add it to Secrets.plist or set ANTHROPIC_API_KEY env var.")
             return ""
         }
         return key
     }
 
     static var proxyURL: String {
-        guard
-            let dict = configDict,
-            let url = dict["PROXY_URL"] as? String,
-            !url.isEmpty,
-            url != "YOUR_PROXY_URL_HERE"
-        else {
-            return ""
-        }
-        return url
+        value(forKey: "PROXY_URL") ?? ""
     }
 
     static var useProxy: Bool {
