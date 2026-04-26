@@ -4,27 +4,27 @@ import Foundation
 import FoundationModels
 
 @available(iOS 26, *)
-@Generable(description: "Language feedback for a sentence written by a learner")
+@Generable(description: "Grammar feedback for a sentence. All example sentences must be in the same language as the input sentence.")
 struct SentenceReview {
-    @Guide(description: "Either 'Excellent' or 'Needs Improvement'")
+    @Guide(description: "Either 'Excellent' if grammatically correct, or 'Needs Improvement' only if there is a real error")
     var status: String
 
-    @Guide(description: "The specific grammar rule applied or tested in this sentence, explained in English. Always provided even when correct.")
+    @Guide(description: "The grammar rule being used in this sentence, in English. Always provided even when the sentence is correct.")
     var grammarRule: String
 
-    @Guide(description: "Why the sentence is correct or incorrect at the learner's level, explained in English")
+    @Guide(description: "Why the sentence is correct or incorrect, in English. Be specific.")
     var explanation: String
 
-    @Guide(description: "Corrected version in the target language, or nil if already correct")
+    @Guide(description: "Corrected sentence in the SAME language as the input. Nil if the sentence is already correct.")
     var correction: String?
 
-    @Guide(description: "The same idea rephrased at one level above the learner's current CEFR level, written entirely in the target language (Spanish or French), never in English")
+    @Guide(description: "The same idea rewritten at the next CEFR level up, in the SAME language as the input sentence. Must NOT be in a different language.")
     var nextLevelAlt: String?
 
-    @Guide(description: "The same idea rephrased at two levels above the learner's current CEFR level, written entirely in the target language (Spanish or French), never in English. Nil if the learner is already at C1 or C2.")
+    @Guide(description: "The same idea rewritten two CEFR levels up, in the SAME language as the input sentence. Nil if learner is at C1 or C2. Must NOT be in a different language.")
     var targetLevelAlt: String?
 
-    @Guide(description: "A practical tip about register, Anglicisms, or word precision that helps the learner level up")
+    @Guide(description: "A short practical tip about register or word choice, in English")
     var tip: String?
 }
 
@@ -38,55 +38,42 @@ final class OnDeviceAnalyzer: Sendable {
     func analyze(sentence: String, language: String, level: String) async throws -> [String: Any] {
         let langName = language == "fr" ? "French" : "Spanish"
 
-        let levelGuidance: String
+        let nextLevelName: String
+        let targetLevelName: String?
         switch level.uppercased() {
-        case "C2":
-            levelGuidance = """
-            The learner is at C2 level — focus on near-native precision, stylistic elegance, idiomatic naturalness, \
-            and register mastery for professional interpreting. Flag any residual Anglicisms, calques, or unnatural phrasing. \
-            Provide a next_level_alt in \(langName) showing the most polished native-level phrasing possible. \
-            target_level_alt should be nil at this level. \
-            If the sentence is Excellent, explain what makes it native-quality.
-            """
-        case "C1":
-            levelGuidance = """
-            The learner is at C1 level — focus on professional register, advanced word precision, \
-            and naturalness for interpreting. Flag Anglicisms (e.g. using English sentence structures \
-            in \(langName)) and suggest professional alternatives. \
-            Provide a next_level_alt in \(langName) showing C2-level native mastery phrasing. \
-            target_level_alt should be nil at this level. \
-            If the sentence is Excellent, explain specifically what makes it C1-quality.
-            """
-        case "B2":
-            levelGuidance = """
-            The learner is at B2 level — focus on verb tense correctness (especially subjunctive vs indicative), \
-            gender/number agreement, and common Anglicisms. \
-            Always provide a next_level_alt in \(langName) showing a C1 professional interpreter-level version, \
-            and a target_level_alt in \(langName) showing C2 native-level mastery. \
-            If the sentence is Excellent, explain which B2-level rule they applied correctly.
-            """
-        default:
-            levelGuidance = """
-            The learner is at B1 level — focus on basic verb tense correctness and gender agreement. \
-            Be encouraging and clear in explanations. \
-            Always provide a next_level_alt in \(langName) showing a B2-level version with more complex structures, \
-            and a target_level_alt in \(langName) showing C1 professional interpreter phrasing. \
-            If the sentence is Excellent, explain why it works at the B1 level.
-            """
+        case "C2":  nextLevelName = "native-polish"; targetLevelName = nil
+        case "C1":  nextLevelName = "C2";            targetLevelName = nil
+        case "B2":  nextLevelName = "C1";            targetLevelName = "C2"
+        default:    nextLevelName = "B2";            targetLevelName = "C1"
+        }
+
+        let targetInstruction: String
+        if let target = targetLevelName {
+            targetInstruction = "For targetLevelAlt: rewrite the sentence at \(target) level in \(langName)."
+        } else {
+            targetInstruction = "Set targetLevelAlt to nil."
         }
 
         let instructions = """
-        You are a \(langName) professor training interpreters. \
-        \(levelGuidance) \
-        Always identify the specific grammar rule being used, even when the sentence is correct. \
-        Always explain WHY the sentence is correct or incorrect — be specific and actionable. \
-        IMPORTANT: All alternatives (b1_alternative, c1_alternative, correction) MUST be written entirely in \(langName). Never write them in English. \
-        Keep explanations and grammar_rule in English. \
-        Be encouraging but honest. Give the learner something concrete to improve on.
+        You are a \(langName) grammar checker. The learner is at CEFR level \(level).
+
+        LANGUAGE RULE: The sentence is in \(langName). \
+        All example sentences you write (nextLevelAlt, targetLevelAlt, correction) MUST be in \(langName). \
+        \(language == "es" ? "Write ALL example sentences in SPANISH. Do NOT write French." : "Write ALL example sentences in FRENCH. Do NOT write Spanish.")
+
+        ACCURACY RULE: Only mark a sentence as "Needs Improvement" if there is a real grammar error. \
+        If the sentence is grammatically correct, mark it as "Excellent". \
+        Do NOT invent errors. A simple correct sentence is still correct.
+
+        For nextLevelAlt: rewrite the sentence at \(nextLevelName) level in \(langName). \
+        \(targetInstruction)
+
+        Identify the grammar rule being used. Explain why the sentence is correct or incorrect. \
+        Keep grammarRule and explanation in English.
         """
 
         let session = LanguageModelSession(instructions: instructions)
-        let prompt = "Analyze this \(langName) sentence: \"\(sentence)\""
+        let prompt = "Is this \(langName) sentence correct? \"\(sentence)\""
         let response = try await session.respond(to: prompt, generating: SentenceReview.self)
         let fb = response.content
 
