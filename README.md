@@ -1,4 +1,4 @@
-# Diario — Spanish Writing Coach
+# Parlance — The Application for Aspiring Interpreters. 
 ### Getting it onto your iPhone 15 Pro Max in 10 minutes
 
 ---
