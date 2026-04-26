@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Parlance</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Spectral:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="logo">Parlance</div>
+    <div class="date-badge" id="dateBadge"></div>
+  </div>
+  <div class="header-right">
+    <select class="header-select" id="langSelect" onchange="onLanguageChange()">
+      <option value="es">Español</option>
+      <option value="fr">Français</option>
+    </select>
+    <select class="header-select" id="levelSelect">
+      <option value="B1">B1</option>
+      <option value="B2" selected>B2</option>
+      <option value="C1">C1</option>
+    </select>
+    <button class="privacy-link" onclick="showPrivacyPolicy()">Privacy</button>
+  </div>
+</header>
+
+<div class="offline-banner" id="offlineBanner">You're offline — writing is saved locally, but feedback requires a connection.</div>
+
+<div class="workspace">
+
+  <!-- ── JOURNAL ── -->
+  <div class="journal-panel">
+    <div class="journal-header">
+      <input class="journal-title-input" id="entryTitle" type="text" placeholder="Entry title…" />
+      <div class="sentence-count" id="sentenceCount">0 sentences</div>
+    </div>
+    <div class="sentences-area" id="sentencesArea"></div>
+    <div style="padding: 0 1.75rem 1rem;">
+      <button class="add-sentence-btn" id="addSentenceBtn" onclick="addSentence()">
+        <span>+</span> Add another sentence
+      </button>
+    </div>
+    <div class="journal-footer">
+      <div class="word-count" id="wordCount">0 words</div>
+      <button class="save-btn" onclick="saveEntry()">Save Entry</button>
+    </div>
+  </div>
+
+  <!-- ── SIDE PANEL ── -->
+  <div class="feedback-panel" id="feedbackPanel">
+    <div class="feedback-panel-tabs">
+      <button class="feedback-tab active" onclick="switchTab('feedback', this)">Feedback</button>
+      <button class="feedback-tab" onclick="switchTab('prompts', this)">Prompts</button>
+      <button class="feedback-tab" onclick="switchTab('guide', this)">Guide</button>
+    </div>
+    <div class="feedback-panel-inner" id="feedbackInner">
+      <div class="waiting-card" id="waitingCard">
+        <div class="waiting-icon">🖊️</div>
+        <div class="waiting-text">Write a sentence and pause for a moment.<br><br>Feedback will appear here automatically.</div>
+      </div>
+    </div>
+    <div class="feedback-panel-inner" id="promptsInner" style="display:none">
+      <div class="prompt-area">
+        <div class="prompt-label">Click a prompt to use it as your first sentence</div>
+        <div class="prompt-list" id="promptList"></div>
+      </div>
+    </div>
+    <div class="feedback-panel-inner" id="guideInner" style="display:none">
+      <div class="guide-container" id="guideContent">
+        <div class="guide-coming-soon">Select the Guide tab to load the conjugation reference.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Past entries bar -->
+<div class="past-bar" id="pastBar" style="display:none">
+  <div class="past-bar-title">Past Entries</div>
+  <div class="past-entries" id="pastEntries"></div>
+</div>
+
+<!-- Entry viewer overlay -->
+<div id="entryOverlay" style="display:none">
+  <div class="entry-viewer">
+    <div class="entry-viewer-header">
+      <div>
+        <div class="entry-viewer-title" id="entryViewerTitle"></div>
+        <div class="entry-viewer-meta" id="entryViewerMeta"></div>
+      </div>
+      <button class="entry-viewer-close" onclick="closeEntryViewer()">&times;</button>
+    </div>
+    <div class="entry-viewer-body" id="entryViewerBody"></div>
+  </div>
+</div>
+
+<div class="error-toast" id="errorToast"></div>
+
+<!-- Guide overlay -->
+<div id="guideOverlay" style="display:none;position:fixed;inset:0;z-index:200;background:#0e0e0f;">
+  <iframe id="guideFrame" style="width:100%;height:100%;border:none;" sandbox="allow-scripts allow-same-origin"></iframe>
+</div>
+
+<script src="journal.js"></script>
+</body>
+</html>
