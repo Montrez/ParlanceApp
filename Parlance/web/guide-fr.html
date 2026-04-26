@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>French B1→C2 Conjugation Guide</title>
+<title>French A1→C2 Conjugation Guide</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -94,6 +94,8 @@ body {
 }
 .b2b { background: #fdecea; color: var(--red); }
 .b1b { background: #e8f0fb; color: var(--blue); }
+.a1b { background: #e8f5e9; color: #2e7d32; }
+.a2b { background: #fff3e0; color: #e65100; }
 
 .content {
   flex: 1;
@@ -143,6 +145,8 @@ body {
   font-size: 0.65rem; font-weight: 600; padding: 2px 8px; border-radius: 20px;
   letter-spacing: 0.05em; flex-shrink: 0;
 }
+.a1-pill { background: #e8f5e9; color: #2e7d32; }
+.a2-pill { background: #fff3e0; color: #e65100; }
 .pill-b1 { background: #eaf3ee; color: var(--green); }
 .pill-b2 { background: #fdecea; color: var(--red); }
 .pill-both { background: var(--tag-bg); color: var(--muted); }
@@ -367,10 +371,20 @@ body {
   <div class="sidebar-logo">
     <div class="flag-row">🇫🇷</div>
     <h1>Conjugaisons</h1>
-    <p>B1 → C2 Deep Reference</p>
+    <p>A1 → C2 Deep Reference</p>
   </div>
 
-  <div class="nav-label">B1 Tenses</div>
+  <div class="nav-label">A1 Foundations</div>
+  <a class="nav-item" href="#present"><span>Présent de l'indicatif</span> <span class="nbadge a1b">A1</span></a>
+  <a class="nav-item" href="#etre-avoir"><span>Être et Avoir</span> <span class="nbadge a1b">A1</span></a>
+  <a class="nav-item" href="#stem-changes-a1"><span>Verbes à Radical Variable</span> <span class="nbadge a1b">A1</span></a>
+
+  <div class="nav-label" style="margin-top:0.5rem">A2 Building Blocks</div>
+  <a class="nav-item" href="#reflexifs"><span>Verbes Pronominaux</span> <span class="nbadge a2b">A2</span></a>
+  <a class="nav-item" href="#futur-proche"><span>Futur Proche</span> <span class="nbadge a2b">A2</span></a>
+  <a class="nav-item" href="#partitifs"><span>Articles Partitifs</span> <span class="nbadge a2b">A2</span></a>
+
+  <div class="nav-label" style="margin-top:0.5rem">B1 Tenses</div>
   <a class="nav-item active" href="#passe-compose">Passé Composé <span class="nbadge b1b">B1</span></a>
   <a class="nav-item" href="#imparfait">Imparfait <span class="nbadge b1b">B1</span></a>
   <a class="nav-item" href="#futur-simple">Futur Simple <span class="nbadge b1b">B1</span></a>
@@ -403,10 +417,536 @@ body {
 <div class="intro-band">
   <div class="intro-flag">📖</div>
   <div>
-    <div class="intro-title">French B1 → C2 Conjugation Guide</div>
+    <div class="intro-title">A1 → C2 French Conjugation Guide</div>
     <div class="intro-sub">Full rules, irregular verbs, trigger words, and real examples. Use the sidebar to navigate between tenses.</div>
   </div>
 </div>
+
+<!-- ═══════════════════════════════════════════ A1 ═══════════════════════════════════════════ -->
+
+<!-- PRÉSENT DE L'INDICATIF -->
+<section class="tense-section" id="present">
+  <div class="section-chapter">Present Tense · A1</div>
+  <div class="tense-header-row">
+    <h2 class="tense-title">Présent de l'indicatif</h2>
+    <span class="level-pill a1-pill">A1</span>
+  </div>
+  <p class="tense-subtitle">"The present tense" — what you do, what's happening now, general truths</p>
+
+  <div class="rule-box">
+    <div class="rule-label">The Core Rule</div>
+    <p>The present tense describes <strong>current actions, daily routines, and general truths</strong>. French has three regular verb groups: <strong>-ER</strong> (the largest), <strong>-IR</strong>, and <strong>-RE</strong>. Each group follows a predictable pattern of endings. Many of the most common verbs are irregular and must be memorized.</p>
+  </div>
+
+  <div class="conj-grid">
+    <div class="conj-block">
+      <div class="conj-block-head">-ER → parler (to speak)</div>
+      <table class="conj-table">
+        <tr><td>je</td><td>parl<strong>e</strong></td></tr>
+        <tr><td>tu</td><td>parl<strong>es</strong></td></tr>
+        <tr><td>il/elle</td><td>parl<strong>e</strong></td></tr>
+        <tr><td>nous</td><td>parl<strong>ons</strong></td></tr>
+        <tr><td>vous</td><td>parl<strong>ez</strong></td></tr>
+        <tr><td>ils/elles</td><td>parl<strong>ent</strong></td></tr>
+      </table>
+    </div>
+    <div class="conj-block">
+      <div class="conj-block-head">-IR → finir (to finish)</div>
+      <table class="conj-table">
+        <tr><td>je</td><td>fin<strong>is</strong></td></tr>
+        <tr><td>tu</td><td>fin<strong>is</strong></td></tr>
+        <tr><td>il/elle</td><td>fin<strong>it</strong></td></tr>
+        <tr><td>nous</td><td>fin<strong>issons</strong></td></tr>
+        <tr><td>vous</td><td>fin<strong>issez</strong></td></tr>
+        <tr><td>ils/elles</td><td>fin<strong>issent</strong></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="conj-grid">
+    <div class="conj-block">
+      <div class="conj-block-head">-RE → vendre (to sell)</div>
+      <table class="conj-table">
+        <tr><td>je</td><td>vend<strong>s</strong></td></tr>
+        <tr><td>tu</td><td>vend<strong>s</strong></td></tr>
+        <tr><td>il/elle</td><td>vend</td></tr>
+        <tr><td>nous</td><td>vend<strong>ons</strong></td></tr>
+        <tr><td>vous</td><td>vend<strong>ez</strong></td></tr>
+        <tr><td>ils/elles</td><td>vend<strong>ent</strong></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="irreg-wrap">
+    <div class="conj-block-head" style="padding:0.38rem 0.8rem;background:var(--tag-bg);border:1px solid var(--border);border-bottom:none;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);font-weight:600">Key Irregular Verbs — Present Tense</div>
+    <table class="irreg-table">
+      <tr><th>Infinitive</th><th>je</th><th>il/elle</th><th>Infinitive</th><th>je</th><th>il/elle</th></tr>
+      <tr><td>être</td><td>suis</td><td>est</td><td>avoir</td><td>ai</td><td>a</td></tr>
+      <tr><td>aller</td><td>vais</td><td>va</td><td>faire</td><td>fais</td><td>fait</td></tr>
+      <tr><td>pouvoir</td><td>peux</td><td>peut</td><td>vouloir</td><td>veux</td><td>veut</td></tr>
+      <tr><td>savoir</td><td>sais</td><td>sait</td><td>devoir</td><td>dois</td><td>doit</td></tr>
+      <tr><td>prendre</td><td>prends</td><td>prend</td><td>venir</td><td>viens</td><td>vient</td></tr>
+    </table>
+  </div>
+
+  <div class="trigger-box">
+    <div class="trigger-label">Trigger Expressions → Présent</div>
+    <div class="trigger-list">
+      <span class="tw tw-green">maintenant</span>
+      <span class="tw tw-green">aujourd'hui</span>
+      <span class="tw tw-green">toujours</span>
+      <span class="tw tw-green">normalement</span>
+      <span class="tw tw-green">chaque jour</span>
+      <span class="tw tw-green">tous les jours</span>
+      <span class="tw tw-green">parfois</span>
+      <span class="tw tw-green">en général</span>
+      <span class="tw tw-green">souvent</span>
+    </div>
+  </div>
+
+  <div class="when-grid">
+    <div class="when-card">
+      <div class="wi">☕</div>
+      <div>
+        <div class="when-rule">Daily routines</div>
+        <div class="when-fr">Chaque matin, je prends un café.</div>
+        <div class="when-en">Every morning I have a coffee.</div>
+      </div>
+    </div>
+    <div class="when-card">
+      <div class="wi">🌍</div>
+      <div>
+        <div class="when-rule">General truths</div>
+        <div class="when-fr">La Terre tourne autour du Soleil.</div>
+        <div class="when-en">The Earth revolves around the Sun.</div>
+      </div>
+    </div>
+    <div class="when-card">
+      <div class="wi">📖</div>
+      <div>
+        <div class="when-rule">Current actions</div>
+        <div class="when-fr">Maintenant, j'étudie le français.</div>
+        <div class="when-en">Now I'm studying French.</div>
+      </div>
+    </div>
+    <div class="when-card">
+      <div class="wi">📅</div>
+      <div>
+        <div class="when-rule">Near future with present</div>
+        <div class="when-fr">Demain, je travaille de chez moi.</div>
+        <div class="when-en">Tomorrow I work from home.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ÊTRE ET AVOIR -->
+<section class="tense-section" id="etre-avoir">
+  <div class="section-chapter">Essential Verbs · A1</div>
+  <div class="tense-header-row">
+    <h2 class="tense-title">Être et Avoir</h2>
+    <span class="level-pill a1-pill">A1</span>
+  </div>
+  <p class="tense-subtitle">"The two most essential verbs" — être (to be) and avoir (to have) are irregular and used everywhere</p>
+
+  <div class="rule-box">
+    <div class="rule-label">The Core Rule</div>
+    <p><strong>Être</strong> (to be) and <strong>avoir</strong> (to have) are the two most important verbs in French. They are both irregular and must be memorized completely. They serve as auxiliary verbs for compound tenses and appear in countless everyday expressions.</p>
+  </div>
+
+  <div class="conj-grid">
+    <div class="conj-block">
+      <div class="conj-block-head">être (to be)</div>
+      <table class="conj-table">
+        <tr><td>je</td><td><strong>suis</strong></td></tr>
+        <tr><td>tu</td><td><strong>es</strong></td></tr>
+        <tr><td>il/elle</td><td><strong>est</strong></td></tr>
+        <tr><td>nous</td><td><strong>sommes</strong></td></tr>
+        <tr><td>vous</td><td><strong>êtes</strong></td></tr>
+        <tr><td>ils/elles</td><td><strong>sont</strong></td></tr>
+      </table>
+    </div>
+    <div class="conj-block">
+      <div class="conj-block-head">avoir (to have)</div>
+      <table class="conj-table">
+        <tr><td>je / j'</td><td><strong>ai</strong></td></tr>
+        <tr><td>tu</td><td><strong>as</strong></td></tr>
+        <tr><td>il/elle</td><td><strong>a</strong></td></tr>
+        <tr><td>nous</td><td><strong>avons</strong></td></tr>
+        <tr><td>vous</td><td><strong>avez</strong></td></tr>
+        <tr><td>ils/elles</td><td><strong>ont</strong></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="when-grid">
+    <div class="when-card">
+      <div class="wi">🪪</div>
+      <div>
+        <div class="when-rule">Être — Identity</div>
+        <div class="when-fr">Je suis étudiant.</div>
+        <div class="when-en">I am a student.</div>
+      </div>
+    </div>
+    <div class="when-card">
+      <div class="wi">📍</div>
+      <div>
+        <div class="when-rule">Être — Origin</div>
+        <div class="when-fr">Elle est de Paris.</div>
+        <div class="when-en">She is from Paris.</div>
+      </div>
+    </div>
+    <div class="when-card">
+      <div class="wi">🎨</div>
+      <div>
+        <div class="when-rule">Être — Description</div>
+        <div class="when-fr">Mon frère est grand et sympathique.</div>
+        <div class="when-en">My brother is tall and nice.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="when-grid">
+    <div class="when-card">
+      <div class="wi">🐱</div>
+      <div>
+        <div class="when-rule">Avoir — Possession</div>
+        <div class="when-fr">J'ai un chat.</div>
+        <div class="when-en">I have a cat.</div>
+      </div>
+    </div>
+    <div class="when-card">
+      <div class="wi">🎂</div>
+      <div>
+        <div class="when-rule">Avoir — Age (French uses avoir!)</div>
+        <div class="when-fr">J'ai vingt-cinq ans.</div>
+        <div class="when-en">I am twenty-five years old.</div>
+      </div>
+    </div>
+    <div class="when-card">
+      <div class="wi">🌡️</div>
+      <div>
+        <div class="when-rule">Avoir — Expressions</div>
+        <div class="when-fr">J'ai faim / J'ai soif / J'ai froid.</div>
+        <div class="when-en">I'm hungry / thirsty / cold.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule-box">
+    <div class="rule-label">Avoir Expressions — Watch Out!</div>
+    <p>Unlike English, French uses <strong>AVOIR</strong> (to have) for: age (<em>avoir ... ans</em>), hunger (<em>avoir faim</em>), thirst (<em>avoir soif</em>), hot/cold (<em>avoir chaud/froid</em>), fear (<em>avoir peur</em>), need (<em>avoir besoin de</em>).</p>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- VERBES À RADICAL VARIABLE -->
+<section class="tense-section" id="stem-changes-a1">
+  <div class="section-chapter">Spelling Changes · A1</div>
+  <div class="tense-header-row">
+    <h2 class="tense-title">Verbes à Radical Variable</h2>
+    <span class="level-pill a1-pill">A1</span>
+  </div>
+  <p class="tense-subtitle">"Stem-changing verbs" — some -ER verbs change spelling in certain forms to preserve pronunciation</p>
+
+  <div class="rule-box">
+    <div class="rule-label">The Core Rule</div>
+    <p>Certain <strong>-ER verbs</strong> undergo a spelling change in the stem when the ending is silent (je, tu, il/elle, ils/elles forms). The nous and vous forms keep the original spelling. There are three main patterns: <strong>e→è</strong>, <strong>double consonant</strong>, and <strong>é→è</strong>.</p>
+  </div>
+
+  <div class="conj-grid">
+    <div class="conj-block">
+      <div class="conj-block-head">e→è : acheter (to buy)</div>
+      <table class="conj-table">
+        <tr><td>je</td><td>ach<strong>è</strong>te</td></tr>
+        <tr><td>tu</td><td>ach<strong>è</strong>tes</td></tr>
+        <tr><td>il/elle</td><td>ach<strong>è</strong>te</td></tr>
+        <tr><td>nous</td><td>ach<strong>e</strong>tons</td></tr>
+        <tr><td>vous</td><td>ach<strong>e</strong>tez</td></tr>
+        <tr><td>ils/elles</td><td>ach<strong>è</strong>tent</td></tr>
+        <tr><td colspan="2" class="note-cell">Also: lever, mener, peser</td></tr>
+      </table>
+    </div>
+    <div class="conj-block">
+      <div class="conj-block-head">Double consonant : appeler (to call)</div>
+      <table class="conj-table">
+        <tr><td>je</td><td>appe<strong>ll</strong>e</td></tr>
+        <tr><td>tu</td><td>appe<strong>ll</strong>es</td></tr>
+        <tr><td>il/elle</td><td>appe<strong>ll</strong>e</td></tr>
+        <tr><td>nous</td><td>appe<strong>l</strong>ons</td></tr>
+        <tr><td>vous</td><td>appe<strong>l</strong>ez</td></tr>
+        <tr><td>ils/elles</td><td>appe<strong>ll</strong>ent</td></tr>
+        <tr><td colspan="2" class="note-cell">Also: jeter → jette/jetons</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="conj-grid">
+    <div class="conj-block">
+      <div class="conj-block-head">é→è : préférer (to prefer)</div>
+      <table class="conj-table">
+        <tr><td>je</td><td>préf<strong>è</strong>re</td></tr>
+        <tr><td>tu</td><td>préf<strong>è</strong>res</td></tr>
+        <tr><td>il/elle</td><td>préf<strong>è</strong>re</td></tr>
+        <tr><td>nous</td><td>préf<strong>é</strong>rons</td></tr>
+        <tr><td>vous</td><td>préf<strong>é</strong>rez</td></tr>
+        <tr><td>ils/elles</td><td>préf<strong>è</strong>rent</td></tr>
+        <tr><td colspan="2" class="note-cell">Also: espérer, répéter, compléter</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="when-grid">
+    <div class="when-card">
+      <div class="wi">🥖</div>
+      <div>
+        <div class="when-rule">e→è pattern</div>
+        <div class="when-fr">J'achète du pain tous les matins.</div>
+        <div class="when-en">I buy bread every morning.</div>
+      </div>
+    </div>
+    <div class="when-card">
+      <div class="wi">👋</div>
+      <div>
+        <div class="when-rule">Double consonant pattern</div>
+        <div class="when-fr">Comment tu t'appelles ?</div>
+        <div class="when-en">What's your name?</div>
+      </div>
+    </div>
+    <div class="when-card">
+      <div class="wi">☕</div>
+      <div>
+        <div class="when-rule">é→è pattern</div>
+        <div class="when-fr">Je préfère le thé au café.</div>
+        <div class="when-en">I prefer tea to coffee.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════════════════ A2 ═══════════════════════════════════════════ -->
+
+<!-- VERBES PRONOMINAUX -->
+<section class="tense-section" id="reflexifs">
+  <div class="section-chapter">Reflexive Verbs · A2</div>
+  <div class="tense-header-row">
+    <h2 class="tense-title">Verbes Pronominaux</h2>
+    <span class="level-pill a2-pill">A2</span>
+  </div>
+  <p class="tense-subtitle">"Reflexive verbs" — the action reflects back on the subject using me, te, se, nous, vous, se</p>
+
+  <div class="rule-box">
+    <div class="rule-label">The Core Rule</div>
+    <p>Pronominal verbs use a <strong>reflexive pronoun</strong> (me, te, se, nous, vous, se) — the action reflects back on the subject. The pronoun always matches the subject and comes <strong>before the conjugated verb</strong>. In the infinitive form, the pronoun is <em>se</em> (se lever, se coucher).</p>
+  </div>
+
+  <div class="conj-grid">
+    <div class="conj-block">
+      <div class="conj-block-head">se lever (to get up)</div>
+      <table class="conj-table">
+        <tr><td>je</td><td><strong>me</strong> lève</td></tr>
+        <tr><td>tu</td><td><strong>te</strong> lèves</td></tr>
+        <tr><td>il/elle</td><td><strong>se</strong> lève</td></tr>
+        <tr><td>nous</td><td><strong>nous</strong> levons</td></tr>
+        <tr><td>vous</td><td><strong>vous</strong> levez</td></tr>
+        <tr><td>ils/elles</td><td><strong>se</strong> lèvent</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="trigger-box">
+    <div class="trigger-label">Common Reflexive Verbs</div>
+    <div class="trigger-list">
+      <span class="tw tw-blue">se réveiller</span>
+      <span class="tw tw-blue">se doucher</span>
+      <span class="tw tw-blue">s'habiller</span>
+      <span class="tw tw-blue">se coucher</span>
+      <span class="tw tw-blue">se sentir</span>
+      <span class="tw tw-blue">s'appeler</span>
+      <span class="tw tw-blue">s'en aller</span>
+      <span class="tw tw-blue">s'asseoir</span>
+      <span class="tw tw-blue">s'amuser</span>
+      <span class="tw tw-blue">s'inquiéter</span>
+    </div>
+  </div>
+
+  <div class="when-grid">
+    <div class="when-card">
+      <div class="wi">🌅</div>
+      <div>
+        <div class="when-rule">Daily routines</div>
+        <div class="when-fr">Je me réveille à sept heures et je me douche.</div>
+        <div class="when-en">I wake up at seven and shower.</div>
+      </div>
+    </div>
+    <div class="when-card">
+      <div class="wi">😊</div>
+      <div>
+        <div class="when-rule">Emotions</div>
+        <div class="when-fr">Je me sens heureux aujourd'hui.</div>
+        <div class="when-en">I feel happy today.</div>
+      </div>
+    </div>
+    <div class="when-card">
+      <div class="wi">📞</div>
+      <div>
+        <div class="when-rule">Reciprocal</div>
+        <div class="when-fr">Nous nous appelons tous les jours.</div>
+        <div class="when-en">We call each other every day.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- FUTUR PROCHE -->
+<section class="tense-section" id="futur-proche">
+  <div class="section-chapter">Near Future · A2</div>
+  <div class="tense-header-row">
+    <h2 class="tense-title">Futur Proche</h2>
+    <span class="level-pill a2-pill">A2</span>
+  </div>
+  <p class="tense-subtitle">"The near future" — what you're going to do. Use aller (conjugated) + infinitive</p>
+
+  <div class="rule-box">
+    <div class="rule-label">The Core Rule</div>
+    <p>The futur proche is formed with <strong>aller (conjugated in present tense) + infinitive</strong>. It expresses what you are <strong>going to do</strong> — plans, intentions, and near-future events. This is the most common way to talk about the future in everyday spoken French.</p>
+  </div>
+
+  <div class="conj-grid">
+    <div class="conj-block">
+      <div class="conj-block-head">aller + infinitive</div>
+      <table class="conj-table">
+        <tr><td>je</td><td><strong>vais</strong> parler</td></tr>
+        <tr><td>tu</td><td><strong>vas</strong> manger</td></tr>
+        <tr><td>il/elle</td><td><strong>va</strong> finir</td></tr>
+        <tr><td>nous</td><td><strong>allons</strong> étudier</td></tr>
+        <tr><td>vous</td><td><strong>allez</strong> lire</td></tr>
+        <tr><td>ils/elles</td><td><strong>vont</strong> écrire</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="trigger-box">
+    <div class="trigger-label">Trigger Expressions → Futur Proche</div>
+    <div class="trigger-list">
+      <span class="tw tw-green">demain</span>
+      <span class="tw tw-green">ce soir</span>
+      <span class="tw tw-green">lundi prochain</span>
+      <span class="tw tw-green">la semaine prochaine</span>
+      <span class="tw tw-green">ce week-end</span>
+      <span class="tw tw-green">après</span>
+      <span class="tw tw-green">bientôt</span>
+      <span class="tw tw-green">plus tard</span>
+    </div>
+  </div>
+
+  <div class="when-grid">
+    <div class="when-card">
+      <div class="wi">📚</div>
+      <div>
+        <div class="when-rule">Plans</div>
+        <div class="when-fr">Je vais étudier le français ce soir.</div>
+        <div class="when-en">I'm going to study French tonight.</div>
+      </div>
+    </div>
+    <div class="when-card">
+      <div class="wi">✈️</div>
+      <div>
+        <div class="when-rule">Intentions</div>
+        <div class="when-fr">Nous allons voyager en France l'année prochaine.</div>
+        <div class="when-en">We're going to travel to France next year.</div>
+      </div>
+    </div>
+    <div class="when-card">
+      <div class="wi">🌧️</div>
+      <div>
+        <div class="when-rule">Predictions</div>
+        <div class="when-fr">Il va pleuvoir cet après-midi.</div>
+        <div class="when-en">It's going to rain this afternoon.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ARTICLES PARTITIFS -->
+<section class="tense-section" id="partitifs">
+  <div class="section-chapter">Grammar · A2</div>
+  <div class="tense-header-row">
+    <h2 class="tense-title">Articles Partitifs</h2>
+    <span class="level-pill a2-pill">A2</span>
+  </div>
+  <p class="tense-subtitle">"Partitive articles" — du, de la, de l', des express an unspecified quantity: "some" or "any"</p>
+
+  <div class="rule-box">
+    <div class="rule-label">The Core Rule</div>
+    <p>Partitive articles express an <strong>unspecified quantity</strong> of something — "some" or "any." Choose the article based on the gender and number of the noun: <strong>du</strong> (masculine singular), <strong>de la</strong> (feminine singular), <strong>de l'</strong> (before a vowel or silent h), <strong>des</strong> (plural).</p>
+  </div>
+
+  <div class="conj-grid">
+    <div class="conj-block">
+      <div class="conj-block-head">Partitive Articles</div>
+      <table class="conj-table">
+        <tr><td>Masc. singular</td><td><strong>du</strong> (du pain)</td></tr>
+        <tr><td>Fem. singular</td><td><strong>de la</strong> (de la confiture)</td></tr>
+        <tr><td>Before vowel</td><td><strong>de l'</strong> (de l'eau)</td></tr>
+        <tr><td>Plural</td><td><strong>des</strong> (des légumes)</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="danger">
+    <div class="danger-label">Negation Rule</div>
+    In negative sentences, <strong>ALL partitive articles become DE / D'</strong>: Je mange <strong>du</strong> pain → Je ne mange pas <strong>de</strong> pain. J'ai <strong>de la</strong> chance → Je n'ai pas <strong>de</strong> chance. Il boit <strong>de l'</strong>eau → Il ne boit pas <strong>d'</strong>eau.
+  </div>
+
+  <div class="when-grid">
+    <div class="when-card">
+      <div class="wi">🥖</div>
+      <div>
+        <div class="when-rule">Food</div>
+        <div class="when-fr">Je mange du pain et de la confiture.</div>
+        <div class="when-en">I eat (some) bread and jam.</div>
+      </div>
+    </div>
+    <div class="when-card">
+      <div class="wi">💭</div>
+      <div>
+        <div class="when-rule">Abstract</div>
+        <div class="when-fr">Il faut de la patience.</div>
+        <div class="when-en">You need (some) patience.</div>
+      </div>
+    </div>
+    <div class="when-card">
+      <div class="wi">🚫</div>
+      <div>
+        <div class="when-rule">Negative</div>
+        <div class="when-fr">Je ne bois pas de café.</div>
+        <div class="when-en">I don't drink (any) coffee.</div>
+      </div>
+    </div>
+    <div class="when-card">
+      <div class="wi">📏</div>
+      <div>
+        <div class="when-rule">After quantity expressions</div>
+        <div class="when-fr">Beaucoup de travail / un peu de lait.</div>
+        <div class="when-en">A lot of work / a little milk.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════════════════ B1 ═══════════════════════════════════════════ -->
 
 <!-- PASSÉ COMPOSÉ -->
 <section class="tense-section" id="passe-compose">

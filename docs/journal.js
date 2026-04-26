@@ -312,9 +312,25 @@ function viewEntry(entry) {
     body.appendChild(row);
   });
 
+  const deleteBtn = document.getElementById('entryDeleteBtn');
+  deleteBtn.onclick = () => deleteEntry(entry.id);
+
   const overlay = document.getElementById('entryOverlay');
   overlay.style.display = 'flex';
   overlay.onclick = (e) => { if (e.target === overlay) closeEntryViewer(); };
+}
+
+function deleteEntry(entryId) {
+  const idx = state.savedEntries.findIndex(e => e.id === entryId);
+  if (idx === -1) return;
+  state.savedEntries.splice(idx, 1);
+  try { localStorage.setItem('parlance_entries', JSON.stringify(state.savedEntries)); } catch(e) {}
+  closeEntryViewer();
+  renderPastEntries();
+  if (!state.savedEntries.length) {
+    document.getElementById('pastBar').style.display = 'none';
+  }
+  showToast('Entry deleted.');
 }
 
 function closeEntryViewer() {

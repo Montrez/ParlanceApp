@@ -24,7 +24,7 @@ struct SentenceReview {
     @Guide(description: "The same idea rewritten two CEFR levels up, in the SAME language as the input sentence. Nil if learner is at C1 or C2. Must NOT be in a different language.")
     var targetLevelAlt: String?
 
-    @Guide(description: "A short practical tip about register or word choice, in English")
+    @Guide(description: "A short practical tip about register (formal vs informal) or word choice, in English. Always include register awareness for interpreter training.")
     var tip: String?
 }
 
@@ -44,7 +44,9 @@ final class OnDeviceAnalyzer: Sendable {
         case "C2":  nextLevelName = "native-polish"; targetLevelName = nil
         case "C1":  nextLevelName = "C2";            targetLevelName = nil
         case "B2":  nextLevelName = "C1";            targetLevelName = "C2"
-        default:    nextLevelName = "B2";            targetLevelName = "C1"
+        case "B1":  nextLevelName = "B2";            targetLevelName = "C1"
+        case "A2":  nextLevelName = "B1";            targetLevelName = "B2"
+        default:    nextLevelName = "A2";            targetLevelName = "B1"
         }
 
         let targetInstruction: String
@@ -69,6 +71,7 @@ final class OnDeviceAnalyzer: Sendable {
         \(targetInstruction)
 
         Identify the grammar rule being used. Explain why the sentence is correct or incorrect. \
+        Always include a tip about register (formal vs informal) — the learner is training to become an interpreter. \
         Keep grammarRule and explanation in English.
         """
 

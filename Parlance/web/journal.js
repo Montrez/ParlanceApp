@@ -401,11 +401,19 @@ function buildPrompt(sentence, level) {
   } else if (level === 'B2') {
     nextLabel = 'C1';
     targetLabel = 'C2';
-    levelGuidance = `Focus on verb tense correctness (especially subjunctive vs indicative), gender/number agreement, and Anglicisms. Always provide a next_level_alt in ${lang.coachRole} showing C1 professional interpreter phrasing, and a target_level_alt in ${lang.coachRole} showing C2 native-level mastery. If Excellent, explain which B2-level rule was applied correctly.`;
-  } else {
+    levelGuidance = `Focus on verb tense correctness (especially subjunctive vs indicative), gender/number agreement, and Anglicisms. Note register: is the sentence formal or informal? Would an interpreter use this phrasing in a professional setting? Always provide a next_level_alt in ${lang.coachRole} showing C1 professional interpreter phrasing, and a target_level_alt in ${lang.coachRole} showing C2 native-level mastery. If Excellent, explain which B2-level rule was applied correctly.`;
+  } else if (level === 'B1') {
     nextLabel = 'B2';
     targetLabel = 'C1';
-    levelGuidance = `Focus on basic verb tense correctness and gender agreement. Be encouraging and clear. Always provide a next_level_alt in ${lang.coachRole} showing a B2-level version with more complex structures, and a target_level_alt in ${lang.coachRole} showing C1 professional interpreter phrasing. If Excellent, explain why it works at B1 level.`;
+    levelGuidance = `Focus on basic verb tense correctness and gender agreement. Be encouraging and clear. Point out register: is the learner using tú/usted (tu/vous) appropriately? Introduce the concept of formal vs informal register for interpreter training. Always provide a next_level_alt in ${lang.coachRole} showing a B2-level version with more complex structures, and a target_level_alt in ${lang.coachRole} showing C1 professional interpreter phrasing. If Excellent, explain why it works at B1 level.`;
+  } else if (level === 'A2') {
+    nextLabel = 'B1';
+    targetLabel = 'B2';
+    levelGuidance = `Focus on basic present tense conjugation, gender agreement, and simple sentence structure. Be very encouraging. Check for correct use of reflexive verbs, near future (ir + a + infinitive / aller + infinitive), and basic vocabulary. Gently introduce register awareness: note whether the sentence uses informal (tú/tu) or formal (usted/vous) forms, as this learner is training to become an interpreter. Always provide a next_level_alt in ${lang.coachRole} showing a B1-level version with past tenses, and a target_level_alt in ${lang.coachRole} showing B2-level complexity. If Excellent, explain what the learner did well at A2 level.`;
+  } else {
+    nextLabel = 'A2';
+    targetLabel = 'B1';
+    levelGuidance = `Focus on basic present tense, ser/estar (être/avoir), and simple vocabulary. Be very encouraging and gentle — this is an absolute beginner training to become an interpreter. Check subject-verb agreement and basic word order. When relevant, gently note register: is the learner using tú or usted (tu or vous)? Explain the difference simply. Always provide a next_level_alt in ${lang.coachRole} showing an A2-level version with slightly more complex structures, and a target_level_alt in ${lang.coachRole} showing B1-level phrasing. If Excellent, praise the effort and explain the basic rule applied.`;
   }
 
   const targetLine = targetLabel
@@ -427,7 +435,7 @@ Respond with ONLY a valid JSON object — no markdown, no explanation outside th
   "correction": null or "Corrected version written entirely in ${lang.coachRole} (only if Needs Improvement)",
   "next_level_alt": "The same idea at ${nextLabel} level, written entirely in ${lang.coachRole} — NEVER in English",
   ${targetLine}
-  "tip": null or "A practical tip about register, Anglicisms, or word precision that helps the learner level up"
+  "tip": "A practical tip about register (formal vs informal), Anglicisms, or word precision — ALWAYS include a register note for interpreter training"
 }
 
 Rules:
@@ -435,6 +443,7 @@ Rules:
 - Always provide next_level_alt${targetLabel ? ' and target_level_alt' : ''} — they help learners see the range above them
 - Always identify the grammar rule, even when correct
 - Always explain WHY — be specific, not vague. Give the learner something concrete to work on
+- ALWAYS include a tip about register (formal/informal, professional/casual) — the learner is training to become a professional interpreter and register awareness is critical at every level
 - Keep explanation and grammar_rule in English; all sentence examples (correction, next_level_alt, target_level_alt) in ${lang.coachRole}
 - Be encouraging but honest — this is for someone training to become a professional interpreter`;
 }
@@ -510,8 +519,10 @@ function showFeedback(id) {
   card.className = 'feedback-card';
 
   const level = document.getElementById('levelSelect').value;
-  const nextLabel = level === 'C2' ? 'Native Polish' : level === 'C1' ? 'C2 Mastery' : level === 'B2' ? 'C1 Professional' : 'B2 Version';
-  const targetLabel = level === 'B1' ? 'C1 Professional' : level === 'B2' ? 'C2 Mastery' : null;
+  const nextLabels = { C2: 'Native Polish', C1: 'C2 Mastery', B2: 'C1 Professional', B1: 'B2 Version', A2: 'B1 Version', A1: 'A2 Version' };
+  const targetLabels = { B2: 'C2 Mastery', B1: 'C1 Professional', A2: 'B2 Version', A1: 'B1 Version' };
+  const nextLabel = nextLabels[level] || 'Next Level';
+  const targetLabel = targetLabels[level] || null;
 
   let bodyHTML = '';
   bodyHTML += feedbackItem('rule', 'label-rule', '📐 Grammar Rule', fb.grammar_rule, null);
@@ -660,9 +671,25 @@ function viewEntry(entry) {
     body.appendChild(row);
   });
 
+  const deleteBtn = document.getElementById('entryDeleteBtn');
+  deleteBtn.onclick = () => deleteEntry(entry.id);
+
   const overlay = document.getElementById('entryOverlay');
   overlay.style.display = 'flex';
   overlay.onclick = (e) => { if (e.target === overlay) closeEntryViewer(); };
+}
+
+function deleteEntry(entryId) {
+  const idx = state.savedEntries.findIndex(e => e.id === entryId);
+  if (idx === -1) return;
+  state.savedEntries.splice(idx, 1);
+  try { localStorage.setItem('parlance_entries', JSON.stringify(state.savedEntries)); } catch(e) {}
+  closeEntryViewer();
+  renderPastEntries();
+  if (!state.savedEntries.length) {
+    document.getElementById('pastBar').style.display = 'none';
+  }
+  showToast('Entry deleted.');
 }
 
 function closeEntryViewer() {

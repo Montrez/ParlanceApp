@@ -617,6 +617,24 @@ header {
   color: var(--muted);
   margin-top: 0.25rem;
 }
+.entry-viewer-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+.entry-viewer-delete {
+  background: none;
+  border: 1px solid #e0c9c9;
+  color: #b44;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.entry-viewer-delete:hover { background: #fdecea; border-color: #b44; }
 .entry-viewer-close {
   background: none;
   border: none;

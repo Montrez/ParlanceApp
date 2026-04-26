@@ -68,19 +68,6 @@ header {
   border-radius: 4px;
   cursor: pointer;
 }
-.header-icon-btn {
-  background: none;
-  border: 1px solid #3d3833;
-  color: #9b9189;
-  padding: 0.25rem;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.15s;
-}
-.header-icon-btn:hover { color: var(--paper); }
 
 /* ── OFFLINE BANNER ── */
 .offline-banner {
@@ -630,6 +617,24 @@ header {
   color: var(--muted);
   margin-top: 0.25rem;
 }
+.entry-viewer-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+.entry-viewer-delete {
+  background: none;
+  border: 1px solid #e0c9c9;
+  color: #b44;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.entry-viewer-delete:hover { background: #fdecea; border-color: #b44; }
 .entry-viewer-close {
   background: none;
   border: none;
@@ -666,161 +671,6 @@ header {
   line-height: 1.65;
   border-bottom: 1px solid var(--rule);
   padding-bottom: 0.5rem;
-}
-
-/* ── MODAL OVERLAY (shared) ── */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 400;
-  background: rgba(28, 25, 23, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-  animation: fadeIn 0.2s ease;
-}
-.modal-card {
-  background: var(--paper);
-  border: 1px solid var(--rule);
-  border-radius: 10px;
-  box-shadow: 0 8px 40px rgba(28, 25, 23, 0.2);
-  max-width: 520px;
-  width: 100%;
-  max-height: 85vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-.modal-header {
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--rule);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.modal-header h2 {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.15rem;
-  color: var(--ink);
-}
-.modal-close {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  color: var(--muted);
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-  flex-shrink: 0;
-}
-.modal-close:hover { color: var(--ink); }
-.modal-body {
-  padding: 1.25rem 1.5rem;
-  overflow-y: auto;
-  flex: 1;
-}
-
-/* ── SETTINGS MODAL ── */
-.settings-group {
-  margin-bottom: 1.5rem;
-}
-.settings-label {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ink);
-  font-weight: 500;
-  margin-bottom: 0.4rem;
-  display: block;
-}
-.settings-hint {
-  font-family: 'Spectral', serif;
-  font-size: 0.82rem;
-  color: var(--muted);
-  margin-bottom: 0.75rem;
-  line-height: 1.5;
-}
-.api-key-row {
-  display: flex;
-  gap: 0.4rem;
-  margin-bottom: 0.75rem;
-}
-.settings-input {
-  flex: 1;
-  background: var(--paper2);
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  padding: 0.55rem 0.75rem;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.8rem;
-  color: var(--ink);
-  outline: none;
-  transition: border-color 0.15s;
-}
-.settings-input:focus { border-color: var(--accent); }
-.settings-input::placeholder { color: var(--muted); }
-.settings-toggle-vis {
-  background: var(--paper2);
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  padding: 0.4rem 0.5rem;
-  cursor: pointer;
-  color: var(--muted);
-  display: flex;
-  align-items: center;
-}
-.settings-toggle-vis:hover { color: var(--ink); }
-.settings-save-btn {
-  background: var(--ink);
-  color: var(--paper);
-  border: none;
-  padding: 0.5rem 1.25rem;
-  border-radius: 4px;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.72rem;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-  transition: opacity 0.15s;
-}
-.settings-save-btn:hover { opacity: 0.8; }
-.settings-steps {
-  font-family: 'Spectral', serif;
-  font-size: 0.88rem;
-  color: var(--ink);
-  padding-left: 1.25rem;
-  line-height: 1.8;
-}
-.settings-steps li { margin-bottom: 0.1rem; }
-.settings-steps strong { font-weight: 600; }
-
-/* ── PRIVACY MODAL ── */
-.privacy-card {
-  max-width: 560px;
-}
-.privacy-section {
-  margin-bottom: 1.25rem;
-}
-.privacy-section h3 {
-  font-family: 'Playfair Display', serif;
-  font-size: 0.95rem;
-  color: var(--ink);
-  margin-bottom: 0.3rem;
-}
-.privacy-section p {
-  font-family: 'Spectral', serif;
-  font-size: 0.88rem;
-  color: #3d3833;
-  line-height: 1.65;
-}
-.privacy-updated {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.7rem;
-  color: var(--muted);
-  margin-top: 1rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--rule);
 }
 
 @media (max-width: 900px) {
