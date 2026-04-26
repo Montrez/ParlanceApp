@@ -1,10 +1,4 @@
-// ── CONFIG (standalone web version) ──────────────────────────────
-const parlanceConfig = {
-  mode: 'direct',
-  apiKey: localStorage.getItem('parlance_api_key') || '',
-  proxyURL: '',
-  onDeviceAvailable: false
-};
+// ── Parlance Web — journal + guides (no AI feedback) ──
 
 // ── LANGUAGE DEFINITIONS ─────────────────────────────────────────
 const languages = {
@@ -13,7 +7,6 @@ const languages = {
     name: 'Espanol',
     placeholder: 'Escribe una oracion en espanol...',
     titlePlaceholder: 'Entry title... (e.g. Mi primer dia en Valencia)',
-    coachRole: 'Spanish',
     guideFile: 'guide-es.html',
     prompts: [
       "Describe como fue tu primer dia aprendiendo espanol.",
@@ -30,7 +23,6 @@ const languages = {
     name: 'Francais',
     placeholder: 'Ecrivez une phrase en francais...',
     titlePlaceholder: 'Entry title... (e.g. Mon premier jour a Paris)',
-    coachRole: 'French',
     guideFile: 'guide-fr.html',
     prompts: [
       "Decrivez votre premier jour d'apprentissage du francais.",
@@ -48,10 +40,6 @@ const languages = {
 const state = {
   sentences: [],
   activeSentenceId: null,
-  analysisQueue: [],
-  isAnalyzing: false,
-  debounceTimers: {},
-  entryCount: 0,
   savedEntries: [],
   isOnline: navigator.onLine,
   currentLanguage: 'es',
@@ -71,10 +59,6 @@ function init() {
   loadSavedEntries();
   initNetworkMonitor();
   updatePlaceholders();
-
-  if (!parlanceConfig.apiKey) {
-    setTimeout(() => showSettings(), 600);
-  }
 }
 
 // ── LANGUAGE SWITCHING ───────────────────────────────────────────
@@ -83,7 +67,6 @@ function onLanguageChange() {
   localStorage.setItem('parlance_language', state.currentLanguage);
   updatePlaceholders();
   renderPrompts();
-  loadGuide();
 }
 
 function currentLang() {
@@ -113,36 +96,6 @@ function updateOnlineStatus(online) {
   } else {
     banner.classList.add('show');
   }
-}
-
-// ── SETTINGS ────────────────────────────────────────────────────
-function showSettings() {
-  const overlay = document.getElementById('settingsOverlay');
-  const input = document.getElementById('apiKeyInput');
-  input.value = parlanceConfig.apiKey || '';
-  overlay.style.display = 'flex';
-  overlay.onclick = (e) => { if (e.target === overlay) hideSettings(); };
-}
-
-function hideSettings() {
-  document.getElementById('settingsOverlay').style.display = 'none';
-}
-
-function saveApiKey() {
-  const key = document.getElementById('apiKeyInput').value.trim();
-  parlanceConfig.apiKey = key;
-  localStorage.setItem('parlance_api_key', key);
-  hideSettings();
-  if (key) {
-    showToast('API key saved!');
-  } else {
-    showToast('API key cleared.');
-  }
-}
-
-function toggleApiKeyVis() {
-  const input = document.getElementById('apiKeyInput');
-  input.type = input.type === 'password' ? 'text' : 'password';
 }
 
 // ── PRIVACY POLICY ───────────────────────────────────────────────
@@ -184,7 +137,7 @@ let sentenceIdCounter = 0;
 
 function addSentence(prefill = '') {
   const id = ++sentenceIdCounter;
-  const sentence = { id, text: '', feedback: null, status: 'empty' };
+  const sentence = { id, text: '' };
   state.sentences.push(sentence);
 
   const area = document.getElementById('sentencesArea');
@@ -201,7 +154,6 @@ function addSentence(prefill = '') {
         rows="1"
         spellcheck="false"
       ></textarea>
-      <div class="sentence-status" id="status-${id}"></div>
     </div>
   `;
   area.appendChild(row);
@@ -209,7 +161,7 @@ function addSentence(prefill = '') {
   const ta = row.querySelector('textarea');
   ta.addEventListener('input', () => onSentenceInput(id));
   ta.addEventListener('keydown', (e) => onSentenceKeydown(e, id));
-  ta.addEventListener('focus', () => { state.activeSentenceId = id; showFeedback(id); });
+  ta.addEventListener('focus', () => { state.activeSentenceId = id; });
 
   ta.addEventListener('input', () => {
     ta.style.height = 'auto';
@@ -228,32 +180,17 @@ function addSentence(prefill = '') {
 
 function onSentenceInput(id) {
   const ta = document.getElementById('ta-' + id);
-  const text = ta.value;
   const sentence = state.sentences.find(s => s.id === id);
   if (!sentence) return;
-  sentence.text = text;
-  sentence.status = 'dirty';
-  sentence.feedback = null;
+  sentence.text = ta.value;
   updateCounts();
-
-  clearTimeout(state.debounceTimers[id]);
-  if (text.trim().length > 5) {
-    if (state.activeSentenceId === id) showAnalyzingState(id);
-    state.debounceTimers[id] = setTimeout(() => {
-      if (sentence.text.trim()) analyzeSentence(id);
-    }, 1500);
-  }
 }
 
 function onSentenceKeydown(e, id) {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
     const ta = document.getElementById('ta-' + id);
-    const text = ta.value.trim();
-    if (text) {
-      clearTimeout(state.debounceTimers[id]);
-      analyzeSentence(id);
-    }
+    if (ta.value.trim()) addSentence();
   }
 }
 
@@ -271,180 +208,7 @@ function updateCounts() {
   });
 }
 
-// ── ANALYSIS ─────────────────────────────────────────────────────
-async function analyzeSentence(id) {
-  const sentence = state.sentences.find(s => s.id === id);
-  if (!sentence || !sentence.text.trim()) return;
-
-  if (!parlanceConfig.apiKey) {
-    showToast('Set your API key in Settings to get feedback.');
-    showSettings();
-    return;
-  }
-
-  const ta = document.getElementById('ta-' + id);
-  const statusEl = document.getElementById('status-' + id);
-  ta.classList.add('analyzing');
-  ta.classList.remove('has-error', 'is-great');
-  statusEl.textContent = '⏳';
-
-  if (state.activeSentenceId === id) showAnalyzingState(id);
-
-  const level = document.getElementById('levelSelect').value;
-
-  try {
-    const parsed = await analyzeViaCloud(sentence.text, level);
-    sentence.analysisSource = 'cloud';
-    applyFeedback(id, sentence, parsed, ta, statusEl);
-  } catch (err) {
-    ta.classList.remove('analyzing');
-    statusEl.textContent = '';
-    if (err.message === 'offline') {
-      showToast("You're offline — feedback will be available when you reconnect.");
-    } else if (err.message.includes('401')) {
-      showToast('Invalid API key — check your key in Settings.');
-    } else {
-      showToast('Could not analyze — check your connection.');
-    }
-    console.error(err);
-  }
-}
-
-function applyFeedback(id, sentence, parsed, ta, statusEl) {
-  sentence.feedback = parsed;
-  sentence.status = parsed.status === 'Excellent' ? 'great' : 'error';
-  ta.classList.remove('analyzing');
-  ta.classList.toggle('is-great', sentence.status === 'great');
-  ta.classList.toggle('has-error', sentence.status === 'error');
-  statusEl.textContent = sentence.status === 'great' ? '✓' : '⚠';
-  if (state.activeSentenceId === id) showFeedback(id);
-}
-
-async function analyzeViaCloud(text, level) {
-  if (!state.isOnline) throw new Error('offline');
-
-  const prompt = buildPrompt(text, level);
-  const apiKey = parlanceConfig.apiKey || '';
-  if (!apiKey) throw new Error('No API key available.');
-
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      messages: [{ role: 'user', content: prompt }]
-    })
-  });
-
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  const data = await response.json();
-  const raw = data.content?.find(b => b.type === 'text')?.text || '';
-  return parseJSON(raw);
-}
-
-async function deepAnalysis(id) {
-  const sentence = state.sentences.find(s => s.id === id);
-  if (!sentence || !sentence.text.trim()) return;
-
-  const ta = document.getElementById('ta-' + id);
-  const statusEl = document.getElementById('status-' + id);
-  ta.classList.add('analyzing');
-  statusEl.textContent = '⏳';
-  if (state.activeSentenceId === id) showAnalyzingState(id);
-
-  const level = document.getElementById('levelSelect').value;
-
-  try {
-    const parsed = await analyzeViaCloud(sentence.text, level);
-    sentence.feedback = parsed;
-    sentence.analysisSource = 'cloud';
-    sentence.deepAnalyzed = true;
-    applyFeedback(id, sentence, parsed, ta, statusEl);
-  } catch (err) {
-    ta.classList.remove('analyzing');
-    statusEl.textContent = '';
-    showToast('Deep analysis failed — check your connection.');
-    console.error(err);
-  }
-}
-
-function buildPrompt(sentence, level) {
-  const lang = currentLang();
-
-  let levelGuidance, nextLabel, targetLabel;
-  if (level === 'C2') {
-    nextLabel = 'native-level polish';
-    targetLabel = null;
-    levelGuidance = `Focus on near-native precision, stylistic elegance, idiomatic naturalness, and register mastery for professional interpreting. Flag any residual Anglicisms, calques, or unnatural phrasing. Provide a next_level_alt in ${lang.coachRole} showing the most polished native-level phrasing. target_level_alt should be null. If Excellent, explain what makes it native-quality.`;
-  } else if (level === 'C1') {
-    nextLabel = 'C2';
-    targetLabel = null;
-    levelGuidance = `Focus on professional register, advanced word precision, and naturalness for interpreting. Flag Anglicisms (English sentence structures used in ${lang.coachRole}). Provide a next_level_alt in ${lang.coachRole} showing C2 native-mastery phrasing. target_level_alt should be null. If Excellent, explain specifically what makes it C1-quality.`;
-  } else if (level === 'B2') {
-    nextLabel = 'C1';
-    targetLabel = 'C2';
-    levelGuidance = `Focus on verb tense correctness (especially subjunctive vs indicative), gender/number agreement, and Anglicisms. Always provide a next_level_alt in ${lang.coachRole} showing C1 professional interpreter phrasing, and a target_level_alt in ${lang.coachRole} showing C2 native-level mastery. If Excellent, explain which B2-level rule was applied correctly.`;
-  } else {
-    nextLabel = 'B2';
-    targetLabel = 'C1';
-    levelGuidance = `Focus on basic verb tense correctness and gender agreement. Be encouraging and clear. Always provide a next_level_alt in ${lang.coachRole} showing a B2-level version with more complex structures, and a target_level_alt in ${lang.coachRole} showing C1 professional interpreter phrasing. If Excellent, explain why it works at B1 level.`;
-  }
-
-  const targetLine = targetLabel
-    ? `"target_level_alt": "The same idea at ${targetLabel} level, written entirely in ${lang.coachRole} — NEVER in English",`
-    : `"target_level_alt": null,`;
-
-  return `You are a ${lang.coachRole} professor training interpreters. The user is at level ${level}.
-
-${levelGuidance}
-
-Analyze this sentence: "${sentence}"
-
-Respond with ONLY a valid JSON object — no markdown, no explanation outside the JSON:
-
-{
-  "status": "Excellent" or "Needs Improvement",
-  "grammar_rule": "The specific grammar rule tested or applied — always explain, even when correct",
-  "explanation": "WHY the sentence is correct or incorrect at the ${level} level — be specific and actionable",
-  "correction": null or "Corrected version written entirely in ${lang.coachRole} (only if Needs Improvement)",
-  "next_level_alt": "The same idea at ${nextLabel} level, written entirely in ${lang.coachRole} — NEVER in English",
-  ${targetLine}
-  "tip": null or "A practical tip about register, Anglicisms, or word precision that helps the learner level up"
-}
-
-Rules:
-- CRITICAL: next_level_alt and target_level_alt must ALWAYS be written in ${lang.coachRole}, never in English
-- Always provide next_level_alt${targetLabel ? ' and target_level_alt' : ''} — they help learners see the range above them
-- Always identify the grammar rule, even when correct
-- Always explain WHY — be specific, not vague. Give the learner something concrete to work on
-- Keep explanation and grammar_rule in English; all sentence examples (correction, next_level_alt, target_level_alt) in ${lang.coachRole}
-- Be encouraging but honest — this is for someone training to become a professional interpreter`;
-}
-
-function parseJSON(text) {
-  try {
-    const clean = text.replace(/```json|```/g, '').trim();
-    return JSON.parse(clean);
-  } catch {
-    return {
-      status: 'Excellent',
-      grammar_rule: 'Unable to parse feedback',
-      explanation: 'I had trouble parsing the feedback. Your sentence looks reasonable — keep going!',
-      correction: null,
-      next_level_alt: null,
-      target_level_alt: null,
-      tip: null
-    };
-  }
-}
-
-// ── FEEDBACK DISPLAY ─────────────────────────────────────────────
+// ── TABS ─────────────────────────────────────────────────────────
 function switchTab(tab, btn) {
   if (tab === 'guide') {
     openGuideOverlay();
@@ -455,93 +219,6 @@ function switchTab(tab, btn) {
   document.getElementById('feedbackInner').style.display = tab === 'feedback' ? 'flex' : 'none';
   document.getElementById('promptsInner').style.display = tab === 'prompts' ? 'flex' : 'none';
   document.getElementById('guideInner').style.display = 'none';
-}
-
-function showAnalyzingState(id) {
-  const inner = document.getElementById('feedbackInner');
-  const waiting = document.getElementById('waitingCard');
-  if (waiting) waiting.style.display = 'none';
-  inner.querySelectorAll('.feedback-card, .analyzing-card').forEach(el => el.remove());
-
-  const card = document.createElement('div');
-  card.className = 'analyzing-card';
-  card.id = 'analyzing-card';
-  card.innerHTML = `
-    <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-    <div class="analyzing-text">Analyzing your sentence…</div>
-  `;
-  inner.appendChild(card);
-}
-
-function showFeedback(id) {
-  const sentence = state.sentences.find(s => s.id === id);
-  if (!sentence) return;
-
-  const inner = document.getElementById('feedbackInner');
-  const waiting = document.getElementById('waitingCard');
-  if (waiting) waiting.style.display = 'none';
-
-  inner.querySelectorAll('.feedback-card, .analyzing-card').forEach(el => el.remove());
-
-  if (!sentence.feedback) {
-    if (sentence.text.trim()) showAnalyzingState(id);
-    else if (waiting) waiting.style.display = 'block';
-    return;
-  }
-
-  const fb = sentence.feedback;
-  const isExcellent = fb.status === 'Excellent';
-  const statusLabel = isExcellent ? 'Excellent' : 'Needs Work';
-  const statusClass = isExcellent ? 'score-excellent' : 'score-needs-work';
-
-  const card = document.createElement('div');
-  card.className = 'feedback-card';
-
-  const level = document.getElementById('levelSelect').value;
-  const nextLabel = level === 'C2' ? 'Native Polish' : level === 'C1' ? 'C2 Mastery' : level === 'B2' ? 'C1 Professional' : 'B2 Version';
-  const targetLabel = level === 'B1' ? 'C1 Professional' : level === 'B2' ? 'C2 Mastery' : null;
-
-  let bodyHTML = '';
-  bodyHTML += feedbackItem('rule', 'label-rule', '📐 Grammar Rule', fb.grammar_rule, null);
-  bodyHTML += feedbackItem('explanation', 'label-explanation',
-    isExcellent ? '✨ Why This Works' : '⚠ What Needs Work', fb.explanation, null);
-  if (fb.correction) bodyHTML += feedbackItem('correction', 'label-correction', '✍ Correction', fb.correction, null);
-  if (fb.next_level_alt) bodyHTML += feedbackItem('next', 'label-next', `🔼 ${nextLabel} Version`, fb.next_level_alt, null);
-  if (fb.target_level_alt && targetLabel) bodyHTML += feedbackItem('target', 'label-target', `🎯 ${targetLabel} Version`, fb.target_level_alt, null);
-  if (fb.tip) bodyHTML += feedbackItem('tip', 'label-tip', '💡 Tip', fb.tip, null);
-
-  card.innerHTML = `
-    <div class="feedback-card-header">
-      <div class="feedback-sentence-ref">Sentence ${state.sentences.findIndex(s => s.id === id) + 1}</div>
-      <div class="feedback-score ${statusClass}">${statusLabel}</div>
-      <div class="feedback-source">Claude</div>
-    </div>
-    <div class="feedback-original">"${sentence.text}"</div>
-    <div class="feedback-body">${bodyHTML}</div>
-  `;
-
-  if (!sentence.deepAnalyzed && parlanceConfig.apiKey) {
-    const deepBtn = document.createElement('div');
-    deepBtn.className = 'deep-analysis-footer';
-    deepBtn.innerHTML = `
-      <button class="deep-analysis-btn" onclick="deepAnalysis(${id})">Re-analyze with Claude</button>
-      <div class="deep-analysis-hint">Get a fresh detailed analysis</div>
-    `;
-    card.appendChild(deepBtn);
-  }
-
-  inner.appendChild(card);
-  inner.scrollTop = 0;
-}
-
-function feedbackItem(type, labelClass, label, text, example) {
-  return `
-    <div class="feedback-item">
-      <div class="feedback-item-label ${labelClass}">${label}</div>
-      <div class="feedback-item-text">${text}</div>
-      ${example ? `<div class="feedback-example">${example}</div>` : ''}
-    </div>
-  `;
 }
 
 // ── GUIDE OVERLAY ────────────────────────────────────────────────
