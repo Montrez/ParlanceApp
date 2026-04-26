@@ -377,14 +377,28 @@ async function deepAnalysis(id) {
 function buildPrompt(sentence, level) {
   const lang = currentLang();
 
-  let levelGuidance;
-  if (level === 'C1') {
-    levelGuidance = `Focus on professional register, advanced word precision, and naturalness for interpreting. Flag Anglicisms (English sentence structures used in ${lang.coachRole}). Provide a c1_alternative with the most polished interpreter-level phrasing. If Excellent, explain what makes it C1-quality.`;
+  let levelGuidance, nextLabel, targetLabel;
+  if (level === 'C2') {
+    nextLabel = 'native-level polish';
+    targetLabel = null;
+    levelGuidance = `Focus on near-native precision, stylistic elegance, idiomatic naturalness, and register mastery for professional interpreting. Flag any residual Anglicisms, calques, or unnatural phrasing. Provide a next_level_alt in ${lang.coachRole} showing the most polished native-level phrasing. target_level_alt should be null. If Excellent, explain what makes it native-quality.`;
+  } else if (level === 'C1') {
+    nextLabel = 'C2';
+    targetLabel = null;
+    levelGuidance = `Focus on professional register, advanced word precision, and naturalness for interpreting. Flag Anglicisms (English sentence structures used in ${lang.coachRole}). Provide a next_level_alt in ${lang.coachRole} showing C2 native-mastery phrasing. target_level_alt should be null. If Excellent, explain specifically what makes it C1-quality.`;
   } else if (level === 'B2') {
-    levelGuidance = `Focus on verb tense correctness (especially subjunctive vs indicative), gender/number agreement, and Anglicisms. Provide a b1_alternative if overly complex, and a c1_alternative showing professional phrasing. If Excellent, explain which B2-level rule was applied correctly.`;
+    nextLabel = 'C1';
+    targetLabel = 'C2';
+    levelGuidance = `Focus on verb tense correctness (especially subjunctive vs indicative), gender/number agreement, and Anglicisms. Always provide a next_level_alt in ${lang.coachRole} showing C1 professional interpreter phrasing, and a target_level_alt in ${lang.coachRole} showing C2 native-level mastery. If Excellent, explain which B2-level rule was applied correctly.`;
   } else {
-    levelGuidance = `Focus on basic verb tense correctness and gender agreement. Be encouraging and clear. Provide a b1_alternative if there are errors, and a c1_alternative to show the professional target. If Excellent, explain why it works at B1 level.`;
+    nextLabel = 'B2';
+    targetLabel = 'C1';
+    levelGuidance = `Focus on basic verb tense correctness and gender agreement. Be encouraging and clear. Always provide a next_level_alt in ${lang.coachRole} showing a B2-level version with more complex structures, and a target_level_alt in ${lang.coachRole} showing C1 professional interpreter phrasing. If Excellent, explain why it works at B1 level.`;
   }
+
+  const targetLine = targetLabel
+    ? `"target_level_alt": "The same idea at ${targetLabel} level, written entirely in ${lang.coachRole} — NEVER in English",`
+    : `"target_level_alt": null,`;
 
   return `You are a ${lang.coachRole} professor training interpreters. The user is at level ${level}.
 
@@ -397,17 +411,19 @@ Respond with ONLY a valid JSON object — no markdown, no explanation outside th
 {
   "status": "Excellent" or "Needs Improvement",
   "grammar_rule": "The specific grammar rule tested or applied — always explain, even when correct",
-  "explanation": "WHY the sentence is correct or incorrect at the ${level} level",
-  "correction": null or "Corrected version in ${lang.coachRole} (only if Needs Improvement)",
-  "b1_alternative": null or "A simpler B1-level way to say this in ${lang.coachRole}",
-  "c1_alternative": null or "A polished C1 professional interpreter-level version in ${lang.coachRole}",
-  "tip": null or "Extra tip about register, Anglicisms, or word precision"
+  "explanation": "WHY the sentence is correct or incorrect at the ${level} level — be specific and actionable",
+  "correction": null or "Corrected version written entirely in ${lang.coachRole} (only if Needs Improvement)",
+  "next_level_alt": "The same idea at ${nextLabel} level, written entirely in ${lang.coachRole} — NEVER in English",
+  ${targetLine}
+  "tip": null or "A practical tip about register, Anglicisms, or word precision that helps the learner level up"
 }
 
 Rules:
+- CRITICAL: next_level_alt and target_level_alt must ALWAYS be written in ${lang.coachRole}, never in English
+- Always provide next_level_alt${targetLabel ? ' and target_level_alt' : ''} — they help learners see the range above them
 - Always identify the grammar rule, even when correct
-- Always explain WHY — never be vague
-- Keep explanations in English; ${lang.coachRole} examples in ${lang.coachRole}
+- Always explain WHY — be specific, not vague. Give the learner something concrete to work on
+- Keep explanation and grammar_rule in English; all sentence examples (correction, next_level_alt, target_level_alt) in ${lang.coachRole}
 - Be encouraging but honest — this is for someone training to become a professional interpreter`;
 }
 
@@ -421,8 +437,8 @@ function parseJSON(text) {
       grammar_rule: 'Unable to parse feedback',
       explanation: 'I had trouble parsing the feedback. Your sentence looks reasonable — keep going!',
       correction: null,
-      b1_alternative: null,
-      c1_alternative: null,
+      next_level_alt: null,
+      target_level_alt: null,
       tip: null
     };
   }
@@ -481,13 +497,17 @@ function showFeedback(id) {
   const card = document.createElement('div');
   card.className = 'feedback-card';
 
+  const level = document.getElementById('levelSelect').value;
+  const nextLabel = level === 'C2' ? 'Native Polish' : level === 'C1' ? 'C2 Mastery' : level === 'B2' ? 'C1 Professional' : 'B2 Version';
+  const targetLabel = level === 'B1' ? 'C1 Professional' : level === 'B2' ? 'C2 Mastery' : null;
+
   let bodyHTML = '';
   bodyHTML += feedbackItem('rule', 'label-rule', '📐 Grammar Rule', fb.grammar_rule, null);
   bodyHTML += feedbackItem('explanation', 'label-explanation',
     isExcellent ? '✨ Why This Works' : '⚠ What Needs Work', fb.explanation, null);
   if (fb.correction) bodyHTML += feedbackItem('correction', 'label-correction', '✍ Correction', fb.correction, null);
-  if (fb.b1_alternative) bodyHTML += feedbackItem('b1', 'label-b1', '🟢 B1 Simpler Version', fb.b1_alternative, null);
-  if (fb.c1_alternative) bodyHTML += feedbackItem('c1', 'label-c1', '🎯 C1 Professional Version', fb.c1_alternative, null);
+  if (fb.next_level_alt) bodyHTML += feedbackItem('next', 'label-next', `🔼 ${nextLabel} Version`, fb.next_level_alt, null);
+  if (fb.target_level_alt && targetLabel) bodyHTML += feedbackItem('target', 'label-target', `🎯 ${targetLabel} Version`, fb.target_level_alt, null);
   if (fb.tip) bodyHTML += feedbackItem('tip', 'label-tip', '💡 Tip', fb.tip, null);
 
   card.innerHTML = `
