@@ -1080,4 +1080,14 @@ function escapeHTML(str) {
 }
 
 // ── START ─────────────────────────────────────────────────────────
-init();
+try {
+  init();
+} catch (err) {
+  console.error('[Parlance] init failed:', err);
+  const inner = document.getElementById('feedbackInner');
+  if (inner) {
+    inner.innerHTML = `<div style="padding:1.5rem;font-family:'DM Mono',monospace;font-size:0.78rem;color:#b44;border:1px solid #f0d;border-radius:4px;">
+      ⚠ Parlance failed to start: ${err.message}<br><br>Try a hard refresh (Cmd+Shift+R).
+    </div>`;
+  }
+}
