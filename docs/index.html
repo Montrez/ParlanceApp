@@ -3,10 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Parlance</title>
-<meta name="description" content="A language writing journal for interpreter training. Practice writing in Spanish and French with conjugation guides from A1 to C2.">
-<meta name="theme-color" content="#1c1917">
-<link rel="manifest" href="manifest.json">
+<title>Parlance — Language Journal</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Spectral:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -19,8 +16,8 @@
   </div>
   <div class="header-right">
     <select class="header-select" id="langSelect" onchange="onLanguageChange()">
-      <option value="es">Espanol</option>
-      <option value="fr">Francais</option>
+      <option value="es">Español</option>
+      <option value="fr">Français</option>
     </select>
     <select class="header-select" id="levelSelect">
       <option value="A1">A1</option>
@@ -30,18 +27,19 @@
       <option value="C1">C1</option>
       <option value="C2">C2</option>
     </select>
+    <button class="privacy-link ai-settings-btn" id="aiSettingsBtn" onclick="openAISettings()">⚙ AI</button>
     <button class="privacy-link" onclick="showPrivacyPolicy()">Privacy</button>
   </div>
 </header>
 
-<div class="offline-banner" id="offlineBanner">You're offline — writing is saved locally.</div>
+<div class="offline-banner" id="offlineBanner">You're offline — writing is saved locally, but cloud AI feedback requires a connection.</div>
 
 <div class="workspace">
 
-  <!-- JOURNAL -->
+  <!-- ── JOURNAL ── -->
   <div class="journal-panel">
     <div class="journal-header">
-      <input class="journal-title-input" id="entryTitle" type="text" placeholder="Entry title..." />
+      <input class="journal-title-input" id="entryTitle" type="text" placeholder="Entry title…" />
       <div class="sentence-count" id="sentenceCount">0 sentences</div>
     </div>
     <div class="sentences-area" id="sentencesArea"></div>
@@ -56,17 +54,18 @@
     </div>
   </div>
 
-  <!-- SIDE PANEL -->
+  <!-- ── SIDE PANEL ── -->
   <div class="feedback-panel" id="feedbackPanel">
     <div class="feedback-panel-tabs">
-      <button class="feedback-tab active" onclick="switchTab('feedback', this)">Tips</button>
+      <button class="feedback-tab active" onclick="switchTab('feedback', this)">Feedback</button>
       <button class="feedback-tab" onclick="switchTab('prompts', this)">Prompts</button>
       <button class="feedback-tab" onclick="switchTab('guide', this)">Guide</button>
     </div>
     <div class="feedback-panel-inner" id="feedbackInner">
       <div class="waiting-card" id="waitingCard">
-        <div class="waiting-icon">&#x1F58A;&#xFE0F;</div>
-        <div class="waiting-text">Welcome to Parlance<br><br>Use the <strong>Prompts</strong> tab for writing ideas and the <strong>Guide</strong> tab for conjugation references (A1 through C2).<br><br>AI feedback is available in the <strong>Parlance iOS app</strong>.</div>
+        <div class="waiting-icon">🖊️</div>
+        <div class="waiting-text" id="waitingText">Write a sentence and pause.<br><br>AI feedback appears here automatically.</div>
+        <div class="waiting-provider-hint" id="waitingProviderHint"></div>
       </div>
     </div>
     <div class="feedback-panel-inner" id="promptsInner" style="display:none">
@@ -114,47 +113,68 @@
   <iframe id="guideFrame" style="width:100%;height:100%;border:none;" sandbox="allow-scripts allow-same-origin"></iframe>
 </div>
 
-<!-- Privacy policy modal -->
-<div id="privacyOverlay" class="modal-overlay" style="display:none">
-  <div class="modal-card privacy-card">
+<!-- ── AI SETTINGS MODAL ── -->
+<div id="aiSettingsOverlay" style="display:none" class="modal-overlay" onclick="if(event.target===this)closeAISettings()">
+  <div class="modal-card ai-settings-card">
     <div class="modal-header">
-      <h2>Privacy Policy</h2>
-      <button class="modal-close" onclick="hidePrivacyPolicy()">&times;</button>
+      <h2>AI Provider</h2>
+      <button class="modal-close" onclick="closeAISettings()">&times;</button>
     </div>
     <div class="modal-body">
-      <div class="privacy-section">
-        <h3>What Parlance Does</h3>
-        <p>Parlance is a language writing coach that helps you practice writing in multiple languages. You write sentences and receive real-time feedback on grammar, naturalness, and word choice.</p>
+      <div class="settings-section">
+        <div class="settings-label">Select a provider</div>
+        <div class="ai-provider-grid" id="providerGrid"></div>
       </div>
-      <div class="privacy-section">
-        <h3>Data Stored on Your Device</h3>
-        <p>Your journal entries are saved locally on your device using your browser's storage. They never leave your device unless you choose to share them. No account or sign-up is required.</p>
+      <div class="settings-section" id="apiKeySection" style="display:none">
+        <label class="settings-label" for="apiKeyInput">API Key</label>
+        <input type="password" id="apiKeyInput" class="settings-input" placeholder="Paste your API key…" autocomplete="off" spellcheck="false" />
+        <div class="settings-hint" id="apiKeyHint"></div>
       </div>
-      <div class="privacy-section">
-        <h3>Data Sent for Analysis</h3>
-        <p>The web version of Parlance does not send any data to external servers for analysis. All writing stays on your device. AI-powered feedback is available in the Parlance iOS app.</p>
+      <div class="settings-section" id="modelSection">
+        <label class="settings-label" for="modalModelSelect">Model</label>
+        <select id="modalModelSelect" class="settings-select"></select>
       </div>
-      <div class="privacy-section">
-        <h3>No Tracking or Analytics</h3>
-        <p>Parlance does not use any analytics services, advertising SDKs, or tracking pixels. We do not collect usage statistics, device identifiers, or location data.</p>
+      <div class="settings-warning" id="corsWarning" style="display:none">
+        ⚠ This provider may block direct browser requests due to CORS restrictions. If analysis fails, try Groq, OpenAI, or Gemini — they all support browser access.
       </div>
-      <div class="privacy-section">
-        <h3>No Data Sold</h3>
-        <p>We do not sell, rent, or share any of your data with third parties.</p>
-      </div>
-      <div class="privacy-section">
-        <h3>Third-Party Services</h3>
-        <p>Parlance uses Google Fonts (fonts.googleapis.com, fonts.gstatic.com) to load display typefaces. Google's privacy policy applies to font loading. No other third-party services are used.</p>
-      </div>
-      <div class="privacy-section">
-        <h3>Contact</h3>
-        <p>If you have questions about this privacy policy, contact mojcox@gmail.com.</p>
-      </div>
-      <p class="privacy-updated">Last updated: April 2026</p>
+    </div>
+    <div class="modal-footer">
+      <button class="settings-save-btn" onclick="saveAISettingsFromModal()">Save &amp; Close</button>
     </div>
   </div>
 </div>
 
+<!-- ── PRIVACY POLICY MODAL ── -->
+<div id="privacyOverlay" style="display:none" class="modal-overlay" onclick="if(event.target===this)closePrivacyPolicy()">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h2>Privacy Policy</h2>
+      <button class="modal-close" onclick="closePrivacyPolicy()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="privacy-section">
+        <h3>Your Writing</h3>
+        <p>Journal entries are stored only in your browser's local storage and never sent to Parlance servers. You can delete any entry at any time.</p>
+      </div>
+      <div class="privacy-section">
+        <h3>AI Analysis</h3>
+        <p>When you use <strong>Browser AI (WebLLM)</strong>, your sentences are analyzed entirely on your device using a local model. No data leaves your browser.</p>
+        <p style="margin-top:0.5rem">When you use a cloud provider (Groq, OpenAI, Anthropic, Gemini, or Kimi), each sentence you submit is sent to that provider's API. Please review the privacy policy of your chosen provider before using it.</p>
+      </div>
+      <div class="privacy-section">
+        <h3>API Keys</h3>
+        <p>API keys you enter are stored in your browser's local storage and are sent only to the respective provider's API endpoint. Parlance never sees or stores your API keys.</p>
+      </div>
+      <div class="privacy-section">
+        <h3>No Tracking</h3>
+        <p>Parlance does not use analytics, cookies, or any form of tracking. Nothing about your usage is collected or shared.</p>
+      </div>
+      <div class="privacy-updated">Last updated: April 2026</div>
+    </div>
+  </div>
+</div>
+
+<script src="rag-knowledge.js"></script>
 <script src="journal.js"></script>
 </body>
 </html>

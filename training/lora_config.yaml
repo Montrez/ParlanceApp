@@ -1,0 +1,15 @@
+# MLX LoRA fine-tuning config for Parlance interpreter model
+model: "Qwen/Qwen2.5-3B-Instruct"
+train: true
+data: "training/data"
+adapter-path: "training/adapters"
+iters: 1000
+batch-size: 4
+lora-layers: 16
+learning-rate: 1e-5
+steps-per-report: 10
+steps-per-eval: 100
+val-batches: 25
+save-every: 200
+max-seq-length: 1024
+seed: 42

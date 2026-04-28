@@ -1,16 +1,23 @@
 #!/usr/bin/env python3
 """
 Generate training data for Parlance grammar feedback SLM.
-Uses Gemini Flash (free tier: 1,500 req/day) to create diverse
-(sentence, CEFR level) -> JSON feedback pairs for fine-tuning Qwen 2.5.
+Creates diverse (sentence, CEFR level) -> JSON feedback pairs for fine-tuning Qwen 2.5.
+
+Supports two free backends:
+  - Groq: Free Llama 3.3 70B (get key at console.groq.com)
+  - Gemini: Free tier 1,500 req/day (get key at aistudio.google.com/apikey)
 
 Usage:
-    export GEMINI_API_KEY="your-key-here"
-    python generate_data.py --lang es --count 500
-    python generate_data.py --lang fr --count 500
-    python generate_data.py --lang es --level A1 --count 100
+    # Groq (recommended — free, fast, no daily limit)
+    export GROQ_API_KEY="your-key"
+    python generate_data.py --backend groq --lang es --count 500
+    python generate_data.py --backend groq --lang fr --count 500
 
-Output: training/data/{lang}_{level}_{timestamp}.jsonl
+    # Gemini
+    export GEMINI_API_KEY="your-key"
+    python generate_data.py --backend gemini --lang es --count 500
+
+Output: training/data/{lang}_{timestamp}.jsonl
 """
 
 import argparse
@@ -19,14 +26,10 @@ import os
 import random
 import sys
 import time
+import urllib.request
+import urllib.error
 from datetime import datetime
 from pathlib import Path
-
-try:
-    import google.generativeai as genai
-except ImportError:
-    print("Install the Gemini SDK:  pip install google-generativeai")
-    sys.exit(1)
 
 LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"]
 
@@ -185,7 +188,7 @@ CRITICAL RULES:
 - All example sentences (correction, next_level_alt, target_level_alt) MUST be in {lang_name}
 - Vary sentence length, complexity, and vocabulary within the level
 - Make errors realistic, not random — these should look like real learner mistakes
-- Register tips should note formal vs informal (tú/usted, tu/vous) and professional appropriateness
+- Register tips should note formal vs informal and professional appropriateness
 - Return ONLY the JSON array, no markdown or explanation"""
 
 LEVEL_GUIDANCE = {
@@ -201,17 +204,57 @@ NEXT_LEVELS = {"A1": "A2", "A2": "B1", "B1": "B2", "B2": "C1", "C1": "C2", "C2":
 TARGET_LEVELS = {"A1": "B1", "A2": "B2", "B1": "C1", "B2": "C2", "C1": None, "C2": None}
 
 
-def setup_gemini(api_key: str):
-    genai.configure(api_key=api_key)
-    return genai.GenerativeModel("gemini-2.0-flash")
+# ── BACKENDS ──────────────────────────────────────────────────────
+
+def groq_generate(api_key: str, model: str, prompt: str) -> str:
+    """Call Groq API using only stdlib (no extra dependencies)."""
+    payload = json.dumps({
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.9,
+        "max_tokens": 8000,
+        "response_format": {"type": "json_object"},
+    }).encode()
+
+    req = urllib.request.Request(
+        "https://api.groq.com/openai/v1/chat/completions",
+        data=payload,
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}",
+        },
+    )
+    with urllib.request.urlopen(req, timeout=120) as resp:
+        data = json.loads(resp.read())
+    return data["choices"][0]["message"]["content"]
 
 
-def generate_batch(model, lang: str, level: str, batch_size: int = 10) -> list:
+def gemini_generate(api_key: str, model: str, prompt: str) -> str:
+    """Call Gemini API using only stdlib."""
+    payload = json.dumps({
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {
+            "temperature": 0.9,
+            "maxOutputTokens": 8000,
+            "responseMimeType": "application/json",
+        },
+    }).encode()
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+    req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=120) as resp:
+        data = json.loads(resp.read())
+    return data["candidates"][0]["content"]["parts"][0]["text"]
+
+
+# ── GENERATION ────────────────────────────────────────────────────
+
+def build_prompt(lang: str, level: str, batch_size: int) -> str:
     config = LANG_CONFIG[lang]
     topic = random.choice(config["topics"][level])
     errors = ", ".join(random.sample(config["error_types"][level], min(3, len(config["error_types"][level]))))
 
-    prompt = GENERATION_PROMPT.format(
+    return GENERATION_PROMPT.format(
         batch_size=batch_size,
         lang_name=config["name"],
         lang_code=lang,
@@ -223,22 +266,25 @@ def generate_batch(model, lang: str, level: str, batch_size: int = 10) -> list:
         target_level=TARGET_LEVELS[level] or "N/A",
     )
 
-    response = model.generate_content(
-        prompt,
-        generation_config=genai.GenerationConfig(
-            temperature=0.9,
-            max_output_tokens=8000,
-            response_mime_type="application/json",
-        ),
-    )
+
+def generate_batch(backend_fn, api_key: str, model: str, lang: str, level: str, batch_size: int = 10) -> list:
+    prompt = build_prompt(lang, level, batch_size)
+
+    # Groq needs a wrapper hint since response_format: json_object returns an object, not array
+    if "groq" in str(backend_fn.__name__):
+        prompt += '\n\nWrap the array in a JSON object: {"examples": [...]}'
+
+    raw = backend_fn(api_key, model, prompt)
 
     try:
-        data = json.loads(response.text)
+        data = json.loads(raw.strip())
         if isinstance(data, list):
             return data
+        if isinstance(data, dict) and "examples" in data:
+            return data["examples"]
         return []
-    except (json.JSONDecodeError, AttributeError):
-        print(f"  [warn] Failed to parse batch for {lang}/{level}/{topic}")
+    except (json.JSONDecodeError, KeyError):
+        print(f"  [warn] Failed to parse batch for {lang}/{level}")
         return []
 
 
@@ -268,20 +314,34 @@ def to_training_format(example: dict) -> dict:
 
 def main():
     parser = argparse.ArgumentParser(description="Generate Parlance SLM training data")
+    parser.add_argument("--backend", choices=["groq", "gemini"], default="groq", help="API backend (default: groq)")
     parser.add_argument("--lang", choices=["es", "fr"], required=True)
     parser.add_argument("--level", choices=LEVELS, default=None, help="Single level (default: all)")
     parser.add_argument("--count", type=int, default=500, help="Total examples to generate")
     parser.add_argument("--batch-size", type=int, default=10, help="Examples per API call")
     parser.add_argument("--output-dir", default="training/data", help="Output directory")
+    parser.add_argument("--delay", type=float, default=None, help="Seconds between batches")
     args = parser.parse_args()
 
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key:
-        print("Set GEMINI_API_KEY environment variable.")
-        print("Get one free at: https://aistudio.google.com/apikey")
-        sys.exit(1)
+    if args.backend == "groq":
+        api_key = os.environ.get("GROQ_API_KEY")
+        if not api_key:
+            print("Set GROQ_API_KEY environment variable.")
+            print("Get one free at: https://console.groq.com/keys")
+            sys.exit(1)
+        backend_fn = groq_generate
+        model = "llama-3.3-70b-versatile"
+        delay = args.delay if args.delay is not None else 2.0
+    else:
+        api_key = os.environ.get("GEMINI_API_KEY")
+        if not api_key:
+            print("Set GEMINI_API_KEY environment variable.")
+            print("Get one free at: https://aistudio.google.com/apikey")
+            sys.exit(1)
+        backend_fn = gemini_generate
+        model = "gemini-1.5-flash"
+        delay = args.delay if args.delay is not None else 4.0
 
-    model = setup_gemini(api_key)
     levels = [args.level] if args.level else LEVELS
     per_level = args.count // len(levels)
 
@@ -291,7 +351,9 @@ def main():
     out_file = out_dir / f"{args.lang}_{timestamp}.jsonl"
 
     total = 0
-    print(f"Generating {args.count} examples for {LANG_CONFIG[args.lang]['name']}...")
+    lang_name = LANG_CONFIG[args.lang]["name"]
+    print(f"Backend: {args.backend} ({model})")
+    print(f"Generating {args.count} examples for {lang_name}...")
     print(f"Levels: {', '.join(levels)} ({per_level} each)")
     print(f"Output: {out_file}\n")
 
@@ -307,25 +369,35 @@ def main():
                 if batch_sz <= 0:
                     break
 
-                try:
-                    examples = generate_batch(model, args.lang, level, batch_sz)
-                    for ex in examples:
-                        training_ex = to_training_format(ex)
-                        f.write(json.dumps(training_ex, ensure_ascii=False) + "\n")
-                        generated += 1
-                        total += 1
-                except Exception as e:
-                    print(f"  [error] Batch {i+1} failed: {e}")
-                    time.sleep(2)
-                    continue
+                for attempt in range(3):
+                    try:
+                        examples = generate_batch(backend_fn, api_key, model, args.lang, level, batch_sz)
+                        for ex in examples:
+                            training_ex = to_training_format(ex)
+                            f.write(json.dumps(training_ex, ensure_ascii=False) + "\n")
+                            generated += 1
+                            total += 1
+                        break
+                    except Exception as e:
+                        wait = 10 * (attempt + 1)
+                        print(f"  [error] Batch {i+1} attempt {attempt+1} failed: {e}")
+                        if attempt < 2:
+                            print(f"  [retry] Waiting {wait}s...")
+                            time.sleep(wait)
 
                 if i < batches_needed - 1:
-                    time.sleep(0.5)
+                    time.sleep(delay)
+
+                if (i + 1) % 5 == 0:
+                    print(f"    ... {generated}/{per_level} examples so far")
 
             print(f"  [{level}] done: {generated} examples")
 
     print(f"\nTotal: {total} examples written to {out_file}")
-    print(f"File size: {out_file.stat().st_size / 1024:.1f} KB")
+    if out_file.stat().st_size > 0:
+        print(f"File size: {out_file.stat().st_size / 1024:.1f} KB")
+    else:
+        print("Warning: No examples generated. Check your API key and quota.")
 
 
 if __name__ == "__main__":

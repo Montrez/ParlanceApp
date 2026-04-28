@@ -342,13 +342,15 @@ header {
 }
 .label-grammar { color: var(--red); }
 .label-natural { color: var(--blue); }
-.label-register { color: var(--amber); }
+.label-register { color: #2e7d6f; }
 .label-precision { color: var(--green); }
 .label-rewrite { color: var(--accent); }
 .label-great { color: var(--green); }
 .label-rule { color: var(--amber); }
 .label-explanation { color: var(--blue); }
 .label-correction { color: var(--red); }
+.label-next { color: var(--green); }
+.label-target { color: var(--accent); }
 .label-b1 { color: var(--green); }
 .label-c1 { color: var(--accent); }
 .label-tip { color: #6b4f9e; }

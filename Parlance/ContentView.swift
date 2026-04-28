@@ -4,15 +4,22 @@ import Network
 
 struct ContentView: View {
     @State private var showPrivacyPolicy = false
+    @State private var showAISettings   = false
 
     var body: some View {
         ZStack {
-            ParlanceWebView(showPrivacyPolicy: $showPrivacyPolicy)
-                .ignoresSafeArea()
+            ParlanceWebView(
+                showPrivacyPolicy: $showPrivacyPolicy,
+                showAISettings:    $showAISettings
+            )
+            .ignoresSafeArea()
 
             if showPrivacyPolicy {
                 PrivacyPolicyView(isPresented: $showPrivacyPolicy)
             }
+        }
+        .sheet(isPresented: $showAISettings) {
+            AISettingsView()
         }
     }
 }
@@ -21,6 +28,7 @@ struct ContentView: View {
 
 struct ParlanceWebView: UIViewRepresentable {
     @Binding var showPrivacyPolicy: Bool
+    @Binding var showAISettings:    Bool
 
     func makeCoordinator() -> Coordinator {
         Coordinator(parent: self)
@@ -60,19 +68,14 @@ struct ParlanceWebView: UIViewRepresentable {
     func updateUIView(_ uiView: WKWebView, context: Context) {}
 
     private func buildConfigJSON() -> String {
-        let onDevice = Self.checkOnDeviceAvailability()
-        if Config.useProxy {
-            return """
-            {"mode":"proxy","proxyURL":"\(Config.proxyURL)","apiKey":"","onDeviceAvailable":\(onDevice)}
-            """
-        } else {
-            let escaped = Config.anthropicAPIKey
-                .replacingOccurrences(of: "\\", with: "\\\\")
-                .replacingOccurrences(of: "\"", with: "\\\"")
-            return """
-            {"mode":"direct","proxyURL":"","apiKey":"\(escaped)","onDeviceAvailable":\(onDevice)}
-            """
-        }
+        let onDevice      = Self.checkOnDeviceAvailability()
+        let groqAvailable = !AIProviderSettings.shared.apiKey(for: .groq).isEmpty
+                            || !Config.groqAPIKey.isEmpty
+        let providerName  = escapeJSON(UnifiedAnalyzer.shared.activeProviderName)
+
+        return """
+        {"mode":"unified","onDeviceAvailable":\(onDevice),"groqAvailable":\(groqAvailable),"activeProvider":"\(providerName)"}
+        """
     }
 
     private static func checkOnDeviceAvailability() -> Bool {
@@ -82,6 +85,11 @@ struct ParlanceWebView: UIViewRepresentable {
         }
         #endif
         return false
+    }
+
+    private func escapeJSON(_ s: String) -> String {
+        s.replacingOccurrences(of: "\\", with: "\\\\")
+         .replacingOccurrences(of: "\"", with: "\\\"")
     }
 
     private func loadHTML(into webView: WKWebView) {
@@ -124,19 +132,54 @@ struct ParlanceWebView: UIViewRepresentable {
         func userContentController(_ userContentController: WKUserContentController,
                                    didReceive message: WKScriptMessage) {
             if let body = message.body as? String {
-                if body == "showPrivacyPolicy" {
-                    DispatchQueue.main.async {
-                        self.parent.showPrivacyPolicy = true
-                    }
+                switch body {
+                case "showPrivacyPolicy":
+                    DispatchQueue.main.async { self.parent.showPrivacyPolicy = true }
+                case "showAISettings":
+                    DispatchQueue.main.async { self.parent.showAISettings = true }
+                default:
+                    break
                 }
                 return
             }
 
-            guard let body = message.body as? [String: Any],
+            guard let body   = message.body as? [String: Any],
                   let action = body["action"] as? String else { return }
 
-            if action == "analyzeOnDevice" {
+            // analyzeGroq now routes through UnifiedAnalyzer
+            if action == "analyzeGroq" || action == "analyzeUnified" {
+                handleUnifiedAnalysis(body)
+            } else if action == "analyzeOnDevice" {
                 handleOnDeviceAnalysis(body)
+            }
+        }
+
+        private func handleUnifiedAnalysis(_ body: [String: Any]) {
+            guard let requestId = body["requestId"] as? String,
+                  let sentence  = body["sentence"]  as? String,
+                  let language  = body["language"]  as? String,
+                  let level     = body["level"]     as? String else { return }
+
+            let ragContext = body["ragContext"] as? String ?? ""
+
+            Task { @MainActor in
+                do {
+                    let result = try await UnifiedAnalyzer.shared.analyze(
+                        sentence: sentence, language: language, level: level, ragContext: ragContext
+                    )
+                    let jsonData   = try JSONSerialization.data(withJSONObject: result)
+                    let jsonString = String(data: jsonData, encoding: .utf8) ?? "{}"
+                    try await self.webView?.evaluateJavaScript(
+                        "window.__parlanceGroqResult('\(requestId)', \(jsonString), null)"
+                    )
+                } catch {
+                    let escaped = error.localizedDescription
+                        .replacingOccurrences(of: "'", with: "\\'")
+                        .replacingOccurrences(of: "\n", with: " ")
+                    try? await self.webView?.evaluateJavaScript(
+                        "window.__parlanceGroqResult('\(requestId)', null, '\(escaped)')"
+                    )
+                }
             }
         }
 

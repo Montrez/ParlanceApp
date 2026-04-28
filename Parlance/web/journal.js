@@ -1,6 +1,39 @@
 // ── CONFIG (injected by Swift) ────────────────────────────────────
 const parlanceConfig = window.__PARLANCE_CONFIG__ || { mode: 'direct', apiKey: '', proxyURL: '', onDeviceAvailable: false };
 
+// ── GROQ BRIDGE ─────────────────────────────────────────────────
+const pendingGroqRequests = {};
+let groqRequestCounter = 0;
+
+window.__parlanceGroqResult = function(requestId, result, error) {
+  const pending = pendingGroqRequests[requestId];
+  if (!pending) return;
+  delete pendingGroqRequests[requestId];
+  if (error) pending.reject(new Error(error));
+  else pending.resolve(result);
+};
+
+function requestGroqAnalysis(sentence, language, level) {
+  const ragContext = (typeof getRAGContext === 'function')
+    ? getRAGContext(language, level, sentence)
+    : '';
+
+  return new Promise((resolve, reject) => {
+    const requestId = 'groq_' + (++groqRequestCounter);
+    pendingGroqRequests[requestId] = { resolve, reject };
+    window.webkit.messageHandlers.parlance.postMessage({
+      action: 'analyzeGroq',
+      requestId, sentence, language, level, ragContext
+    });
+    setTimeout(() => {
+      if (pendingGroqRequests[requestId]) {
+        delete pendingGroqRequests[requestId];
+        reject(new Error('Groq analysis timed out'));
+      }
+    }, 30000);
+  });
+}
+
 // ── ON-DEVICE BRIDGE ─────────────────────────────────────────────
 const pendingOnDeviceRequests = {};
 let onDeviceRequestCounter = 0;
@@ -145,6 +178,12 @@ function showPrivacyPolicy() {
   }
 }
 
+function showAISettings() {
+  if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.parlance) {
+    window.webkit.messageHandlers.parlance.postMessage('showAISettings');
+  }
+}
+
 // ── PROMPTS ──────────────────────────────────────────────────────
 function renderPrompts() {
   const list = document.getElementById('promptList');
@@ -276,35 +315,23 @@ async function analyzeSentence(id) {
   const level = document.getElementById('levelSelect').value;
 
   try {
-    let parsed;
-
-    if (parlanceConfig.onDeviceAvailable) {
-      parsed = await requestOnDeviceAnalysis(
-        sentence.text, state.currentLanguage, level
-      );
-      sentence.analysisSource = 'onDevice';
-    } else {
-      parsed = await analyzeViaCloud(sentence.text, level);
-      sentence.analysisSource = 'cloud';
-    }
-
+    // Route through the native Swift bridge which uses UnifiedAnalyzer
+    const parsed = await requestGroqAnalysis(sentence.text, state.currentLanguage, level);
+    sentence.analysisSource = parlanceConfig.activeProvider || 'AI';
     applyFeedback(id, sentence, parsed, ta, statusEl);
   } catch (err) {
-    if (parlanceConfig.onDeviceAvailable && sentence.analysisSource !== 'cloud') {
+    // Secondary fallback: on-device if native bridge fails
+    if (parlanceConfig.onDeviceAvailable) {
       try {
-        const parsed = await analyzeViaCloud(sentence.text, level);
-        sentence.analysisSource = 'cloud';
+        const parsed = await requestOnDeviceAnalysis(sentence.text, state.currentLanguage, level);
+        sentence.analysisSource = 'On-Device';
         applyFeedback(id, sentence, parsed, ta, statusEl);
         return;
-      } catch (_) { /* both failed */ }
+      } catch (_) { /* fallback also failed */ }
     }
     ta.classList.remove('analyzing');
     statusEl.textContent = '';
-    if (err.message === 'offline') {
-      showToast("You're offline — feedback will be available when you reconnect.");
-    } else {
-      showToast('Could not analyze — check your connection.');
-    }
+    showToast('Could not analyze — check AI settings or your connection.');
     console.error(err);
   }
 }
@@ -319,151 +346,8 @@ function applyFeedback(id, sentence, parsed, ta, statusEl) {
   if (state.activeSentenceId === id) showFeedback(id);
 }
 
-async function analyzeViaCloud(text, level) {
-  if (!state.isOnline) throw new Error('offline');
-
-  const prompt = buildPrompt(text, level);
-  let response;
-
-  if (parlanceConfig.mode === 'proxy' && parlanceConfig.proxyURL) {
-    response = await fetch(parlanceConfig.proxyURL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-  } else {
-    const apiKey = parlanceConfig.apiKey || '';
-    if (!apiKey) throw new Error('No API key available.');
-    response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-  }
-
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  const data = await response.json();
-  const raw = data.content?.find(b => b.type === 'text')?.text || '';
-  return parseJSON(raw);
-}
-
-async function deepAnalysis(id) {
-  const sentence = state.sentences.find(s => s.id === id);
-  if (!sentence || !sentence.text.trim()) return;
-
-  const ta = document.getElementById('ta-' + id);
-  const statusEl = document.getElementById('status-' + id);
-  ta.classList.add('analyzing');
-  statusEl.textContent = '⏳';
-  if (state.activeSentenceId === id) showAnalyzingState(id);
-
-  const level = document.getElementById('levelSelect').value;
-
-  try {
-    const parsed = await analyzeViaCloud(sentence.text, level);
-    sentence.feedback = parsed;
-    sentence.analysisSource = 'cloud';
-    sentence.deepAnalyzed = true;
-    applyFeedback(id, sentence, parsed, ta, statusEl);
-  } catch (err) {
-    ta.classList.remove('analyzing');
-    statusEl.textContent = '';
-    showToast('Deep analysis failed — check your connection.');
-    console.error(err);
-  }
-}
-
-function buildPrompt(sentence, level) {
-  const lang = currentLang();
-
-  let levelGuidance, nextLabel, targetLabel;
-  if (level === 'C2') {
-    nextLabel = 'native-level polish';
-    targetLabel = null;
-    levelGuidance = `Focus on near-native precision, stylistic elegance, idiomatic naturalness, and register mastery for professional interpreting. Flag any residual Anglicisms, calques, or unnatural phrasing. Provide a next_level_alt in ${lang.coachRole} showing the most polished native-level phrasing. target_level_alt should be null. If Excellent, explain what makes it native-quality.`;
-  } else if (level === 'C1') {
-    nextLabel = 'C2';
-    targetLabel = null;
-    levelGuidance = `Focus on professional register, advanced word precision, and naturalness for interpreting. Flag Anglicisms (English sentence structures used in ${lang.coachRole}). Provide a next_level_alt in ${lang.coachRole} showing C2 native-mastery phrasing. target_level_alt should be null. If Excellent, explain specifically what makes it C1-quality.`;
-  } else if (level === 'B2') {
-    nextLabel = 'C1';
-    targetLabel = 'C2';
-    levelGuidance = `Focus on verb tense correctness (especially subjunctive vs indicative), gender/number agreement, and Anglicisms. Note register: is the sentence formal or informal? Would an interpreter use this phrasing in a professional setting? Always provide a next_level_alt in ${lang.coachRole} showing C1 professional interpreter phrasing, and a target_level_alt in ${lang.coachRole} showing C2 native-level mastery. If Excellent, explain which B2-level rule was applied correctly.`;
-  } else if (level === 'B1') {
-    nextLabel = 'B2';
-    targetLabel = 'C1';
-    levelGuidance = `Focus on basic verb tense correctness and gender agreement. Be encouraging and clear. Point out register: is the learner using tú/usted (tu/vous) appropriately? Introduce the concept of formal vs informal register for interpreter training. Always provide a next_level_alt in ${lang.coachRole} showing a B2-level version with more complex structures, and a target_level_alt in ${lang.coachRole} showing C1 professional interpreter phrasing. If Excellent, explain why it works at B1 level.`;
-  } else if (level === 'A2') {
-    nextLabel = 'B1';
-    targetLabel = 'B2';
-    levelGuidance = `Focus on basic present tense conjugation, gender agreement, and simple sentence structure. Be very encouraging. Check for correct use of reflexive verbs, near future (ir + a + infinitive / aller + infinitive), and basic vocabulary. Gently introduce register awareness: note whether the sentence uses informal (tú/tu) or formal (usted/vous) forms, as this learner is training to become an interpreter. Always provide a next_level_alt in ${lang.coachRole} showing a B1-level version with past tenses, and a target_level_alt in ${lang.coachRole} showing B2-level complexity. If Excellent, explain what the learner did well at A2 level.`;
-  } else {
-    nextLabel = 'A2';
-    targetLabel = 'B1';
-    levelGuidance = `Focus on basic present tense, ser/estar (être/avoir), and simple vocabulary. Be very encouraging and gentle — this is an absolute beginner training to become an interpreter. Check subject-verb agreement and basic word order. When relevant, gently note register: is the learner using tú or usted (tu or vous)? Explain the difference simply. Always provide a next_level_alt in ${lang.coachRole} showing an A2-level version with slightly more complex structures, and a target_level_alt in ${lang.coachRole} showing B1-level phrasing. If Excellent, praise the effort and explain the basic rule applied.`;
-  }
-
-  const targetLine = targetLabel
-    ? `"target_level_alt": "The same idea at ${targetLabel} level, written entirely in ${lang.coachRole} — NEVER in English",`
-    : `"target_level_alt": null,`;
-
-  return `You are a ${lang.coachRole} professor training interpreters. The user is at level ${level}.
-
-${levelGuidance}
-
-Analyze this sentence: "${sentence}"
-
-Respond with ONLY a valid JSON object — no markdown, no explanation outside the JSON:
-
-{
-  "status": "Excellent" or "Needs Improvement",
-  "grammar_rule": "The specific grammar rule tested or applied — always explain, even when correct",
-  "explanation": "WHY the sentence is correct or incorrect at the ${level} level — be specific and actionable",
-  "correction": null or "Corrected version written entirely in ${lang.coachRole} (only if Needs Improvement)",
-  "next_level_alt": "The same idea at ${nextLabel} level, written entirely in ${lang.coachRole} — NEVER in English",
-  ${targetLine}
-  "tip": "A practical tip about register (formal vs informal), Anglicisms, or word precision — ALWAYS include a register note for interpreter training"
-}
-
-Rules:
-- CRITICAL: next_level_alt and target_level_alt must ALWAYS be written in ${lang.coachRole}, never in English
-- Always provide next_level_alt${targetLabel ? ' and target_level_alt' : ''} — they help learners see the range above them
-- Always identify the grammar rule, even when correct
-- Always explain WHY — be specific, not vague. Give the learner something concrete to work on
-- ALWAYS include a tip about register (formal/informal, professional/casual) — the learner is training to become a professional interpreter and register awareness is critical at every level
-- Keep explanation and grammar_rule in English; all sentence examples (correction, next_level_alt, target_level_alt) in ${lang.coachRole}
-- Be encouraging but honest — this is for someone training to become a professional interpreter`;
-}
-
-function parseJSON(text) {
-  try {
-    const clean = text.replace(/```json|```/g, '').trim();
-    return JSON.parse(clean);
-  } catch {
-    return {
-      status: 'Excellent',
-      grammar_rule: 'Unable to parse feedback',
-      explanation: 'I had trouble parsing the feedback. Your sentence looks reasonable — keep going!',
-      correction: null,
-      next_level_alt: null,
-      target_level_alt: null,
-      tip: null
-    };
-  }
-}
+// buildPrompt is not used in the iOS web bridge (Swift builds the prompt natively),
+// but kept as a reference for the prompt structure.
 
 // ── FEEDBACK DISPLAY ─────────────────────────────────────────────
 function switchTab(tab, btn) {
@@ -529,11 +413,12 @@ function showFeedback(id) {
   bodyHTML += feedbackItem('explanation', 'label-explanation',
     isExcellent ? '✨ Why This Works' : '⚠ What Needs Work', fb.explanation, null);
   if (fb.correction) bodyHTML += feedbackItem('correction', 'label-correction', '✍ Correction', fb.correction, null);
+  if (fb.register) bodyHTML += feedbackItem('register', 'label-register', '🎭 Register', fb.register, null);
   if (fb.next_level_alt) bodyHTML += feedbackItem('next', 'label-next', `🔼 ${nextLabel} Version`, fb.next_level_alt, null);
   if (fb.target_level_alt && targetLabel) bodyHTML += feedbackItem('target', 'label-target', `🎯 ${targetLabel} Version`, fb.target_level_alt, null);
   if (fb.tip) bodyHTML += feedbackItem('tip', 'label-tip', '💡 Tip', fb.tip, null);
 
-  const sourceLabel = sentence.analysisSource === 'cloud' ? 'Claude' : 'On-Device';
+  const sourceLabel = sentence.analysisSource || parlanceConfig.activeProvider || 'AI';
 
   card.innerHTML = `
     <div class="feedback-card-header">
@@ -544,22 +429,6 @@ function showFeedback(id) {
     <div class="feedback-original">"${sentence.text}"</div>
     <div class="feedback-body">${bodyHTML}</div>
   `;
-
-  if (!sentence.deepAnalyzed && (parlanceConfig.apiKey || parlanceConfig.proxyURL)) {
-    const deepBtn = document.createElement('div');
-    deepBtn.className = 'deep-analysis-footer';
-    const btnLabel = sentence.analysisSource === 'onDevice'
-      ? 'Deep Analysis with Claude'
-      : 'Re-analyze with Claude';
-    const hintLabel = sentence.analysisSource === 'onDevice'
-      ? 'Get more detailed interpreter-level feedback'
-      : 'Get a fresh detailed analysis';
-    deepBtn.innerHTML = `
-      <button class="deep-analysis-btn" onclick="deepAnalysis(${id})">${btnLabel}</button>
-      <div class="deep-analysis-hint">${hintLabel}</div>
-    `;
-    card.appendChild(deepBtn);
-  }
 
   inner.appendChild(card);
   inner.scrollTop = 0;
