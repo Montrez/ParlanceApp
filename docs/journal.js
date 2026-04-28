@@ -582,18 +582,26 @@ function init() {
 }
 
 function updateWaitingCard() {
-  const id = getSelectedProvider();
-  const p  = AI_PROVIDERS[id];
-  if (!p) return;
+  const id   = getSelectedProvider();
+  const p    = AI_PROVIDERS[id];
   const hint = document.getElementById('waitingProviderHint');
-  if (!hint) return;
+  const text = document.getElementById('waitingText');
+  if (!hint || !p) return;
+
   if (id === 'webllm') {
-    hint.textContent = `Using ${p.icon} ${p.name} — analyzed on your device.`;
+    const hasGPU = !!navigator.gpu;
+    if (hasGPU) {
+      hint.innerHTML = `${p.icon} <strong>Browser AI</strong> — first use downloads ~380 MB (cached after). Or <button onclick="openAISettings()" style="background:none;border:none;color:var(--accent);font-family:inherit;font-size:inherit;cursor:pointer;padding:0;text-decoration:underline">switch to a cloud API</button> for instant feedback.`;
+    } else {
+      hint.innerHTML = `⚠ Your browser doesn't support WebGPU. <button onclick="openAISettings()" style="background:none;border:none;color:var(--accent);font-family:inherit;font-size:inherit;cursor:pointer;padding:0;text-decoration:underline">Choose a cloud provider</button> (Groq has a free tier).`;
+    }
   } else {
     const hasKey = !!getProviderKey(id);
-    hint.textContent = hasKey
-      ? `Using ${p.icon} ${p.name}.`
-      : `⚙ Add your ${p.name} API key in AI settings.`;
+    if (hasKey) {
+      hint.textContent = `${p.icon} ${p.name} — write a sentence to get feedback.`;
+    } else {
+      hint.innerHTML = `⚙ <button onclick="openAISettings()" style="background:none;border:none;color:var(--accent);font-family:inherit;font-size:inherit;cursor:pointer;padding:0;text-decoration:underline">Add your ${p.name} API key</button> to enable feedback.`;
+    }
   }
 }
 
@@ -721,7 +729,7 @@ function onSentenceInput(id) {
 
   clearTimeout(state.debounceTimers[id]);
   if (text.trim().length > 5) {
-    if (state.activeSentenceId === id) showAnalyzingState(id);
+    showAnalyzingState(id);
     state.debounceTimers[id] = setTimeout(() => {
       if (sentence.text.trim()) analyzeSentence(id);
     }, 1500);
@@ -735,6 +743,7 @@ function onSentenceKeydown(e, id) {
     const text = ta.value.trim();
     if (text) {
       clearTimeout(state.debounceTimers[id]);
+      state.activeSentenceId = id;   // ensure panel updates for this sentence
       analyzeSentence(id);
     }
   }
@@ -769,7 +778,7 @@ async function analyzeSentence(id) {
 
   const level = document.getElementById('levelSelect').value;
 
-  if (state.activeSentenceId === id) showAnalyzingState(id);
+  showAnalyzingState(id);
 
   const providerId = getSelectedProvider();
 
@@ -778,10 +787,7 @@ async function analyzeSentence(id) {
       sentence.text,
       state.currentLanguage,
       level,
-      (report) => {
-        // WebLLM download progress
-        if (state.activeSentenceId === id) showWebLLMProgress(report);
-      }
+      (report) => showWebLLMProgress(report)
     );
 
     sentence.analysisSource = AI_PROVIDERS[providerId]?.name || providerId;
@@ -793,9 +799,7 @@ async function analyzeSentence(id) {
     console.error('[Parlance] Analysis error:', err);
 
     const msg = err.message || 'Could not analyze — check your settings.';
-    if (state.activeSentenceId === id) {
-      showErrorInPanel(msg);
-    }
+    showErrorInPanel(msg);
     showToast(msg.length > 80 ? msg.slice(0, 80) + '…' : msg);
   }
 }
@@ -890,7 +894,7 @@ function showFeedback(id) {
   inner.querySelectorAll('.feedback-card, .analyzing-card, .webllm-progress-card, .error-panel-card').forEach(el => el.remove());
 
   if (!sentence.feedback) {
-    if (sentence.text.trim()) showAnalyzingState(id);
+    if (sentence.status === 'dirty' || sentence.text.trim()) showAnalyzingState(id);
     else if (waiting) waiting.style.display = 'block';
     return;
   }
