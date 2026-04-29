@@ -176,6 +176,7 @@ final class ExternalAnalyzer: Sendable {
         - Only mark "Needs Improvement" when there is an actual grammar error — not a style preference.
         - ALL example sentences (correction, next_level_alt, target_level_alt) MUST be in \(langName), NEVER in English.
         - next_level_alt and target_level_alt must express ONLY the same idea as the original sentence — do NOT add new information, embellish, or invent extra content. Just rephrase the same meaning using grammar and vocabulary appropriate for that CEFR level.
+        - NEVER use Chinese, Japanese, Korean, Cyrillic, or any non-Latin characters in \(langName) sentences. Use ONLY Latin alphabet characters with standard \(langName) diacritics.
         - grammar_rule, explanation, register, and tip must be in English.
 
         Respond with ONLY a valid JSON object (no markdown, no text outside the JSON, no <think> tags):
@@ -223,12 +224,22 @@ final class ExternalAnalyzer: Sendable {
         result["status"]       = (status == "Excellent" || status == "Needs Improvement") ? status : "Excellent"
         result["grammar_rule"] = raw["grammar_rule"] as? String ?? "Grammar rule not identified"
         result["explanation"]  = raw["explanation"]  as? String ?? ""
-        if let v = raw["correction"]       as? String { result["correction"]       = v }
+        if let v = raw["correction"]       as? String { result["correction"]       = sanitizeLatin(v) }
         if let v = raw["register"]         as? String { result["register"]         = v }
-        if let v = raw["next_level_alt"]   as? String { result["next_level_alt"]   = v }
-        if let v = raw["target_level_alt"] as? String { result["target_level_alt"] = v }
+        if let v = raw["next_level_alt"]   as? String { result["next_level_alt"]   = sanitizeLatin(v) }
+        if let v = raw["target_level_alt"] as? String { result["target_level_alt"] = sanitizeLatin(v) }
         if let v = raw["tip"]              as? String { result["tip"]              = v }
         return result
+    }
+
+    private func sanitizeLatin(_ text: String) -> String {
+        text.filter { ch in
+            ch.isASCII || ch.unicodeScalars.allSatisfy { s in
+                (0x00C0...0x024F).contains(s.value) ||  // Latin Extended (accents)
+                (0x2000...0x206F).contains(s.value) ||  // General punctuation
+                (0x00A0...0x00BF).contains(s.value)     // Latin-1 punctuation (¿, ¡, «, »)
+            }
+        }
     }
 }
 
