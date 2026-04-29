@@ -29,11 +29,11 @@ Parlance supports multiple AI backends. Choose your provider in the AI Settings:
 | **Anthropic** | Cloud API | Paid | Claude Sonnet / Haiku |
 | **Google Gemini** | Cloud API | Free tier available | Gemini 2.0 Flash |
 | **Kimi (Moonshot)** | Cloud API | Paid | Moonshot v1 models |
-| **Apple Intelligence** | On-device | Free | Private, no internet. **Coming with iOS 26** (not yet public) |
+| **Apple Intelligence** | On-device | Free | Private, no internet. Requires iOS 26+ |
 
 **Groq is the recommended default** — it's free, fast, and runs Qwen 3 32B which produces accurate grammar feedback. Groq is the API platform; Qwen 3 32B is the AI model running on it.
 
-> **Note on Apple Intelligence:** The on-device option uses Apple's FoundationModels framework, which requires iOS 26 (currently in developer beta). The code is implemented and ready — it will activate automatically when iOS 26 ships publicly. Until then, the app defaults to Groq. If you select On-Device in AI Settings and it's not available, the app falls back to your first configured cloud provider.
+> **Note on Apple Intelligence:** The on-device option uses Apple's FoundationModels framework (iOS 26+). It runs entirely on-device — no API key, no internet, fully private. Select "On-Device" in AI Settings to use it. If the on-device model isn't available on your device, the app falls back to your first configured cloud provider.
 
 ### RAG Knowledge Base
 
