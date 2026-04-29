@@ -93,12 +93,9 @@ struct ParlanceWebView: UIViewRepresentable {
     }
 
     private func buildConfigJSON() -> String {
-        // Keep this fast — no Keychain reads, no FoundationModels checks.
-        // The native AI provider selection is handled entirely in AISettingsView;
-        // the web JS just needs to know it should route through the Swift bridge.
-        let groqAvailable = !Config.groqAPIKey.isEmpty
+        let providerName = UnifiedAnalyzer.shared.activeProviderName
         return """
-        {"mode":"unified","onDeviceAvailable":false,"groqAvailable":\(groqAvailable),"activeProvider":"Native"}
+        {"mode":"unified","onDeviceAvailable":false,"groqAvailable":true,"activeProvider":"\(providerName)"}
         """
     }
 

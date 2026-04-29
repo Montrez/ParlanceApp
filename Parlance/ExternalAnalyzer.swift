@@ -175,6 +175,7 @@ final class ExternalAnalyzer: Sendable {
         - A simple, grammatically correct sentence is "Excellent" even if it could be more sophisticated.
         - Only mark "Needs Improvement" when there is an actual grammar error — not a style preference.
         - ALL example sentences (correction, next_level_alt, target_level_alt) MUST be in \(langName), NEVER in English.
+        - next_level_alt and target_level_alt must express ONLY the same idea as the original sentence — do NOT add new information, embellish, or invent extra content. Just rephrase the same meaning using grammar and vocabulary appropriate for that CEFR level.
         - grammar_rule, explanation, register, and tip must be in English.
 
         Respond with ONLY a valid JSON object (no markdown, no text outside the JSON, no <think> tags):
@@ -184,7 +185,7 @@ final class ExternalAnalyzer: Sendable {
           "explanation": "WHY the sentence is correct or incorrect at the \(level) level — be specific and actionable",
           "correction": null or "Corrected sentence in \(langName) (only if Needs Improvement)",
           "register": "Identify the register: formal (\(langName == "French" ? "vous" : "usted")) or informal (\(langName == "French" ? "tu" : "tú")), and whether appropriate for a professional interpreter",
-          "next_level_alt": "Same idea at \(nextLevel) level in \(langName)",
+          "next_level_alt": "The SAME idea rephrased at \(nextLevel) level in \(langName) — same meaning, no added content",
           \(targetLine),
           "tip": "A practical tip about register, Anglicisms, or word precision for interpreter training"
         }
@@ -207,7 +208,7 @@ final class ExternalAnalyzer: Sendable {
             throw ExternalError.parseError
         }
 
-        let jsonString = String(cleaned[start.lowerBound...end.upperBound])
+        let jsonString = String(cleaned[start.lowerBound..<end.upperBound])
         guard let data   = jsonString.data(using: .utf8),
               let result = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             throw ExternalError.parseError

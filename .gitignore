@@ -17,5 +17,9 @@ DerivedData/
 *.perspectivev3
 !default.perspectivev3
 
+# Training data and model artifacts
+training/data/
+training/adapters/
+
 # macOS
 .DS_Store

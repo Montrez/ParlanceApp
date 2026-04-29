@@ -212,7 +212,7 @@ def groq_generate(api_key: str, model: str, prompt: str) -> str:
         "model": model,
         "messages": [{"role": "user", "content": prompt}],
         "temperature": 0.9,
-        "max_tokens": 8000,
+        "max_tokens": 4096,
         "response_format": {"type": "json_object"},
     }).encode()
 
@@ -222,6 +222,7 @@ def groq_generate(api_key: str, model: str, prompt: str) -> str:
         headers={
             "Content-Type": "application/json",
             "Authorization": f"Bearer {api_key}",
+            "User-Agent": "Parlance/1.0",
         },
     )
     with urllib.request.urlopen(req, timeout=120) as resp:
@@ -330,7 +331,7 @@ def main():
             print("Get one free at: https://console.groq.com/keys")
             sys.exit(1)
         backend_fn = groq_generate
-        model = "llama-3.3-70b-versatile"
+        model = "meta-llama/llama-4-scout-17b-16e-instruct"
         delay = args.delay if args.delay is not None else 2.0
     else:
         api_key = os.environ.get("GEMINI_API_KEY")
@@ -348,20 +349,25 @@ def main():
     out_dir = Path(args.output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    out_file = out_dir / f"{args.lang}_{timestamp}.jsonl"
+    existing = list(out_dir.glob(f"{args.lang}_*.jsonl"))
+    if existing:
+        out_file = max(existing, key=lambda p: p.stat().st_mtime)
+        print(f"Appending to existing file: {out_file}")
+    else:
+        out_file = out_dir / f"{args.lang}_{timestamp}.jsonl"
 
     total = 0
     lang_name = LANG_CONFIG[args.lang]["name"]
-    print(f"Backend: {args.backend} ({model})")
-    print(f"Generating {args.count} examples for {lang_name}...")
-    print(f"Levels: {', '.join(levels)} ({per_level} each)")
-    print(f"Output: {out_file}\n")
+    print(f"Backend: {args.backend} ({model})", flush=True)
+    print(f"Generating {args.count} examples for {lang_name}...", flush=True)
+    print(f"Levels: {', '.join(levels)} ({per_level} each)", flush=True)
+    print(f"Output: {out_file}\n", flush=True)
 
-    with open(out_file, "w", encoding="utf-8") as f:
+    with open(out_file, "a", encoding="utf-8") as f:
         for level in levels:
             generated = 0
             batches_needed = (per_level + args.batch_size - 1) // args.batch_size
-            print(f"  [{level}] generating {per_level} examples ({batches_needed} batches)...")
+            print(f"  [{level}] generating {per_level} examples ({batches_needed} batches)...", flush=True)
 
             for i in range(batches_needed):
                 remaining = per_level - generated
@@ -369,7 +375,7 @@ def main():
                 if batch_sz <= 0:
                     break
 
-                for attempt in range(3):
+                for attempt in range(5):
                     try:
                         examples = generate_batch(backend_fn, api_key, model, args.lang, level, batch_sz)
                         for ex in examples:
@@ -377,21 +383,22 @@ def main():
                             f.write(json.dumps(training_ex, ensure_ascii=False) + "\n")
                             generated += 1
                             total += 1
+                        f.flush()
                         break
                     except Exception as e:
-                        wait = 10 * (attempt + 1)
-                        print(f"  [error] Batch {i+1} attempt {attempt+1} failed: {e}")
-                        if attempt < 2:
-                            print(f"  [retry] Waiting {wait}s...")
+                        wait = min(15 * (2 ** attempt) + random.uniform(0, 5), 120)
+                        print(f"  [error] Batch {i+1} attempt {attempt+1} failed: {e}", flush=True)
+                        if attempt < 4:
+                            print(f"  [retry] Waiting {wait:.0f}s...", flush=True)
                             time.sleep(wait)
 
                 if i < batches_needed - 1:
                     time.sleep(delay)
 
                 if (i + 1) % 5 == 0:
-                    print(f"    ... {generated}/{per_level} examples so far")
+                    print(f"    ... {generated}/{per_level} examples so far", flush=True)
 
-            print(f"  [{level}] done: {generated} examples")
+            print(f"  [{level}] done: {generated} examples", flush=True)
 
     print(f"\nTotal: {total} examples written to {out_file}")
     if out_file.stat().st_size > 0:

@@ -18,11 +18,14 @@ struct SentenceReview {
     @Guide(description: "Corrected sentence in the SAME language as the input. Nil if the sentence is already correct.")
     var correction: String?
 
-    @Guide(description: "The same idea rewritten at the next CEFR level up, in the SAME language as the input sentence. Must NOT be in a different language.")
+    @Guide(description: "The same idea rephrased at the next CEFR level up, in the SAME language as the input sentence. Same meaning only — do NOT add new information or embellish. Must NOT be in a different language.")
     var nextLevelAlt: String?
 
-    @Guide(description: "The same idea rewritten two CEFR levels up, in the SAME language as the input sentence. Nil if learner is at C1 or C2. Must NOT be in a different language.")
+    @Guide(description: "The same idea rephrased two CEFR levels up, in the SAME language as the input sentence. Same meaning only — do NOT add new information. Nil if learner is at C1 or C2. Must NOT be in a different language.")
     var targetLevelAlt: String?
+
+    @Guide(description: "Identify the register used: formal (usted/vous) or informal (tú/tu), and whether it is appropriate for a professional interpreter setting. In English.")
+    var register: String?
 
     @Guide(description: "A short practical tip about register (formal vs informal) or word choice, in English. Always include register awareness for interpreter training.")
     var tip: String?
@@ -86,6 +89,7 @@ final class OnDeviceAnalyzer: Sendable {
             "explanation": fb.explanation
         ]
         if let v = fb.correction { dict["correction"] = v }
+        if let v = fb.register { dict["register"] = v }
         if let v = fb.nextLevelAlt { dict["next_level_alt"] = v }
         if let v = fb.targetLevelAlt { dict["target_level_alt"] = v }
         if let v = fb.tip { dict["tip"] = v }

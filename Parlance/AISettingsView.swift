@@ -86,7 +86,7 @@ struct AISettingsView: View {
             Text("Provider")
         } footer: {
             if selectedProvider == .onDevice {
-                Text("On-device analysis requires Apple Intelligence on iOS 18+.")
+                Text("On-device analysis requires Apple Intelligence on iOS 26+.")
             }
         }
     }

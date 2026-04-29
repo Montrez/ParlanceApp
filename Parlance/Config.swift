@@ -37,6 +37,10 @@ enum Config {
         return key
     }
 
+    static var groqAPIKey: String {
+        value(forKey: "GROQ_API_KEY") ?? ""
+    }
+
     static var proxyURL: String {
         value(forKey: "PROXY_URL") ?? ""
     }

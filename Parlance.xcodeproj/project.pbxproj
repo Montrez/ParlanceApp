@@ -19,7 +19,6 @@
 		E778CF1D2F9E3B5300296847 /* journal.js in Resources */ = {isa = PBXBuildFile; fileRef = E778CF1C2F9E3B5300296847 /* journal.js */; };
 		E778CF1F2F9E3B7000296847 /* index.html in Resources */ = {isa = PBXBuildFile; fileRef = E778CF1E2F9E3B7000296847 /* index.html */; };
 		E778CF212F9E46DF00296847 /* OnDeviceAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E778CF202F9E46DF00296847 /* OnDeviceAnalyzer.swift */; };
-		E7924DC42FA115A2002A93FF /* GroqAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7924DC32FA115A2002A93FF /* GroqAnalyzer.swift */; };
 		E7924DC62FA115DE002A93FF /* rag-knowledge.js in Resources */ = {isa = PBXBuildFile; fileRef = E7924DC52FA115DE002A93FF /* rag-knowledge.js */; };
 		E7924DC82FA119A1002A93FF /* Secrets.plist in Resources */ = {isa = PBXBuildFile; fileRef = E7924DC72FA119A1002A93FF /* Secrets.plist */; };
 		E7AI0001 /* AIProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7AI0002 /* AIProvider.swift */; };
@@ -45,7 +44,6 @@
 		E778CF1C2F9E3B5300296847 /* journal.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = journal.js; sourceTree = "<group>"; };
 		E778CF1E2F9E3B7000296847 /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
 		E778CF202F9E46DF00296847 /* OnDeviceAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnDeviceAnalyzer.swift; sourceTree = "<group>"; };
-		E7924DC32FA115A2002A93FF /* GroqAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroqAnalyzer.swift; sourceTree = "<group>"; };
 		E7924DC52FA115DE002A93FF /* rag-knowledge.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "rag-knowledge.js"; sourceTree = "<group>"; };
 		E7924DC72FA119A1002A93FF /* Secrets.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Secrets.plist; sourceTree = "<group>"; };
 		E7AI0002 /* AIProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIProvider.swift; sourceTree = "<group>"; };
@@ -86,15 +84,14 @@
 				A2000004 /* Assets.xcassets */,
 				E778CF122F9E327000296847 /* PrivacyPolicyView.swift */,
 				E778CF142F9E3A9200296847 /* web */,
-			E778CF202F9E46DF00296847 /* OnDeviceAnalyzer.swift */,
-			E7924DC32FA115A2002A93FF /* GroqAnalyzer.swift */,
-			E7924DC72FA119A1002A93FF /* Secrets.plist */,
-			E7AI0002 /* AIProvider.swift */,
-			E7AI0004 /* AISettingsView.swift */,
-			E7AI0006 /* ExternalAnalyzer.swift */,
-			E7AI0008 /* AnthropicAnalyzer.swift */,
-			E7AI0010 /* GeminiAnalyzer.swift */,
-			E7AI0012 /* UnifiedAnalyzer.swift */,
+				E778CF202F9E46DF00296847 /* OnDeviceAnalyzer.swift */,
+				E7924DC72FA119A1002A93FF /* Secrets.plist */,
+				E7AI0002 /* AIProvider.swift */,
+				E7AI0004 /* AISettingsView.swift */,
+				E7AI0006 /* ExternalAnalyzer.swift */,
+				E7AI0008 /* AnthropicAnalyzer.swift */,
+				E7AI0010 /* GeminiAnalyzer.swift */,
+				E7AI0012 /* UnifiedAnalyzer.swift */,
 			);
 			path = Parlance;
 			sourceTree = "<group>";
@@ -199,19 +196,18 @@
 			files = (
 				A1000001 /* ParlanceApp.swift in Sources */,
 				A1000002 /* ContentView.swift in Sources */,
-				E7924DC42FA115A2002A93FF /* GroqAnalyzer.swift in Sources */,
 				E778CF212F9E46DF00296847 /* OnDeviceAnalyzer.swift in Sources */,
-			A1000003 /* Config.swift in Sources */,
-			E778CF132F9E327000296847 /* PrivacyPolicyView.swift in Sources */,
-			E7AI0001 /* AIProvider.swift in Sources */,
-			E7AI0003 /* AISettingsView.swift in Sources */,
-			E7AI0005 /* ExternalAnalyzer.swift in Sources */,
-			E7AI0007 /* AnthropicAnalyzer.swift in Sources */,
-			E7AI0009 /* GeminiAnalyzer.swift in Sources */,
-			E7AI0011 /* UnifiedAnalyzer.swift in Sources */,
-		);
-		runOnlyForDeploymentPostprocessing = 0;
-	};
+				A1000003 /* Config.swift in Sources */,
+				E778CF132F9E327000296847 /* PrivacyPolicyView.swift in Sources */,
+				E7AI0001 /* AIProvider.swift in Sources */,
+				E7AI0003 /* AISettingsView.swift in Sources */,
+				E7AI0005 /* ExternalAnalyzer.swift in Sources */,
+				E7AI0007 /* AnthropicAnalyzer.swift in Sources */,
+				E7AI0009 /* GeminiAnalyzer.swift in Sources */,
+				E7AI0011 /* UnifiedAnalyzer.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
