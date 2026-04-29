@@ -1,31 +1,32 @@
-# Parlance SLM Training
+# Parlance Training Data
 
-Fine-tuning Qwen 2.5 3B for Spanish/French grammar feedback.
+Scripts for generating fine-tuning data for interpreter training models. This was an early approach before Parlance pivoted to RAG + cloud API inference.
 
-## Step 1: Generate Training Data
+## What Was Generated
 
-Uses Gemini 2.0 Flash (free tier: 1,500 req/day).
+2,241 total training examples in JSONL chat format:
 
-```bash
-pip install google-generativeai
-export GEMINI_API_KEY="your-key"
+| Category | Spanish | French |
+|----------|---------|--------|
+| Grammar feedback (A1-C2) | 495 | 498 |
+| DELE/DELF exam prep | 224 | 224 |
+| Medical interpreting (CCHI/NBCMI) | 150 | 150 |
+| Legal interpreting | 150 | 150 |
+| Interpreter ethics | 100 | 100 |
 
-# Generate Spanish data (all levels, ~500 examples)
-python training/generate_data.py --lang es --count 500
+## Scripts
 
-# Generate French data
-python training/generate_data.py --lang fr --count 500
+- `generate_data.py` — Core grammar feedback examples across all CEFR levels
+- `generate_specialty_data.py` — DELE/DELF, medical, legal, and ethics examples
+- `merge_data.py` — Merges all JSONL files, shuffles, creates 90/10 train/val split
+- `finetune_qlora.py` — QLoRA fine-tuning script for Qwen 2.5 3B (Google Colab)
+- `export_model.py` — Merges LoRA adapter weights into base model
+- `Parlance_FineTune.ipynb` — Colab notebook for the fine-tuning pipeline
 
-# Generate for a specific level
-python training/generate_data.py --lang es --level A1 --count 100
-```
+## Why This Was Shelved
 
-Output goes to `training/data/*.jsonl` in chat-format ready for fine-tuning.
+- Google Colab GPU quota expired mid-training (step 251/378, loss 0.41)
+- Local MLX training on M4 Mac (24GB) crashed the system at 12.5GB memory usage
+- The RAG + Groq (Qwen 3 32B) approach produces better results with zero training infrastructure
 
-## Step 2: Fine-Tune (coming soon)
-
-QLoRA fine-tuning with Hugging Face TRL on Qwen 2.5 3B.
-
-## Step 3: Deploy (coming soon)
-
-Quantize and deploy as self-hosted API or ONNX for edge.
+The training data is preserved in `training/data/` (gitignored) for potential future use.
