@@ -454,7 +454,7 @@ const languages = {
     prompts: [
       "Décrivez votre premier jour d'apprentissage du français.",
       'Que signifie être interprète pour vous ?',
-      'Parlez d'un endroit que vous aimeriez visiter en France ou en Afrique francophone.',
+      "Parlez d'un endroit que vous aimeriez visiter en France ou en Afrique francophone.",
       'Décrivez une personne importante dans votre vie.',
       'Quels sont vos objectifs professionnels pour cette année ?',
       'Écrivez sur une tradition culturelle qui vous semble intéressante.',
