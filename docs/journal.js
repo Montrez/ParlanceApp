@@ -395,32 +395,46 @@ async function analyzeWithAI(sentence, language, level, progressCallback) {
   const systemPrompt = buildSystemPrompt(langName, level, ragContext);
   const userMessage  = `Analyze this ${langName} sentence at ${level} level: "${sentence}"`;
 
-  let rawContent;
+  // Wrap in a 20-second timeout for cloud providers
+  const timeoutMs = providerId === 'webllm' ? 120000 : 20000;
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error(`${provider.name} timed out. Check your connection or try another provider in ⚙ AI.`)), timeoutMs)
+  );
 
-  if (providerId === 'webllm') {
-    const modelId = getProviderModel('webllm');
-    const engine  = await ensureWebLLM(modelId, progressCallback);
-    rawContent    = await callWebLLM(engine, systemPrompt, userMessage);
+  const analysisPromise = (async () => {
+    let rawContent;
 
-  } else if (providerId === 'anthropic') {
-    const key   = getProviderKey('anthropic');
-    if (!key) throw new Error('No Anthropic API key. Add one in ⚙ AI settings.');
-    rawContent  = await callAnthropic(getProviderModel('anthropic'), key, systemPrompt, userMessage);
+    if (providerId === 'webllm') {
+      if (!navigator.gpu) {
+        throw new Error('Your browser does not support WebGPU (needed for Browser AI). Switch to a cloud provider like Groq (free) in ⚙ AI settings.');
+      }
+      const modelId = getProviderModel('webllm');
+      const engine  = await ensureWebLLM(modelId, progressCallback);
+      rawContent    = await callWebLLM(engine, systemPrompt, userMessage);
 
-  } else if (providerId === 'gemini') {
-    const key   = getProviderKey('gemini');
-    if (!key) throw new Error('No Gemini API key. Add one in ⚙ AI settings.');
-    rawContent  = await callGemini(getProviderModel('gemini'), key, systemPrompt, userMessage);
+    } else if (providerId === 'anthropic') {
+      const key   = getProviderKey('anthropic');
+      if (!key) throw new Error('No Anthropic API key. Add one in ⚙ AI settings.');
+      rawContent  = await callAnthropic(getProviderModel('anthropic'), key, systemPrompt, userMessage);
 
-  } else {
-    // OpenAI-compatible: groq, openai, kimi
-    const key   = getProviderKey(providerId);
-    if (!key) throw new Error(`No ${provider.name} API key. Add one in ⚙ AI settings.`);
-    rawContent  = await callOpenAIFormat(
-      provider.endpoint, getProviderModel(providerId), key, systemPrompt, userMessage
-    );
-  }
+    } else if (providerId === 'gemini') {
+      const key   = getProviderKey('gemini');
+      if (!key) throw new Error('No Gemini API key. Add one in ⚙ AI settings.');
+      rawContent  = await callGemini(getProviderModel('gemini'), key, systemPrompt, userMessage);
 
+    } else {
+      // OpenAI-compatible: groq, openai, kimi
+      const key   = getProviderKey(providerId);
+      if (!key) throw new Error(`No ${provider.name} API key. Add one in ⚙ AI settings.`);
+      rawContent  = await callOpenAIFormat(
+        provider.endpoint, getProviderModel(providerId), key, systemPrompt, userMessage
+      );
+    }
+
+    return rawContent;
+  })();
+
+  const rawContent = await Promise.race([analysisPromise, timeoutPromise]);
   const parsed = parseAIContent(rawContent);
   return normalizeResult(parsed);
 }
@@ -572,6 +586,15 @@ function init() {
   const savedLang = localStorage.getItem('parlance_language') || 'es';
   state.currentLanguage = savedLang;
   document.getElementById('langSelect').value = savedLang;
+
+  // Auto-switch from WebLLM to Groq if WebGPU isn't available
+  const currentProvider = getSelectedProvider();
+  if (currentProvider === 'webllm' && !navigator.gpu) {
+    const groqKey = getProviderKey('groq');
+    if (groqKey) {
+      setSelectedProvider('groq');
+    }
+  }
 
   updateWaitingCard();
   renderPrompts();

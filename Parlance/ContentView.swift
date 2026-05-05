@@ -94,8 +94,14 @@ struct ParlanceWebView: UIViewRepresentable {
 
     private func buildConfigJSON() -> String {
         let providerName = UnifiedAnalyzer.shared.activeProviderName
+        var onDeviceAvail = false
+        #if canImport(FoundationModels)
+        if #available(iOS 26, *) {
+            onDeviceAvail = OnDeviceAnalyzer.isAvailable
+        }
+        #endif
         return """
-        {"mode":"unified","onDeviceAvailable":false,"groqAvailable":true,"activeProvider":"\(providerName)"}
+        {"mode":"unified","onDeviceAvailable":\(onDeviceAvail),"groqAvailable":true,"activeProvider":"\(providerName)"}
         """
     }
 
@@ -178,18 +184,29 @@ struct ParlanceWebView: UIViewRepresentable {
                     )
                     let jsonData   = try JSONSerialization.data(withJSONObject: result)
                     let jsonString = String(data: jsonData, encoding: .utf8) ?? "{}"
-                    try await self.webView?.evaluateJavaScript(
+                    self.webView?.evaluateJavaScript(
                         "window.__parlanceGroqResult('\(requestId)', \(jsonString), null)"
-                    )
+                    ) { _, jsErr in
+                        if let jsErr { print("[Parlance] JS callback error:", jsErr) }
+                    }
                 } catch {
-                    let escaped = error.localizedDescription
-                        .replacingOccurrences(of: "'", with: "\\'")
-                        .replacingOccurrences(of: "\n", with: " ")
-                    try? await self.webView?.evaluateJavaScript(
-                        "window.__parlanceGroqResult('\(requestId)', null, '\(escaped)')"
-                    )
+                    print("[Parlance] Analysis failed:", error.localizedDescription)
+                    let errJSON = Self.jsonEscaped(error.localizedDescription)
+                    self.webView?.evaluateJavaScript(
+                        "window.__parlanceGroqResult(\"\(requestId)\", null, \"\(errJSON)\")"
+                    ) { _, jsErr in
+                        if let jsErr { print("[Parlance] JS error callback failed:", jsErr) }
+                    }
                 }
             }
+        }
+
+        private static func jsonEscaped(_ str: String) -> String {
+            str.replacingOccurrences(of: "\\", with: "\\\\")
+               .replacingOccurrences(of: "\"", with: "\\\"")
+               .replacingOccurrences(of: "\n", with: "\\n")
+               .replacingOccurrences(of: "\r", with: "\\r")
+               .replacingOccurrences(of: "\t", with: "\\t")
         }
 
         private func handleOnDeviceAnalysis(_ body: [String: Any]) {
@@ -208,27 +225,26 @@ struct ParlanceWebView: UIViewRepresentable {
                         )
                         let jsonData = try JSONSerialization.data(withJSONObject: result)
                         let jsonString = String(data: jsonData, encoding: .utf8) ?? "{}"
-                        try await self.webView?.evaluateJavaScript(
+                        self.webView?.evaluateJavaScript(
                             "window.__parlanceOnDeviceResult('\(requestId)', \(jsonString), null)"
-                        )
+                        ) { _, jsErr in
+                            if let jsErr { print("[Parlance] JS on-device callback error:", jsErr) }
+                        }
                     } catch {
-                        let escaped = error.localizedDescription
-                            .replacingOccurrences(of: "'", with: "\\'")
-                            .replacingOccurrences(of: "\n", with: " ")
-                        try? await self.webView?.evaluateJavaScript(
-                            "window.__parlanceOnDeviceResult('\(requestId)', null, '\(escaped)')"
-                        )
+                        print("[Parlance] On-device analysis failed:", error.localizedDescription)
+                        let errJSON = Self.jsonEscaped(error.localizedDescription)
+                        self.webView?.evaluateJavaScript(
+                            "window.__parlanceOnDeviceResult(\"\(requestId)\", null, \"\(errJSON)\")"
+                        ) { _, _ in }
                     }
                 }
                 return
             }
             #endif
 
-            Task { @MainActor in
-                try? await self.webView?.evaluateJavaScript(
-                    "window.__parlanceOnDeviceResult('\(requestId)', null, 'On-device analysis not available')"
-                )
-            }
+            self.webView?.evaluateJavaScript(
+                "window.__parlanceOnDeviceResult(\"\(requestId)\", null, \"On-device analysis not available\")"
+            ) { _, _ in }
         }
 
         deinit {

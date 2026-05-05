@@ -21,5 +21,18 @@ DerivedData/
 training/data/
 training/adapters/
 
+# Node / Capacitor
+node_modules/
+
+# Android build artifacts
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+android/.idea/
+*.apk
+*.aab
+*.keystore
+
 # macOS
 .DS_Store

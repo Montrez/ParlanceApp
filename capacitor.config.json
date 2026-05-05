@@ -1,0 +1,23 @@
+{
+  "appId": "com.parlance.interpreterguide",
+  "appName": "Parlance",
+  "webDir": "docs",
+  "backgroundColor": "#faf7f2",
+  "android": {
+    "allowMixedContent": true,
+    "backgroundColor": "#faf7f2"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": true,
+      "backgroundColor": "#faf7f2",
+      "androidSplashResourceName": "splash",
+      "showSpinner": false,
+      "launchShowDuration": 1500
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#1c1917"
+    }
+  }
+}

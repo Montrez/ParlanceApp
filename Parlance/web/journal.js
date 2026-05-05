@@ -28,9 +28,9 @@ function requestGroqAnalysis(sentence, language, level) {
     setTimeout(() => {
       if (pendingGroqRequests[requestId]) {
         delete pendingGroqRequests[requestId];
-        reject(new Error('Groq analysis timed out'));
+        reject(new Error('Analysis timed out. Check your AI settings or connection.'));
       }
-    }, 30000);
+    }, 20000);
   });
 }
 
@@ -57,9 +57,9 @@ function requestOnDeviceAnalysis(sentence, language, level) {
     setTimeout(() => {
       if (pendingOnDeviceRequests[requestId]) {
         delete pendingOnDeviceRequests[requestId];
-        reject(new Error('On-device analysis timed out'));
+        reject(new Error('On-device analysis timed out. Try again or switch to a cloud provider.'));
       }
-    }, 30000);
+    }, 20000);
   });
 }
 
