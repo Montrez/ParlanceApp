@@ -26,8 +26,7 @@ final class UnifiedAnalyzer: Sendable {
         case .onDevice:
             return try await analyzeOnDevice(sentence: sentence, language: language, level: level)
 
-        case .groq, .openAI, .kimi:
-            // For Groq: also accept the legacy static key from Secrets.plist
+        case .groq, .deepSeek, .openRouter, .openAI, .kimi:
             let resolvedKey = (provider == .groq && apiKey.isEmpty) ? Config.groqAPIKey : apiKey
             return try await ExternalAnalyzer.shared.analyze(
                 sentence: sentence,
@@ -92,7 +91,7 @@ final class UnifiedAnalyzer: Sendable {
     // MARK: – Fallback
 
     private func firstAvailableCloudProvider() -> AIProvider? {
-        let cloud: [AIProvider] = [.groq, .openAI, .anthropic, .gemini, .kimi]
+        let cloud: [AIProvider] = [.groq, .deepSeek, .gemini, .openRouter, .openAI, .anthropic, .kimi]
         return cloud.first { !AIProviderSettings.shared.apiKey(for: $0).isEmpty }
     }
 }

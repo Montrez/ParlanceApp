@@ -314,10 +314,41 @@ async function analyzeSentence(id) {
 
   const level = document.getElementById('levelSelect').value;
 
+  // Check offline cache first
+  try {
+    const cacheKey = 'parlance_analysis_cache';
+    const cache = JSON.parse(localStorage.getItem(cacheKey) || '{}');
+    const hash = btoa(unescape(encodeURIComponent(
+      sentence.text + '|' + state.currentLanguage + '|' + level
+    ))).slice(0, 40);
+    if (cache[hash]) {
+      sentence.analysisSource = (cache[hash].source || 'cached') + ' (cached)';
+      applyFeedback(id, sentence, cache[hash].feedback, ta, statusEl);
+      return;
+    }
+  } catch (_) {}
+
   try {
     // Route through the native Swift bridge which uses UnifiedAnalyzer
     const parsed = await requestGroqAnalysis(sentence.text, state.currentLanguage, level);
     sentence.analysisSource = parlanceConfig.activeProvider || 'AI';
+
+    // Cache the result
+    try {
+      const cacheKey = 'parlance_analysis_cache';
+      const cache = JSON.parse(localStorage.getItem(cacheKey) || '{}');
+      const hash = btoa(unescape(encodeURIComponent(
+        sentence.text + '|' + state.currentLanguage + '|' + level
+      ))).slice(0, 40);
+      cache[hash] = { feedback: parsed, source: sentence.analysisSource, ts: Date.now() };
+      const keys = Object.keys(cache);
+      if (keys.length > 200) {
+        const sorted = keys.sort((a, b) => cache[a].ts - cache[b].ts);
+        sorted.slice(0, keys.length - 200).forEach(k => delete cache[k]);
+      }
+      localStorage.setItem(cacheKey, JSON.stringify(cache));
+    } catch (_) {}
+
     applyFeedback(id, sentence, parsed, ta, statusEl);
   } catch (err) {
     // Secondary fallback: on-device if native bridge fails
@@ -480,8 +511,13 @@ function saveEntry() {
     id: Date.now(),
     title,
     language: state.currentLanguage,
+    level: document.getElementById('levelSelect').value,
     date: new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }),
-    sentences: sentences.map(s => s.text),
+    sentences: sentences.map(s => ({
+      text: s.text,
+      feedback: s.feedback || null,
+      analysisSource: s.analysisSource || null,
+    })),
   };
 
   state.savedEntries.unshift(entry);
@@ -526,26 +562,116 @@ function renderPastEntries() {
 function viewEntry(entry) {
   document.getElementById('entryViewerTitle').textContent = entry.title || 'Untitled Entry';
   const langName = entry.language === 'fr' ? 'Français' : 'Español';
-  document.getElementById('entryViewerMeta').textContent = `${entry.date} · ${langName}`;
+  const levelLabel = entry.level ? ` · ${entry.level}` : '';
+  document.getElementById('entryViewerMeta').textContent = `${entry.date} · ${langName}${levelLabel}`;
 
   const body = document.getElementById('entryViewerBody');
   body.innerHTML = '';
-  (entry.sentences || []).forEach((text, i) => {
+
+  const loadAllRow = document.createElement('div');
+  loadAllRow.style.cssText = 'margin-bottom: 1rem; text-align: right;';
+  const loadAllBtn = document.createElement('button');
+  loadAllBtn.className = 'entry-load-btn';
+  loadAllBtn.textContent = 'Load All to Editor';
+  loadAllBtn.onclick = () => loadEntryToEditor(entry);
+  loadAllRow.appendChild(loadAllBtn);
+  body.appendChild(loadAllRow);
+
+  (entry.sentences || []).forEach((s, i) => {
+    const text = typeof s === 'string' ? s : s.text;
+    const feedback = typeof s === 'string' ? null : s.feedback;
+    const analysisSource = typeof s === 'string' ? null : s.analysisSource;
+
     const row = document.createElement('div');
     row.className = 'entry-viewer-sentence';
+
+    let feedbackHTML = '';
+    if (feedback) {
+      const isExcellent = feedback.status === 'Excellent';
+      const badgeClass = isExcellent ? 'excellent' : 'needs-work';
+      const badgeLabel = isExcellent ? 'Excellent' : 'Needs Work';
+      feedbackHTML = `
+        <div class="entry-sentence-actions">
+          <span class="entry-feedback-badge ${badgeClass}">${badgeLabel}</span>
+          ${analysisSource ? `<span class="entry-feedback-badge" style="background:rgba(11,156,208,0.06);color:#0b9cd0;">${escapeHTML(analysisSource)}</span>` : ''}
+        </div>
+        ${feedback.grammar_rule ? `<div class="entry-feedback-rule">${escapeHTML(feedback.grammar_rule)}</div>` : ''}
+        ${feedback.explanation ? `<div class="entry-feedback-rule" style="color:#5a534e;">${escapeHTML(feedback.explanation)}</div>` : ''}
+      `;
+    }
+
     row.innerHTML = `
       <div class="entry-viewer-num">${i + 1}</div>
-      <div class="entry-viewer-text">${text}</div>
+      <div class="entry-viewer-text">
+        ${escapeHTML(text)}
+        ${feedbackHTML}
+        <div class="entry-sentence-actions" style="margin-top:0.4rem;">
+          <button class="entry-load-btn" data-index="${i}" title="Load this sentence into editor">Re-analyze</button>
+        </div>
+      </div>
     `;
+
+    row.querySelector('.entry-load-btn[data-index]').addEventListener('click', () => {
+      loadSentenceToEditor(text, entry.language, entry.level);
+    });
+
     body.appendChild(row);
   });
 
-  const deleteBtn = document.getElementById('entryDeleteBtn');
-  deleteBtn.onclick = () => deleteEntry(entry.id);
+  document.getElementById('entryDeleteBtn').onclick = () => deleteEntry(entry.id);
 
   const overlay = document.getElementById('entryOverlay');
   overlay.style.display = 'flex';
   overlay.onclick = (e) => { if (e.target === overlay) closeEntryViewer(); };
+}
+
+function loadSentenceToEditor(text, language, level) {
+  if (language) {
+    state.currentLanguage = language;
+    document.getElementById('langSelect').value = language;
+    localStorage.setItem('parlance_language', language);
+    updatePlaceholders();
+    renderPrompts();
+  }
+  if (level) {
+    document.getElementById('levelSelect').value = level;
+  }
+  const empty = state.sentences.find(s => !s.text.trim());
+  if (empty) {
+    const ta = document.getElementById('ta-' + empty.id);
+    if (ta) { ta.value = text; ta.dispatchEvent(new Event('input')); ta.focus(); }
+  } else {
+    addSentence(text);
+  }
+  closeEntryViewer();
+  switchTab('feedback', document.querySelector('.feedback-tab'));
+}
+
+function loadEntryToEditor(entry) {
+  if (entry.language) {
+    state.currentLanguage = entry.language;
+    document.getElementById('langSelect').value = entry.language;
+    localStorage.setItem('parlance_language', entry.language);
+    updatePlaceholders();
+    renderPrompts();
+  }
+  if (entry.level) {
+    document.getElementById('levelSelect').value = entry.level;
+  }
+  if (entry.title) {
+    document.getElementById('entryTitle').value = entry.title;
+  }
+  const area = document.getElementById('sentencesArea');
+  area.innerHTML = '';
+  state.sentences = [];
+  sentenceIdCounter = 0;
+  (entry.sentences || []).forEach(s => {
+    const text = typeof s === 'string' ? s : s.text;
+    addSentence(text);
+  });
+  closeEntryViewer();
+  switchTab('feedback', document.querySelector('.feedback-tab'));
+  showToast('Entry loaded into editor.');
 }
 
 function deleteEntry(entryId) {
@@ -566,6 +692,12 @@ function closeEntryViewer() {
 }
 
 // ── UTILS ────────────────────────────────────────────────────────
+function escapeHTML(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
 function showToast(msg) {
   const t = document.getElementById('errorToast');
   t.textContent = msg;

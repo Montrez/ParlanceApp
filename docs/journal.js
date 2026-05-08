@@ -17,35 +17,89 @@ const AI_PROVIDERS = {
   groq: {
     id: 'groq',
     name: 'Groq',
-    subtitle: 'Free tier · Very fast',
+    subtitle: 'Free · Very fast',
     icon: '⚡',
     requiresKey: true,
     local: false,
     corsNote: false,
+    free: true,
     endpoint: 'https://api.groq.com/openai/v1/chat/completions',
     keyUrl: 'https://console.groq.com/keys',
     models: [
-      { id: 'qwen/qwen3-32b', name: 'Qwen3 32B (best quality)' },
-      { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B' },
-      { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B (fastest)' },
+      { id: 'qwen/qwen3-32b', name: 'Qwen3 32B (multilingual)' },
+      { id: 'openai/gpt-oss-120b', name: 'GPT-OSS 120B (best)' },
+      { id: 'meta-llama/llama-4-scout-17b-16e-instruct', name: 'Llama 4 Scout (fast)' },
     ],
     defaultModel: 'qwen/qwen3-32b',
+  },
+  deepseek: {
+    id: 'deepseek',
+    name: 'DeepSeek',
+    subtitle: 'Free · DeepSeek V4',
+    icon: '🐋',
+    requiresKey: true,
+    local: false,
+    corsNote: false,
+    free: true,
+    endpoint: 'https://api.deepseek.com/chat/completions',
+    keyUrl: 'https://platform.deepseek.com/api_keys',
+    models: [
+      { id: 'deepseek-v4-flash', name: 'DeepSeek V4 Flash (fast)' },
+      { id: 'deepseek-v4-pro', name: 'DeepSeek V4 Pro (best)' },
+    ],
+    defaultModel: 'deepseek-v4-flash',
+  },
+  gemini: {
+    id: 'gemini',
+    name: 'Gemini',
+    subtitle: 'Free · 1M tokens/day',
+    icon: '✨',
+    requiresKey: true,
+    local: false,
+    corsNote: false,
+    free: true,
+    keyUrl: 'https://aistudio.google.com/app/apikey',
+    models: [
+      { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (stable)' },
+      { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash (best)' },
+    ],
+    defaultModel: 'gemini-2.5-flash',
+  },
+  openrouter: {
+    id: 'openrouter',
+    name: 'OpenRouter',
+    subtitle: 'Free models · Multi-provider',
+    icon: '🔀',
+    requiresKey: true,
+    local: false,
+    corsNote: false,
+    free: true,
+    endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+    keyUrl: 'https://openrouter.ai/keys',
+    models: [
+      { id: 'meta-llama/llama-3.3-70b-instruct:free', name: 'Llama 3.3 70B (free)' },
+      { id: 'google/gemma-3-27b-it:free', name: 'Gemma 3 27B (free)' },
+      { id: 'qwen/qwen3-8b:free', name: 'Qwen3 8B (free)' },
+    ],
+    defaultModel: 'meta-llama/llama-3.3-70b-instruct:free',
   },
   openai: {
     id: 'openai',
     name: 'OpenAI',
-    subtitle: 'GPT-4o · Paid',
+    subtitle: 'GPT-5 · Paid',
     icon: '💎',
     requiresKey: true,
     local: false,
     corsNote: false,
+    free: false,
     endpoint: 'https://api.openai.com/v1/chat/completions',
     keyUrl: 'https://platform.openai.com/api-keys',
     models: [
-      { id: 'gpt-4o-mini', name: 'GPT-4o Mini (fast, cheap)' },
-      { id: 'gpt-4o', name: 'GPT-4o (best)' },
+      { id: 'gpt-5.4-nano', name: 'GPT-5.4 Nano (fast)' },
+      { id: 'gpt-5.4-mini', name: 'GPT-5.4 Mini (best)' },
+      { id: 'gpt-5.5', name: 'GPT-5.5 (premium)' },
     ],
-    defaultModel: 'gpt-4o-mini',
+    defaultModel: 'gpt-5.4-nano',
   },
   anthropic: {
     id: 'anthropic',
@@ -55,44 +109,31 @@ const AI_PROVIDERS = {
     requiresKey: true,
     local: false,
     corsNote: true,
+    free: false,
     keyUrl: 'https://console.anthropic.com/settings/keys',
     models: [
-      { id: 'claude-3-5-haiku-latest', name: 'Claude 3.5 Haiku (fast)' },
-      { id: 'claude-sonnet-4-5', name: 'Claude Sonnet 4.5 (best)' },
+      { id: 'claude-haiku-4-5', name: 'Claude Haiku 4.5 (fast)' },
+      { id: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6 (best)' },
+      { id: 'claude-opus-4-7', name: 'Claude Opus 4.7 (premium)' },
     ],
-    defaultModel: 'claude-3-5-haiku-latest',
-  },
-  gemini: {
-    id: 'gemini',
-    name: 'Gemini',
-    subtitle: 'Google · Free tier',
-    icon: '✨',
-    requiresKey: true,
-    local: false,
-    corsNote: false,
-    keyUrl: 'https://aistudio.google.com/app/apikey',
-    models: [
-      { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash (fast)' },
-      { id: 'gemini-2.5-flash-preview-04-17', name: 'Gemini 2.5 Flash (best)' },
-    ],
-    defaultModel: 'gemini-2.0-flash',
+    defaultModel: 'claude-haiku-4-5',
   },
   kimi: {
     id: 'kimi',
     name: 'Kimi',
-    subtitle: 'Moonshot AI · Paid',
+    subtitle: 'Kimi K2.6 · Paid',
     icon: '🌙',
     requiresKey: true,
     local: false,
     corsNote: true,
+    free: false,
     endpoint: 'https://api.moonshot.cn/v1/chat/completions',
     keyUrl: 'https://platform.moonshot.cn/console/api-keys',
     models: [
-      { id: 'moonshot-v1-8k', name: 'Moonshot v1 8K' },
-      { id: 'moonshot-v1-32k', name: 'Moonshot v1 32K' },
-      { id: 'moonshot-v1-128k', name: 'Moonshot v1 128K' },
+      { id: 'kimi-k2.5', name: 'Kimi K2.5 (multimodal)' },
+      { id: 'kimi-k2.6', name: 'Kimi K2.6 (best)' },
     ],
-    defaultModel: 'moonshot-v1-8k',
+    defaultModel: 'kimi-k2.6',
   },
 };
 
@@ -385,6 +426,18 @@ function normalizeResult(raw) {
 // ── UNIFIED ANALYSIS ─────────────────────────────────────────────
 // Called by analyzeSentence() — routes to the selected provider
 async function analyzeWithAI(sentence, language, level, progressCallback) {
+  // Check offline cache first
+  try {
+    const cacheKey = 'parlance_analysis_cache';
+    const cache = JSON.parse(localStorage.getItem(cacheKey) || '{}');
+    const hash = btoa(unescape(encodeURIComponent(
+      sentence + '|' + language + '|' + level
+    ))).slice(0, 40);
+    if (cache[hash]) {
+      return { ...cache[hash].feedback, _cachedSource: (cache[hash].source || 'cached') + ' (cached)' };
+    }
+  } catch (_) {}
+
   const providerId = getSelectedProvider();
   const provider   = AI_PROVIDERS[providerId];
   if (!provider) throw new Error('Unknown AI provider');
@@ -436,7 +489,26 @@ async function analyzeWithAI(sentence, language, level, progressCallback) {
 
   const rawContent = await Promise.race([analysisPromise, timeoutPromise]);
   const parsed = parseAIContent(rawContent);
-  return normalizeResult(parsed);
+  const result = normalizeResult(parsed);
+
+  // Cache the analysis result in localStorage
+  try {
+    const cacheKey = 'parlance_analysis_cache';
+    const cache = JSON.parse(localStorage.getItem(cacheKey) || '{}');
+    const hash = btoa(unescape(encodeURIComponent(
+      sentence + '|' + language + '|' + level
+    ))).slice(0, 40);
+    cache[hash] = { feedback: result, source: AI_PROVIDERS[providerId]?.name || providerId, ts: Date.now() };
+    // Keep cache to 200 entries max
+    const keys = Object.keys(cache);
+    if (keys.length > 200) {
+      const sorted = keys.sort((a, b) => cache[a].ts - cache[b].ts);
+      sorted.slice(0, keys.length - 200).forEach(k => delete cache[k]);
+    }
+    localStorage.setItem(cacheKey, JSON.stringify(cache));
+  } catch (_) {}
+
+  return result;
 }
 
 // ── LANGUAGE DEFINITIONS ──────────────────────────────────────────
@@ -504,7 +576,7 @@ function closeAISettings() {
 function renderProviderGrid() {
   const grid = document.getElementById('providerGrid');
   grid.innerHTML = '';
-  Object.values(AI_PROVIDERS).forEach(p => {
+  Object.values(AI_PROVIDERS).filter(p => p.id !== 'webllm' || canUseWebLLM).forEach(p => {
     const card = document.createElement('div');
     card.className = 'ai-provider-card' + (p.id === modalSelectedProvider ? ' selected' : '');
     card.dataset.id = p.id;
@@ -578,6 +650,12 @@ function saveAISettingsFromModal() {
   showToast(`AI provider set to ${AI_PROVIDERS[id].name}. ✓`);
 }
 
+// ── PLATFORM DETECTION ────────────────────────────────────────────
+const isCapacitor = !!(window.Capacitor);
+const isAndroid   = isCapacitor && window.Capacitor.getPlatform?.() === 'android';
+const hasWebGPU   = !!navigator.gpu;
+const canUseWebLLM = hasWebGPU && !isCapacitor;
+
 // ── INIT ──────────────────────────────────────────────────────────
 function init() {
   document.getElementById('dateBadge').textContent = new Date()
@@ -587,12 +665,13 @@ function init() {
   state.currentLanguage = savedLang;
   document.getElementById('langSelect').value = savedLang;
 
-  // Auto-switch from WebLLM to Groq if WebGPU isn't available
+  // Auto-switch from WebLLM if it can't run (Android WebView, no WebGPU)
   const currentProvider = getSelectedProvider();
-  if (currentProvider === 'webllm' && !navigator.gpu) {
-    const groqKey = getProviderKey('groq');
-    if (groqKey) {
-      setSelectedProvider('groq');
+  if (currentProvider === 'webllm' && !canUseWebLLM) {
+    const fallback = ['groq', 'openai', 'gemini', 'anthropic', 'kimi']
+      .find(id => getProviderKey(id));
+    if (fallback) {
+      setSelectedProvider(fallback);
     }
   }
 
@@ -602,6 +681,11 @@ function init() {
   loadSavedEntries();
   initNetworkMonitor();
   updatePlaceholders();
+
+  // On Android/Capacitor with no cloud provider configured, prompt AI settings
+  if (!canUseWebLLM && getSelectedProvider() === 'webllm') {
+    setTimeout(() => openAISettings(), 500);
+  }
 }
 
 function updateWaitingCard() {
@@ -612,11 +696,10 @@ function updateWaitingCard() {
   if (!hint || !p) return;
 
   if (id === 'webllm') {
-    const hasGPU = !!navigator.gpu;
-    if (hasGPU) {
+    if (canUseWebLLM) {
       hint.innerHTML = `${p.icon} <strong>Browser AI</strong> — first use downloads ~380 MB (cached after). Or <button onclick="openAISettings()" style="background:none;border:none;color:var(--accent);font-family:inherit;font-size:inherit;cursor:pointer;padding:0;text-decoration:underline">switch to a cloud API</button> for instant feedback.`;
     } else {
-      hint.innerHTML = `⚠ Your browser doesn't support WebGPU. <button onclick="openAISettings()" style="background:none;border:none;color:var(--accent);font-family:inherit;font-size:inherit;cursor:pointer;padding:0;text-decoration:underline">Choose a cloud provider</button> (Groq has a free tier).`;
+      hint.innerHTML = `⚙ <button onclick="openAISettings()" style="background:none;border:none;color:var(--accent);font-family:inherit;font-size:inherit;cursor:pointer;padding:0;text-decoration:underline">Set up an AI provider</button> to get feedback. Groq is free — get a key at <a href="https://console.groq.com/keys" target="_blank" style="color:var(--accent)">console.groq.com</a>.`;
     }
   } else {
     const hasKey = !!getProviderKey(id);
@@ -813,7 +896,12 @@ async function analyzeSentence(id) {
       (report) => showWebLLMProgress(report)
     );
 
-    sentence.analysisSource = AI_PROVIDERS[providerId]?.name || providerId;
+    if (result._cachedSource) {
+      sentence.analysisSource = result._cachedSource;
+      delete result._cachedSource;
+    } else {
+      sentence.analysisSource = AI_PROVIDERS[providerId]?.name || providerId;
+    }
     applyFeedback(id, sentence, result, ta, statusEl);
 
   } catch (err) {
@@ -1011,8 +1099,13 @@ function saveEntry() {
     id:       Date.now(),
     title,
     language: state.currentLanguage,
+    level:    document.getElementById('levelSelect').value,
     date:     new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-    sentences: sentences.map(s => s.text),
+    sentences: sentences.map(s => ({
+      text: s.text,
+      feedback: s.feedback || null,
+      analysisSource: s.analysisSource || null,
+    })),
   };
 
   state.savedEntries.unshift(entry);
@@ -1049,18 +1142,63 @@ function renderPastEntries() {
 function viewEntry(entry) {
   document.getElementById('entryViewerTitle').textContent = entry.title || 'Untitled Entry';
   const langName = entry.language === 'fr' ? 'Français' : 'Español';
+  const levelLabel = entry.level ? ` · ${entry.level}` : '';
   document.getElementById('entryViewerMeta').textContent =
-    `${entry.date} · ${langName}`;
+    `${entry.date} · ${langName}${levelLabel}`;
 
   const body = document.getElementById('entryViewerBody');
   body.innerHTML = '';
-  (entry.sentences || []).forEach((text, i) => {
+
+  // "Load All to Editor" button at the top
+  const loadAllRow = document.createElement('div');
+  loadAllRow.style.cssText = 'margin-bottom: 1rem; text-align: right;';
+  const loadAllBtn = document.createElement('button');
+  loadAllBtn.className = 'entry-load-btn';
+  loadAllBtn.textContent = 'Load All to Editor';
+  loadAllBtn.onclick = () => loadEntryToEditor(entry);
+  loadAllRow.appendChild(loadAllBtn);
+  body.appendChild(loadAllRow);
+
+  (entry.sentences || []).forEach((s, i) => {
+    // Backward compatibility: old entries stored sentences as plain strings
+    const text = typeof s === 'string' ? s : s.text;
+    const feedback = typeof s === 'string' ? null : s.feedback;
+    const analysisSource = typeof s === 'string' ? null : s.analysisSource;
+
     const row = document.createElement('div');
     row.className = 'entry-viewer-sentence';
+
+    let feedbackHTML = '';
+    if (feedback) {
+      const isExcellent = feedback.status === 'Excellent';
+      const badgeClass = isExcellent ? 'excellent' : 'needs-work';
+      const badgeLabel = isExcellent ? 'Excellent' : 'Needs Work';
+      feedbackHTML = `
+        <div class="entry-sentence-actions">
+          <span class="entry-feedback-badge ${badgeClass}">${badgeLabel}</span>
+          ${analysisSource ? `<span class="entry-feedback-badge" style="background:rgba(11,156,208,0.06);color:#0b9cd0;">${escapeHTML(analysisSource)}</span>` : ''}
+        </div>
+        ${feedback.grammar_rule ? `<div class="entry-feedback-rule">${escapeHTML(feedback.grammar_rule)}</div>` : ''}
+        ${feedback.explanation ? `<div class="entry-feedback-rule" style="color:#5a534e;">${escapeHTML(feedback.explanation)}</div>` : ''}
+      `;
+    }
+
     row.innerHTML = `
       <div class="entry-viewer-num">${i + 1}</div>
-      <div class="entry-viewer-text">${escapeHTML(text)}</div>
+      <div class="entry-viewer-text">
+        ${escapeHTML(text)}
+        ${feedbackHTML}
+        <div class="entry-sentence-actions" style="margin-top:0.4rem;">
+          <button class="entry-load-btn" data-index="${i}" title="Load this sentence into editor">Re-analyze</button>
+        </div>
+      </div>
     `;
+
+    // Attach re-analyze click handler
+    row.querySelector('.entry-load-btn[data-index]').addEventListener('click', () => {
+      loadSentenceToEditor(text, entry.language, entry.level);
+    });
+
     body.appendChild(row);
   });
 
@@ -1069,6 +1207,67 @@ function viewEntry(entry) {
   const overlay = document.getElementById('entryOverlay');
   overlay.style.display = 'flex';
   overlay.onclick = (e) => { if (e.target === overlay) closeEntryViewer(); };
+}
+
+function loadSentenceToEditor(text, language, level) {
+  // Set language and level if provided
+  if (language) {
+    state.currentLanguage = language;
+    document.getElementById('langSelect').value = language;
+    localStorage.setItem('parlance_language', language);
+    updatePlaceholders();
+    renderPrompts();
+  }
+  if (level) {
+    document.getElementById('levelSelect').value = level;
+  }
+
+  // Find an empty sentence slot or add a new one
+  const empty = state.sentences.find(s => !s.text.trim());
+  if (empty) {
+    const ta = document.getElementById('ta-' + empty.id);
+    if (ta) { ta.value = text; ta.dispatchEvent(new Event('input')); ta.focus(); }
+  } else {
+    addSentence(text);
+  }
+
+  closeEntryViewer();
+  switchTab('feedback', document.querySelector('.feedback-tab'));
+}
+
+function loadEntryToEditor(entry) {
+  // Set language and level
+  if (entry.language) {
+    state.currentLanguage = entry.language;
+    document.getElementById('langSelect').value = entry.language;
+    localStorage.setItem('parlance_language', entry.language);
+    updatePlaceholders();
+    renderPrompts();
+  }
+  if (entry.level) {
+    document.getElementById('levelSelect').value = entry.level;
+  }
+
+  // Set title
+  if (entry.title) {
+    document.getElementById('entryTitle').value = entry.title;
+  }
+
+  // Clear existing sentences from UI and state
+  const area = document.getElementById('sentencesArea');
+  area.innerHTML = '';
+  state.sentences = [];
+  sentenceIdCounter = 0;
+
+  // Load each sentence from the entry
+  (entry.sentences || []).forEach(s => {
+    const text = typeof s === 'string' ? s : s.text;
+    addSentence(text);
+  });
+
+  closeEntryViewer();
+  switchTab('feedback', document.querySelector('.feedback-tab'));
+  showToast('Entry loaded into editor.');
 }
 
 function deleteEntry(entryId) {

@@ -4,32 +4,38 @@ import Security
 // MARK: - Provider enum
 
 enum AIProvider: String, CaseIterable, Codable {
-    case onDevice  = "onDevice"
-    case groq      = "groq"
-    case openAI    = "openAI"
-    case anthropic = "anthropic"
-    case gemini    = "gemini"
-    case kimi      = "kimi"
+    case onDevice   = "onDevice"
+    case groq       = "groq"
+    case deepSeek   = "deepSeek"
+    case gemini     = "gemini"
+    case openRouter = "openRouter"
+    case openAI     = "openAI"
+    case anthropic  = "anthropic"
+    case kimi       = "kimi"
 
     var displayName: String {
         switch self {
-        case .onDevice:  return "On-Device (Apple Intelligence)"
-        case .groq:      return "Groq"
-        case .openAI:    return "OpenAI"
-        case .anthropic: return "Anthropic (Claude)"
-        case .gemini:    return "Gemini (Google)"
-        case .kimi:      return "Kimi (Moonshot)"
+        case .onDevice:   return "On-Device (Apple Intelligence)"
+        case .groq:       return "Groq"
+        case .deepSeek:   return "DeepSeek"
+        case .gemini:     return "Gemini (Google)"
+        case .openRouter: return "OpenRouter"
+        case .openAI:     return "OpenAI"
+        case .anthropic:  return "Anthropic (Claude)"
+        case .kimi:       return "Kimi (Moonshot)"
         }
     }
 
     var subtitle: String {
         switch self {
-        case .onDevice:  return "Private · No internet required"
-        case .groq:      return "Fast · Free tier available"
-        case .openAI:    return "GPT-4o · Paid"
-        case .anthropic: return "Claude · Paid"
-        case .gemini:    return "Google · Free tier available"
-        case .kimi:      return "Moonshot AI · Paid"
+        case .onDevice:   return "Private · No internet required"
+        case .groq:       return "Free · Very fast"
+        case .deepSeek:   return "Free · DeepSeek V4"
+        case .gemini:     return "Free · 1M tokens/day"
+        case .openRouter: return "Free models · Multi-provider"
+        case .openAI:     return "GPT-5 · Paid"
+        case .anthropic:  return "Claude · Paid"
+        case .kimi:       return "Kimi K2.6 · Paid"
         }
     }
 
@@ -39,12 +45,14 @@ enum AIProvider: String, CaseIterable, Codable {
 
     var keyURL: URL? {
         switch self {
-        case .onDevice:  return nil
-        case .groq:      return URL(string: "https://console.groq.com/keys")
-        case .openAI:    return URL(string: "https://platform.openai.com/api-keys")
-        case .anthropic: return URL(string: "https://console.anthropic.com/settings/keys")
-        case .gemini:    return URL(string: "https://aistudio.google.com/app/apikey")
-        case .kimi:      return URL(string: "https://platform.moonshot.cn/console/api-keys")
+        case .onDevice:   return nil
+        case .groq:       return URL(string: "https://console.groq.com/keys")
+        case .deepSeek:   return URL(string: "https://platform.deepseek.com/api_keys")
+        case .gemini:     return URL(string: "https://aistudio.google.com/app/apikey")
+        case .openRouter: return URL(string: "https://openrouter.ai/keys")
+        case .openAI:     return URL(string: "https://platform.openai.com/api-keys")
+        case .anthropic:  return URL(string: "https://console.anthropic.com/settings/keys")
+        case .kimi:       return URL(string: "https://platform.moonshot.cn/console/api-keys")
         }
     }
 
@@ -54,30 +62,42 @@ enum AIProvider: String, CaseIterable, Codable {
             return [("system", "Apple Intelligence (default)")]
         case .groq:
             return [
-                ("qwen/qwen3-32b",          "Qwen3 32B (best)"),
-                ("llama-3.3-70b-versatile", "Llama 3.3 70B"),
-                ("llama-3.1-8b-instant",    "Llama 3.1 8B (fastest)"),
+                ("qwen/qwen3-32b",          "Qwen3 32B (multilingual)"),
+                ("openai/gpt-oss-120b",     "GPT-OSS 120B (best)"),
+                ("meta-llama/llama-4-scout-17b-16e-instruct", "Llama 4 Scout (fast)"),
             ]
-        case .openAI:
+        case .deepSeek:
             return [
-                ("gpt-4o-mini", "GPT-4o Mini (fast)"),
-                ("gpt-4o",      "GPT-4o (best)"),
-            ]
-        case .anthropic:
-            return [
-                ("claude-3-5-haiku-latest", "Claude 3.5 Haiku (fast)"),
-                ("claude-sonnet-4-5",       "Claude Sonnet 4.5 (best)"),
+                ("deepseek-v4-flash",  "DeepSeek V4 Flash (fast)"),
+                ("deepseek-v4-pro",    "DeepSeek V4 Pro (best)"),
             ]
         case .gemini:
             return [
-                ("gemini-2.0-flash",                  "Gemini 2.0 Flash (fast)"),
-                ("gemini-2.5-flash-preview-04-17",    "Gemini 2.5 Flash (best)"),
+                ("gemini-2.5-flash",        "Gemini 2.5 Flash (stable)"),
+                ("gemini-3-flash-preview",  "Gemini 3 Flash (best)"),
+            ]
+        case .openRouter:
+            return [
+                ("meta-llama/llama-3.3-70b-instruct:free", "Llama 3.3 70B (free)"),
+                ("google/gemma-3-27b-it:free",             "Gemma 3 27B (free)"),
+                ("qwen/qwen3-8b:free",                     "Qwen3 8B (free)"),
+            ]
+        case .openAI:
+            return [
+                ("gpt-5.4-nano",  "GPT-5.4 Nano (fast)"),
+                ("gpt-5.4-mini",  "GPT-5.4 Mini (best)"),
+                ("gpt-5.5",       "GPT-5.5 (premium)"),
+            ]
+        case .anthropic:
+            return [
+                ("claude-haiku-4-5",  "Claude Haiku 4.5 (fast)"),
+                ("claude-sonnet-4-6", "Claude Sonnet 4.6 (best)"),
+                ("claude-opus-4-7",   "Claude Opus 4.7 (premium)"),
             ]
         case .kimi:
             return [
-                ("moonshot-v1-8k",   "Moonshot v1 8K"),
-                ("moonshot-v1-32k",  "Moonshot v1 32K"),
-                ("moonshot-v1-128k", "Moonshot v1 128K"),
+                ("kimi-k2.5",  "Kimi K2.5 (multimodal)"),
+                ("kimi-k2.6",  "Kimi K2.6 (best)"),
             ]
         }
     }

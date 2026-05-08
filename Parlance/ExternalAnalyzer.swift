@@ -69,6 +69,10 @@ final class ExternalAnalyzer: Sendable {
         switch provider {
         case .groq:
             return URL(string: "https://api.groq.com/openai/v1/chat/completions")!
+        case .deepSeek:
+            return URL(string: "https://api.deepseek.com/chat/completions")!
+        case .openRouter:
+            return URL(string: "https://openrouter.ai/api/v1/chat/completions")!
         case .openAI:
             return URL(string: "https://api.openai.com/v1/chat/completions")!
         case .kimi:
