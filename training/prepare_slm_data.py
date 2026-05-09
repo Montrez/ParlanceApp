@@ -33,9 +33,17 @@ def extract_input_sentence(example: dict) -> str:
     return ""
 
 
-def merge_and_split(lang_dir: Path, split_ratio: float = 0.9):
+def get_level(example: dict) -> str:
+    for msg in example.get("messages", []):
+        if msg.get("role") == "user":
+            for lvl in ["A1", "A2", "B1", "B2", "C1", "C2"]:
+                if f"at {lvl} level" in msg["content"]:
+                    return lvl
+    return ""
+
+
+def merge_and_split(lang_dir: Path, split_ratio: float = 0.9, level_cap: int = 350):
     source_files = sorted(lang_dir.glob("*.jsonl"))
-    # Exclude existing train/valid files
     source_files = [f for f in source_files if f.name not in ("train.jsonl", "valid.jsonl")]
 
     if not source_files:
@@ -68,7 +76,27 @@ def merge_and_split(lang_dir: Path, split_ratio: float = 0.9):
         print(f"    {filepath.name}: {count} examples")
 
     print(f"    Duplicates removed: {duplicates}")
-    print(f"    Total unique: {len(all_examples)}")
+    print(f"    Total unique (before cap): {len(all_examples)}")
+
+    by_level = {}
+    for ex in all_examples:
+        lvl = get_level(ex)
+        by_level.setdefault(lvl, []).append(ex)
+
+    capped = []
+    capped_count = 0
+    for lvl, examples in by_level.items():
+        if len(examples) > level_cap:
+            random.shuffle(examples)
+            capped_count += len(examples) - level_cap
+            capped.extend(examples[:level_cap])
+        else:
+            capped.extend(examples)
+
+    all_examples = capped
+    if capped_count:
+        print(f"    Level cap ({level_cap}): removed {capped_count} excess examples")
+    print(f"    Total balanced: {len(all_examples)}")
 
     random.shuffle(all_examples)
 

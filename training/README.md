@@ -1,32 +1,33 @@
-# Parlance Training Data
+# Parlance SLM Training
 
-Scripts for generating fine-tuning data for interpreter training models. This was an early approach before Parlance pivoted to RAG + cloud API inference.
+Per-language small language models for interpreter training feedback. Two separate Qwen 2.5 0.5B models — one for Spanish, one for French — fine-tuned with LoRA on dialect-aware grammar feedback data.
 
-## What Was Generated
+## Data Pipeline
 
-2,241 total training examples in JSONL chat format:
+1. **Base data** — `generate_data.py` + `generate_specialty_data.py` (grammar, DELE/DELF, medical, legal, ethics)
+2. **Dialect data** — `generate_dialect_data.py` (6 Spanish dialects, 5 French dialects)
+3. **Split & balance** — `prepare_slm_data.py` (merge, dedup, cap levels at 350, 90/10 split)
 
-| Category | Spanish | French |
-|----------|---------|--------|
-| Grammar feedback (A1-C2) | 495 | 498 |
-| DELE/DELF exam prep | 224 | 224 |
-| Medical interpreting (CCHI/NBCMI) | 150 | 150 |
-| Legal interpreting | 150 | 150 |
-| Interpreter ethics | 100 | 100 |
+### Current Data
 
-## Scripts
+| Level | Spanish | French |
+|-------|---------|--------|
+| A1 | 278 | 252 |
+| A2 | 225 | 250 |
+| B1 | 250 | 168 |
+| B2 | 157 | 160 |
+| C1 | 350 | 350 |
+| C2 | 157 | 149 |
+| **Total** | **1,417** | **1,329** |
 
-- `generate_data.py` — Core grammar feedback examples across all CEFR levels
-- `generate_specialty_data.py` — DELE/DELF, medical, legal, and ethics examples
-- `merge_data.py` — Merges all JSONL files, shuffles, creates 90/10 train/val split
-- `finetune_qlora.py` — QLoRA fine-tuning script for Qwen 2.5 3B (Google Colab)
-- `export_model.py` — Merges LoRA adapter weights into base model
-- `Parlance_FineTune.ipynb` — Colab notebook for the fine-tuning pipeline
+## Fine-tuning
 
-## Why This Was Shelved
+```bash
+pip install -r requirements.txt
+python finetune_slm.py --lang es --epochs 3
+python finetune_slm.py --lang fr --epochs 3
+```
 
-- Google Colab GPU quota expired mid-training (step 251/378, loss 0.41)
-- Local MLX training on M4 Mac (24GB) crashed the system at 12.5GB memory usage
-- The RAG + Groq (Qwen 3 32B) approach produces better results with zero training infrastructure
+Uses QLoRA (4-bit) on Qwen 2.5 0.5B Instruct. Needs a GPU with ~6GB VRAM (T4 or better).
 
-The training data is preserved in `training/data/` (gitignored) for potential future use.
+Output: `training/models/parlance-es/` and `training/models/parlance-fr/`
