@@ -63,6 +63,158 @@ function requestOnDeviceAnalysis(sentence, language, level) {
   });
 }
 
+// ── UI LANGUAGE (i18n) ───────────────────────────────────────────
+const UI_LANGS = {
+  en: { name: 'English' },
+  es: { name: 'Español' },
+  fr: { name: 'Français' },
+};
+
+const UI_STRINGS = {
+  en: {
+    appTitle: 'Parlance',
+    entryTitlePlaceholder: 'Entry title…',
+    sentenceCount: (n) => `${n} sentence${n !== 1 ? 's' : ''}`,
+    wordCount: (n) => `${n} word${n !== 1 ? 's' : ''}`,
+    addSentence: 'Add another sentence',
+    saveEntry: 'Save Entry',
+    feedback: 'Feedback',
+    prompts: 'Prompts',
+    guide: 'Guide',
+    waitingText: 'Write a sentence and pause.<br><br>AI feedback appears here automatically.',
+    promptLabel: 'Click a prompt to use it as your first sentence',
+    pastEntries: 'Past Entries',
+    analyzing: 'Analyzing your sentence…',
+    delete: 'Delete',
+    loadAll: 'Load All to Editor',
+    reAnalyze: 'Re-analyze',
+    entrySaved: 'Entry saved!',
+    entryDeleted: 'Entry deleted.',
+    entryLoaded: 'Entry loaded into editor.',
+    writeFirst: 'Write at least one sentence first.',
+    privacy: 'Privacy',
+    offline: "You're offline — writing is saved locally, but cloud AI feedback requires a connection.",
+  },
+  es: {
+    appTitle: 'Parlance',
+    entryTitlePlaceholder: 'Título de la entrada…',
+    sentenceCount: (n) => `${n} oración${n !== 1 ? 'es' : ''}`,
+    wordCount: (n) => `${n} palabra${n !== 1 ? 's' : ''}`,
+    addSentence: 'Agregar otra oración',
+    saveEntry: 'Guardar entrada',
+    feedback: 'Retroalimentación',
+    prompts: 'Ideas',
+    guide: 'Guía',
+    waitingText: 'Escribe una oración y pausa.<br><br>La retroalimentación aparecerá aquí automáticamente.',
+    promptLabel: 'Haz clic en una idea para usarla como tu primera oración',
+    pastEntries: 'Entradas anteriores',
+    analyzing: 'Analizando tu oración…',
+    delete: 'Eliminar',
+    loadAll: 'Cargar todo al editor',
+    reAnalyze: 'Re-analizar',
+    entrySaved: '¡Entrada guardada!',
+    entryDeleted: 'Entrada eliminada.',
+    entryLoaded: 'Entrada cargada en el editor.',
+    writeFirst: 'Escribe al menos una oración primero.',
+    privacy: 'Privacidad',
+    offline: 'Estás sin conexión — lo escrito se guarda localmente, pero la IA en la nube requiere conexión.',
+  },
+  fr: {
+    appTitle: 'Parlance',
+    entryTitlePlaceholder: "Titre de l'entrée…",
+    sentenceCount: (n) => `${n} phrase${n !== 1 ? 's' : ''}`,
+    wordCount: (n) => `${n} mot${n !== 1 ? 's' : ''}`,
+    addSentence: 'Ajouter une phrase',
+    saveEntry: "Sauvegarder l'entrée",
+    feedback: 'Retour',
+    prompts: 'Idées',
+    guide: 'Guide',
+    waitingText: 'Écrivez une phrase et faites une pause.<br><br>Le retour apparaîtra ici automatiquement.',
+    promptLabel: 'Cliquez sur une idée pour commencer',
+    pastEntries: 'Entrées précédentes',
+    analyzing: 'Analyse de votre phrase…',
+    delete: 'Supprimer',
+    loadAll: "Tout charger dans l'éditeur",
+    reAnalyze: 'Ré-analyser',
+    entrySaved: 'Entrée sauvegardée !',
+    entryDeleted: 'Entrée supprimée.',
+    entryLoaded: "Entrée chargée dans l'éditeur.",
+    writeFirst: "Écrivez au moins une phrase d'abord.",
+    privacy: 'Confidentialité',
+    offline: 'Vous êtes hors ligne — vos écrits sont sauvegardés localement, mais le retour IA nécessite une connexion.',
+  },
+};
+
+function getUILang() {
+  return localStorage.getItem('parlance_ui_lang') || 'en';
+}
+
+function setUILang(lang) {
+  localStorage.setItem('parlance_ui_lang', lang);
+}
+
+function t(key) {
+  const lang = getUILang();
+  const strings = UI_STRINGS[lang] || UI_STRINGS.en;
+  return strings[key] || UI_STRINGS.en[key] || key;
+}
+
+function onUILangChange() {
+  const lang = document.getElementById('uiLangSelect').value;
+  setUILang(lang);
+  applyUILang();
+}
+
+function applyUILang() {
+  const lang = getUILang();
+  document.getElementById('uiLangSelect').value = lang;
+
+  // Update static UI text
+  document.getElementById('entryTitle').placeholder = t('entryTitlePlaceholder');
+  document.querySelector('.add-sentence-btn').innerHTML = '<span>+</span> ' + t('addSentence');
+  document.querySelector('.save-btn').textContent = t('saveEntry');
+
+  // Tabs
+  const tabs = document.querySelectorAll('.feedback-tab');
+  if (tabs[0]) tabs[0].textContent = t('feedback');
+  if (tabs[1]) tabs[1].textContent = t('prompts');
+  if (tabs[2]) tabs[2].textContent = t('guide');
+
+  // Waiting text
+  const waitingText = document.querySelector('.waiting-text');
+  if (waitingText) waitingText.innerHTML = t('waitingText');
+
+  // Prompt label
+  const promptLabel = document.querySelector('.prompt-label');
+  if (promptLabel) promptLabel.textContent = t('promptLabel');
+
+  // Past entries title
+  const pastTitle = document.querySelector('.past-bar-title');
+  if (pastTitle) pastTitle.textContent = t('pastEntries');
+
+  // Offline banner
+  const offlineBanner = document.getElementById('offlineBanner');
+  if (offlineBanner) offlineBanner.textContent = t('offline');
+
+  // Privacy button — in iOS version, exclude the AI settings button
+  const privacyBtns = document.querySelectorAll('.privacy-link');
+  privacyBtns.forEach(btn => {
+    if (btn.textContent.trim() === 'Privacy' || btn.textContent.trim() === t('privacy') ||
+        (!btn.textContent.includes('AI') && !btn.textContent.includes('⚙'))) {
+      if (btn.onclick && btn.getAttribute('onclick')?.includes('showPrivacyPolicy')) {
+        btn.textContent = t('privacy');
+      }
+    }
+  });
+
+  // Delete button in entry viewer
+  const deleteBtn = document.getElementById('entryDeleteBtn');
+  if (deleteBtn) deleteBtn.textContent = t('delete');
+
+  // Update counts with correct language
+  updateCounts();
+}
+
 // ── DARK MODE ────────────────────────────────────────────────────
 function initTheme() {
   const saved = localStorage.getItem('parlance_theme');
@@ -82,6 +234,10 @@ function toggleTheme() {
     localStorage.setItem('parlance_theme', 'dark');
   }
   updateThemeIcon();
+  const guideFrame = document.getElementById('guideFrame');
+  if (guideFrame?.contentDocument?.body) {
+    guideFrame.contentDocument.body.classList.toggle('dark', !isDark);
+  }
 }
 
 function updateThemeIcon() {
@@ -145,6 +301,10 @@ const state = {
 // ── INIT ──────────────────────────────────────────────────────────
 function init() {
   initTheme();
+  const savedUILang = getUILang();
+  document.getElementById('uiLangSelect').value = savedUILang;
+  applyUILang();
+
   document.getElementById('dateBadge').textContent = new Date()
     .toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
 
@@ -317,10 +477,10 @@ function onSentenceKeydown(e, id) {
 function updateCounts() {
   const sentences = state.sentences.filter(s => s.text.trim());
   document.getElementById('sentenceCount').textContent =
-    `${sentences.length} sentence${sentences.length !== 1 ? 's' : ''}`;
+    t('sentenceCount')(sentences.length);
   const words = sentences.reduce((acc, s) => acc + s.text.trim().split(/\s+/).filter(Boolean).length, 0);
   document.getElementById('wordCount').textContent =
-    `${words} word${words !== 1 ? 's' : ''}`;
+    t('wordCount')(words);
 
   state.sentences.forEach((s, i) => {
     const num = document.querySelector(`#row-${s.id} .sentence-num`);
@@ -433,7 +593,7 @@ function showAnalyzingState(id) {
   card.id = 'analyzing-card';
   card.innerHTML = `
     <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-    <div class="analyzing-text">Analyzing your sentence…</div>
+    <div class="analyzing-text">${t('analyzing')}</div>
   `;
   inner.appendChild(card);
 }
@@ -516,6 +676,12 @@ function openGuideOverlay() {
   }
 
   frame.src = lang.guideFile;
+  frame.onload = () => {
+    const theme = document.documentElement.getAttribute('data-theme');
+    if (theme === 'dark') {
+      frame.contentDocument?.body?.classList.add('dark');
+    }
+  };
   overlay.style.display = 'block';
 }
 
@@ -534,7 +700,7 @@ window.addEventListener('message', (e) => {
 function saveEntry() {
   const title = document.getElementById('entryTitle').value || 'Untitled Entry';
   const sentences = state.sentences.filter(s => s.text.trim());
-  if (!sentences.length) { showToast('Write at least one sentence first.'); return; }
+  if (!sentences.length) { showToast(t('writeFirst')); return; }
 
   const entry = {
     id: Date.now(),
@@ -553,7 +719,7 @@ function saveEntry() {
   try { localStorage.setItem('parlance_entries', JSON.stringify(state.savedEntries)); } catch(e) {}
 
   renderPastEntries();
-  showToast('Entry saved! ✓');
+  showToast(t('entrySaved') + ' ✓');
 }
 
 function loadSavedEntries() {
@@ -700,7 +866,7 @@ function loadEntryToEditor(entry) {
   });
   closeEntryViewer();
   switchTab('feedback', document.querySelector('.feedback-tab'));
-  showToast('Entry loaded into editor.');
+  showToast(t('entryLoaded'));
 }
 
 function deleteEntry(entryId) {
@@ -713,7 +879,7 @@ function deleteEntry(entryId) {
   if (!state.savedEntries.length) {
     document.getElementById('pastBar').style.display = 'none';
   }
-  showToast('Entry deleted.');
+  showToast(t('entryDeleted'));
 }
 
 function closeEntryViewer() {
