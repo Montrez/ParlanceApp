@@ -33,6 +33,7 @@ android/.idea/
 *.apk
 *.aab
 *.keystore
+*.jks
 
 # macOS
 .DS_Store

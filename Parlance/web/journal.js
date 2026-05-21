@@ -63,6 +63,34 @@ function requestOnDeviceAnalysis(sentence, language, level) {
   });
 }
 
+// ── DARK MODE ────────────────────────────────────────────────────
+function initTheme() {
+  const saved = localStorage.getItem('parlance_theme');
+  if (saved === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+  updateThemeIcon();
+}
+
+function toggleTheme() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  if (isDark) {
+    document.documentElement.removeAttribute('data-theme');
+    localStorage.setItem('parlance_theme', 'light');
+  } else {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    localStorage.setItem('parlance_theme', 'dark');
+  }
+  updateThemeIcon();
+}
+
+function updateThemeIcon() {
+  const btn = document.getElementById('themeToggle');
+  if (!btn) return;
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  btn.textContent = isDark ? '☾' : '☀';
+}
+
 // ── LANGUAGE DEFINITIONS ─────────────────────────────────────────
 const languages = {
   es: {
@@ -73,13 +101,13 @@ const languages = {
     coachRole: 'Spanish',
     guideFile: 'guide-es.html',
     prompts: [
-      "Describe cómo fue tu primer día aprendiendo español.",
-      "¿Qué significa ser intérprete para ti?",
-      "Habla sobre un lugar que te gustaría visitar en España o Latinoamérica.",
-      "Describe a una persona importante en tu vida.",
-      "¿Cuáles son tus metas profesionales para este año?",
-      "Escribe sobre una tradición cultural que te parece interesante.",
-      "¿Qué opinas sobre la importancia de los idiomas en el mundo actual?",
+      'Describe your first day learning Spanish.',
+      'What does being an interpreter mean to you?',
+      'Talk about a place you would like to visit in Spain or Latin America.',
+      'Describe an important person in your life.',
+      'What are your professional goals for this year?',
+      'Write about a cultural tradition you find interesting.',
+      'What do you think about the importance of languages in today\'s world?',
     ]
   },
   fr: {
@@ -90,13 +118,13 @@ const languages = {
     coachRole: 'French',
     guideFile: 'guide-fr.html',
     prompts: [
-      "Décrivez votre premier jour d'apprentissage du français.",
-      "Que signifie être interprète pour vous ?",
-      "Parlez d'un endroit que vous aimeriez visiter en France ou en Afrique francophone.",
-      "Décrivez une personne importante dans votre vie.",
-      "Quels sont vos objectifs professionnels pour cette année ?",
-      "Écrivez sur une tradition culturelle qui vous semble intéressante.",
-      "Que pensez-vous de l'importance des langues dans le monde actuel ?",
+      'Describe your first day learning French.',
+      'What does being an interpreter mean to you?',
+      'Talk about a place you would like to visit in France or Francophone Africa.',
+      'Describe an important person in your life.',
+      'What are your professional goals for this year?',
+      'Write about a cultural tradition you find interesting.',
+      'What do you think about the importance of languages in today\'s world?',
     ]
   }
 };
@@ -116,6 +144,7 @@ const state = {
 
 // ── INIT ──────────────────────────────────────────────────────────
 function init() {
+  initTheme();
   document.getElementById('dateBadge').textContent = new Date()
     .toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
 
