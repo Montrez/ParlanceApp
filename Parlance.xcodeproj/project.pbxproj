@@ -20,7 +20,6 @@
 		E778CF1F2F9E3B7000296847 /* index.html in Resources */ = {isa = PBXBuildFile; fileRef = E778CF1E2F9E3B7000296847 /* index.html */; };
 		E778CF212F9E46DF00296847 /* OnDeviceAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E778CF202F9E46DF00296847 /* OnDeviceAnalyzer.swift */; };
 		E7924DC62FA115DE002A93FF /* rag-knowledge.js in Resources */ = {isa = PBXBuildFile; fileRef = E7924DC52FA115DE002A93FF /* rag-knowledge.js */; };
-		E7924DC82FA119A1002A93FF /* Secrets.plist in Resources */ = {isa = PBXBuildFile; fileRef = E7924DC72FA119A1002A93FF /* Secrets.plist */; };
 		E7AI0001 /* AIProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7AI0002 /* AIProvider.swift */; };
 		E7AI0003 /* AISettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7AI0004 /* AISettingsView.swift */; };
 		E7AI0005 /* ExternalAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7AI0006 /* ExternalAnalyzer.swift */; };
@@ -45,7 +44,6 @@
 		E778CF1E2F9E3B7000296847 /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
 		E778CF202F9E46DF00296847 /* OnDeviceAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnDeviceAnalyzer.swift; sourceTree = "<group>"; };
 		E7924DC52FA115DE002A93FF /* rag-knowledge.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "rag-knowledge.js"; sourceTree = "<group>"; };
-		E7924DC72FA119A1002A93FF /* Secrets.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Secrets.plist; sourceTree = "<group>"; };
 		E7AI0002 /* AIProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIProvider.swift; sourceTree = "<group>"; };
 		E7AI0004 /* AISettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AISettingsView.swift; sourceTree = "<group>"; };
 		E7AI0006 /* ExternalAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalAnalyzer.swift; sourceTree = "<group>"; };
@@ -85,7 +83,6 @@
 				E778CF122F9E327000296847 /* PrivacyPolicyView.swift */,
 				E778CF142F9E3A9200296847 /* web */,
 				E778CF202F9E46DF00296847 /* OnDeviceAnalyzer.swift */,
-				E7924DC72FA119A1002A93FF /* Secrets.plist */,
 				E7AI0002 /* AIProvider.swift */,
 				E7AI0004 /* AISettingsView.swift */,
 				E7AI0006 /* ExternalAnalyzer.swift */,
@@ -179,7 +176,6 @@
 				A1000004 /* Assets.xcassets in Resources */,
 				E7924DC62FA115DE002A93FF /* rag-knowledge.js in Resources */,
 				E778CF172F9E3AF800296847 /* styles.css in Resources */,
-				E7924DC82FA119A1002A93FF /* Secrets.plist in Resources */,
 				E778CF192F9E3AF800296847 /* guide-es.html in Resources */,
 				E778CF1F2F9E3B7000296847 /* index.html in Resources */,
 				A1000006 /* Config.plist in Resources */,

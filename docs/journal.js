@@ -943,7 +943,6 @@ function renderPrompts() {
     const el = document.createElement('div');
     el.className = 'prompt-item';
     el.textContent = p;
-    el.onclick = () => usePrompt(p);
     list.appendChild(el);
   });
 }
