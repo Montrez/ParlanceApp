@@ -34,51 +34,51 @@
       <option value="C1">C1</option>
       <option value="C2">C2</option>
     </select>
-    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle dark mode">☀</button>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" data-i18n-title="toggleTheme">☀</button>
     <button class="privacy-link ai-settings-btn" id="aiSettingsBtn" onclick="openAISettings()">⚙ AI</button>
-    <button class="privacy-link" onclick="showPrivacyPolicy()">Privacy</button>
+    <button class="privacy-link" id="privacyBtn" onclick="showPrivacyPolicy()" data-i18n="privacy">Privacy</button>
   </div>
 </header>
 
-<div class="offline-banner" id="offlineBanner">You're offline — writing is saved locally, but cloud AI feedback requires a connection.</div>
+<div class="offline-banner" id="offlineBanner" data-i18n="offline">You're offline — writing is saved locally, but cloud AI feedback requires a connection.</div>
 
 <div class="workspace">
 
   <!-- ── JOURNAL ── -->
   <div class="journal-panel">
     <div class="journal-header">
-      <input class="journal-title-input" id="entryTitle" type="text" placeholder="Entry title…" />
+      <input class="journal-title-input" id="entryTitle" type="text" data-i18n-placeholder="entryTitlePlaceholder" placeholder="Entry title…" />
       <div class="sentence-count" id="sentenceCount">0 sentences</div>
     </div>
     <div class="sentences-area" id="sentencesArea"></div>
     <div style="padding: 0 1.75rem 1rem;">
       <button class="add-sentence-btn" id="addSentenceBtn" onclick="addSentence()">
-        <span>+</span> Add another sentence
+        <span>+</span> <span data-i18n="addSentence">Add another sentence</span>
       </button>
     </div>
     <div class="journal-footer">
       <div class="word-count" id="wordCount">0 words</div>
-      <button class="save-btn" onclick="saveEntry()">Save Entry</button>
+      <button class="save-btn" onclick="saveEntry()" data-i18n="saveEntry">Save Entry</button>
     </div>
   </div>
 
   <!-- ── SIDE PANEL ── -->
   <div class="feedback-panel" id="feedbackPanel">
     <div class="feedback-panel-tabs">
-      <button class="feedback-tab active" onclick="switchTab('feedback', this)">Feedback</button>
-      <button class="feedback-tab" onclick="switchTab('prompts', this)">Prompts</button>
-      <button class="feedback-tab" onclick="switchTab('guide', this)">Guide</button>
+      <button class="feedback-tab active" onclick="switchTab('feedback', this)" data-i18n="feedback">Feedback</button>
+      <button class="feedback-tab" onclick="switchTab('prompts', this)" data-i18n="prompts">Prompts</button>
+      <button class="feedback-tab" onclick="switchTab('guide', this)" data-i18n="guide">Guide</button>
     </div>
     <div class="feedback-panel-inner" id="feedbackInner">
       <div class="waiting-card" id="waitingCard">
         <div class="waiting-icon">🖊️</div>
-        <div class="waiting-text" id="waitingText">Write a sentence and pause.<br><br>AI feedback appears here automatically.</div>
+        <div class="waiting-text" id="waitingText" data-i18n-html="waitingText">Write a sentence and pause.<br><br>AI feedback appears here automatically.</div>
         <div class="waiting-provider-hint" id="waitingProviderHint"></div>
       </div>
     </div>
     <div class="feedback-panel-inner" id="promptsInner" style="display:none">
       <div class="prompt-area">
-        <div class="prompt-label">Click a prompt to use it as your first sentence</div>
+        <div class="prompt-label" data-i18n="promptLabel">Writing ideas — respond to one in your target language</div>
         <div class="prompt-list" id="promptList"></div>
       </div>
     </div>
@@ -93,7 +93,7 @@
 
 <!-- Past entries bar -->
 <div class="past-bar" id="pastBar" style="display:none">
-  <div class="past-bar-title">Past Entries</div>
+  <div class="past-bar-title" data-i18n="pastEntries">Past Entries</div>
   <div class="past-entries" id="pastEntries"></div>
 </div>
 
@@ -106,7 +106,7 @@
         <div class="entry-viewer-meta" id="entryViewerMeta"></div>
       </div>
       <div class="entry-viewer-actions">
-        <button class="entry-viewer-delete" id="entryDeleteBtn">Delete</button>
+        <button class="entry-viewer-delete" id="entryDeleteBtn" data-i18n="delete">Delete</button>
         <button class="entry-viewer-close" onclick="closeEntryViewer()">&times;</button>
       </div>
     </div>
@@ -156,32 +156,14 @@
 <div id="privacyOverlay" style="display:none" class="modal-overlay" onclick="if(event.target===this)closePrivacyPolicy()">
   <div class="modal-card">
     <div class="modal-header">
-      <h2>Privacy Policy</h2>
+      <h2 data-i18n="privacyTitle">Privacy Policy</h2>
       <button class="modal-close" onclick="closePrivacyPolicy()">&times;</button>
     </div>
-    <div class="modal-body">
-      <div class="privacy-section">
-        <h3>Your Writing</h3>
-        <p>Journal entries are stored only in your browser's local storage and never sent to Parlance servers. You can delete any entry at any time.</p>
-      </div>
-      <div class="privacy-section">
-        <h3>AI Analysis</h3>
-        <p>When you use <strong>Browser AI (WebLLM)</strong>, your sentences are analyzed entirely on your device using a local model. No data leaves your browser.</p>
-        <p style="margin-top:0.5rem">When you use a cloud provider (Groq, OpenAI, Anthropic, Gemini, or Kimi), each sentence you submit is sent to that provider's API. Please review the privacy policy of your chosen provider before using it.</p>
-      </div>
-      <div class="privacy-section">
-        <h3>API Keys</h3>
-        <p>API keys you enter are stored in your browser's local storage and are sent only to the respective provider's API endpoint. Parlance never sees or stores your API keys.</p>
-      </div>
-      <div class="privacy-section">
-        <h3>No Tracking</h3>
-        <p>Parlance does not use analytics, cookies, or any form of tracking. Nothing about your usage is collected or shared.</p>
-      </div>
-      <div class="privacy-updated">Last updated: April 2026</div>
-    </div>
+    <div class="modal-body" id="privacyBody"></div>
   </div>
 </div>
 
+<script src="i18n.js"></script>
 <script src="rag-knowledge.js"></script>
 <script src="journal.js"></script>
 </body>

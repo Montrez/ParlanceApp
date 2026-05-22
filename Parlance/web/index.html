@@ -32,50 +32,51 @@
       <option value="C1">C1</option>
       <option value="C2">C2</option>
     </select>
-    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle dark mode">☀</button>
-    <button class="privacy-link" onclick="showAISettings()" style="color:#5ec4e6;border-color:#2a3a44;">⚙ AI</button>
-    <button class="privacy-link" onclick="showPrivacyPolicy()">Privacy</button>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" data-i18n-title="toggleTheme">☀</button>
+    <button class="privacy-link ai-settings-btn" id="aiSettingsBtn" onclick="openAISettings()">⚙ AI</button>
+    <button class="privacy-link" id="privacyBtn" onclick="showPrivacyPolicy()" data-i18n="privacy">Privacy</button>
   </div>
 </header>
 
-<div class="offline-banner" id="offlineBanner">You're offline — writing is saved locally, but feedback requires a connection.</div>
+<div class="offline-banner" id="offlineBanner" data-i18n="offline">You're offline — writing is saved locally, but cloud AI feedback requires a connection.</div>
 
 <div class="workspace">
 
   <!-- ── JOURNAL ── -->
   <div class="journal-panel">
     <div class="journal-header">
-      <input class="journal-title-input" id="entryTitle" type="text" placeholder="Entry title…" />
+      <input class="journal-title-input" id="entryTitle" type="text" data-i18n-placeholder="entryTitlePlaceholder" placeholder="Entry title…" />
       <div class="sentence-count" id="sentenceCount">0 sentences</div>
     </div>
     <div class="sentences-area" id="sentencesArea"></div>
     <div style="padding: 0 1.75rem 1rem;">
       <button class="add-sentence-btn" id="addSentenceBtn" onclick="addSentence()">
-        <span>+</span> Add another sentence
+        <span>+</span> <span data-i18n="addSentence">Add another sentence</span>
       </button>
     </div>
     <div class="journal-footer">
       <div class="word-count" id="wordCount">0 words</div>
-      <button class="save-btn" onclick="saveEntry()">Save Entry</button>
+      <button class="save-btn" onclick="saveEntry()" data-i18n="saveEntry">Save Entry</button>
     </div>
   </div>
 
   <!-- ── SIDE PANEL ── -->
   <div class="feedback-panel" id="feedbackPanel">
     <div class="feedback-panel-tabs">
-      <button class="feedback-tab active" onclick="switchTab('feedback', this)">Feedback</button>
-      <button class="feedback-tab" onclick="switchTab('prompts', this)">Prompts</button>
-      <button class="feedback-tab" onclick="switchTab('guide', this)">Guide</button>
+      <button class="feedback-tab active" onclick="switchTab('feedback', this)" data-i18n="feedback">Feedback</button>
+      <button class="feedback-tab" onclick="switchTab('prompts', this)" data-i18n="prompts">Prompts</button>
+      <button class="feedback-tab" onclick="switchTab('guide', this)" data-i18n="guide">Guide</button>
     </div>
     <div class="feedback-panel-inner" id="feedbackInner">
       <div class="waiting-card" id="waitingCard">
         <div class="waiting-icon">🖊️</div>
-        <div class="waiting-text">Write a sentence and pause for a moment.<br><br>Feedback will appear here automatically.</div>
+        <div class="waiting-text" id="waitingText" data-i18n-html="waitingText">Write a sentence and pause.<br><br>AI feedback appears here automatically.</div>
+        <div class="waiting-provider-hint" id="waitingProviderHint"></div>
       </div>
     </div>
     <div class="feedback-panel-inner" id="promptsInner" style="display:none">
       <div class="prompt-area">
-        <div class="prompt-label">Click a prompt to use it as your first sentence</div>
+        <div class="prompt-label" data-i18n="promptLabel">Writing ideas — respond to one in your target language</div>
         <div class="prompt-list" id="promptList"></div>
       </div>
     </div>
@@ -90,7 +91,7 @@
 
 <!-- Past entries bar -->
 <div class="past-bar" id="pastBar" style="display:none">
-  <div class="past-bar-title">Past Entries</div>
+  <div class="past-bar-title" data-i18n="pastEntries">Past Entries</div>
   <div class="past-entries" id="pastEntries"></div>
 </div>
 
@@ -103,7 +104,7 @@
         <div class="entry-viewer-meta" id="entryViewerMeta"></div>
       </div>
       <div class="entry-viewer-actions">
-        <button class="entry-viewer-delete" id="entryDeleteBtn">Delete</button>
+        <button class="entry-viewer-delete" id="entryDeleteBtn" data-i18n="delete">Delete</button>
         <button class="entry-viewer-close" onclick="closeEntryViewer()">&times;</button>
       </div>
     </div>
@@ -118,6 +119,49 @@
   <iframe id="guideFrame" style="width:100%;height:100%;border:none;" sandbox="allow-scripts allow-same-origin"></iframe>
 </div>
 
+<!-- ── AI SETTINGS MODAL ── -->
+<div id="aiSettingsOverlay" style="display:none" class="modal-overlay" onclick="if(event.target===this)closeAISettings()">
+  <div class="modal-card ai-settings-card">
+    <div class="modal-header">
+      <h2>AI Provider</h2>
+      <button class="modal-close" onclick="closeAISettings()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="settings-section">
+        <div class="settings-label">Select a provider</div>
+        <div class="ai-provider-grid" id="providerGrid"></div>
+      </div>
+      <div class="settings-section" id="apiKeySection" style="display:none">
+        <label class="settings-label" for="apiKeyInput">API Key</label>
+        <input type="password" id="apiKeyInput" class="settings-input" placeholder="Paste your API key…" autocomplete="off" spellcheck="false" />
+        <div class="settings-hint" id="apiKeyHint"></div>
+      </div>
+      <div class="settings-section" id="modelSection">
+        <label class="settings-label" for="modalModelSelect">Model</label>
+        <select id="modalModelSelect" class="settings-select"></select>
+      </div>
+      <div class="settings-warning" id="corsWarning" style="display:none">
+        ⚠ This provider may block direct browser requests due to CORS restrictions. If analysis fails, try Groq, OpenAI, or Gemini — they all support browser access.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="settings-save-btn" onclick="saveAISettingsFromModal()">Save &amp; Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── PRIVACY POLICY MODAL ── -->
+<div id="privacyOverlay" style="display:none" class="modal-overlay" onclick="if(event.target===this)closePrivacyPolicy()">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h2 data-i18n="privacyTitle">Privacy Policy</h2>
+      <button class="modal-close" onclick="closePrivacyPolicy()">&times;</button>
+    </div>
+    <div class="modal-body" id="privacyBody"></div>
+  </div>
+</div>
+
+<script src="i18n.js"></script>
 <script src="rag-knowledge.js"></script>
 <script src="journal.js"></script>
 </body>

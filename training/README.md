@@ -22,12 +22,33 @@ Per-language small language models for interpreter training feedback. Two separa
 
 ## Fine-tuning
 
+### Google Colab (T4 GPU)
+
+Open `Parlance_FineTune.ipynb` from this folder (Colab extension syncs `finetune_slm.py` and `data/`), or upload manually:
+
+| File | Path |
+|------|------|
+| Script | `finetune_slm.py` |
+| Spanish train/valid | `data/spanish/train.jsonl` (1,275), `valid.jsonl` (142) |
+| French train/valid | `data/french/train.jsonl` (1,196), `valid.jsonl` (133) |
+
+```bash
+pip install torch transformers peft datasets accelerate bitsandbytes trl
+cd training   # if notebook opened from repo root
+python finetune_slm.py --lang es --epochs 3
+python finetune_slm.py --lang fr --epochs 3
+```
+
+Zip `models/parlance-es/` and `models/parlance-fr/` and copy back to your Mac.
+
+### Local GPU
+
 ```bash
 pip install -r requirements.txt
 python finetune_slm.py --lang es --epochs 3
 python finetune_slm.py --lang fr --epochs 3
 ```
 
-Uses QLoRA (4-bit) on Qwen 2.5 0.5B Instruct. Needs a GPU with ~6GB VRAM (T4 or better).
+Uses QLoRA (4-bit) on Qwen 2.5 0.5B Instruct. Needs ~6GB VRAM (T4 or better).
 
-Output: `training/models/parlance-es/` and `training/models/parlance-fr/`
+Output: `models/parlance-es/` and `models/parlance-fr/` (under this directory)

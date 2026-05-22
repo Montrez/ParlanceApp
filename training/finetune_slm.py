@@ -18,9 +18,9 @@ Usage:
     # Both sequentially
     python finetune_slm.py --lang both --epochs 3
 
-Output:
-    training/models/parlance-es/   (merged model + tokenizer)
-    training/models/parlance-fr/   (merged model + tokenizer)
+Output (under this script's directory):
+    models/parlance-es/   (merged model + tokenizer)
+    models/parlance-fr/   (merged model + tokenizer)
 """
 
 import argparse
@@ -30,20 +30,16 @@ from pathlib import Path
 import torch
 from datasets import Dataset
 from peft import LoraConfig, get_peft_model, TaskType
-from transformers import (
-    AutoModelForCausalLM,
-    AutoTokenizer,
-    TrainingArguments,
-    BitsAndBytesConfig,
-)
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from trl import SFTTrainer, SFTConfig
 
 
 BASE_MODEL = "Qwen/Qwen2.5-0.5B-Instruct"
+TRAINING_DIR = Path(__file__).resolve().parent
 
 LANG_DIRS = {
-    "es": Path("training/data/spanish"),
-    "fr": Path("training/data/french"),
+    "es": TRAINING_DIR / "data" / "spanish",
+    "fr": TRAINING_DIR / "data" / "french",
 }
 
 
@@ -68,8 +64,8 @@ def format_chat(example, tokenizer):
 def finetune_language(lang: str, epochs: int, batch_size: int, lr: float, max_seq_len: int):
     lang_name = "Spanish" if lang == "es" else "French"
     lang_dir = LANG_DIRS[lang]
-    output_dir = Path(f"training/models/parlance-{lang}")
-    checkpoint_dir = Path(f"training/checkpoints/parlance-{lang}")
+    output_dir = TRAINING_DIR / "models" / f"parlance-{lang}"
+    checkpoint_dir = TRAINING_DIR / "checkpoints" / f"parlance-{lang}"
 
     print(f"\n{'='*60}")
     print(f"  Fine-tuning Parlance SLM — {lang_name}")
