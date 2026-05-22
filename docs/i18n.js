@@ -97,7 +97,21 @@ const i18n = {
       privacyKeysText: "API keys you enter are stored in your browser’s local storage and are sent only to the respective provider’s API endpoint. Parlance never sees or stores your API keys.",
       privacyTrackingTitle: "No Tracking",
       privacyTrackingText: "Parlance does not use analytics, cookies, or any form of tracking. Nothing about your usage is collected or shared.",
-      privacyUpdated: "Last updated: May 2026"
+      privacyUpdated: "Last updated: May 2026",
+      prompts_es_1: "Describe your first day learning Spanish.",
+      prompts_es_2: "What does being an interpreter mean to you?",
+      prompts_es_3: "Talk about a place you would like to visit in Spain or Latin America.",
+      prompts_es_4: "Describe an important person in your life.",
+      prompts_es_5: "What are your professional goals for this year?",
+      prompts_es_6: "Write about a cultural tradition you find interesting.",
+      prompts_es_7: "What do you think about the importance of languages in today's world?",
+      prompts_fr_1: "Describe your first day learning French.",
+      prompts_fr_2: "What does being an interpreter mean to you?",
+      prompts_fr_3: "Talk about a place you would like to visit in France or a Francophone country.",
+      prompts_fr_4: "Describe an important person in your life.",
+      prompts_fr_5: "What are your professional goals for this year?",
+      prompts_fr_6: "Write about a French cultural tradition you find interesting.",
+      prompts_fr_7: "What do you think about the importance of languages in today's world?"
     },
     es: {
       appTitle: "Parlance",
@@ -134,7 +148,21 @@ const i18n = {
       privacyKeysText: "Las claves API que ingresas se almacenan en el almacenamiento local de tu navegador y solo se envían al punto de acceso API del proveedor respectivo. Parlance nunca ve ni almacena tus claves API.",
       privacyTrackingTitle: "Sin rastreo",
       privacyTrackingText: "Parlance no usa análisis, cookies ni ninguna forma de rastreo. Nada sobre tu uso se recopila ni se comparte.",
-      privacyUpdated: "Última actualización: mayo 2026"
+      privacyUpdated: "Última actualización: mayo 2026",
+      prompts_es_1: "Describe tu primer día aprendiendo español.",
+      prompts_es_2: "¿Qué significa ser intérprete para ti?",
+      prompts_es_3: "Habla sobre un lugar que te gustaría visitar en España o Latinoamérica.",
+      prompts_es_4: "Describe a una persona importante en tu vida.",
+      prompts_es_5: "¿Cuáles son tus metas profesionales para este año?",
+      prompts_es_6: "Escribe sobre una tradición cultural que te parezca interesante.",
+      prompts_es_7: "¿Qué opinas sobre la importancia de los idiomas en el mundo actual?",
+      prompts_fr_1: "Describe tu primer día aprendiendo francés.",
+      prompts_fr_2: "¿Qué significa ser intérprete para ti?",
+      prompts_fr_3: "Habla sobre un lugar que te gustaría visitar en Francia o un país francófono.",
+      prompts_fr_4: "Describe a una persona importante en tu vida.",
+      prompts_fr_5: "¿Cuáles son tus metas profesionales para este año?",
+      prompts_fr_6: "Escribe sobre una tradición cultural francesa que te parezca interesante.",
+      prompts_fr_7: "¿Qué opinas sobre la importancia de los idiomas en el mundo actual?"
     },
     fr: {
       appTitle: "Parlance",
@@ -171,7 +199,21 @@ const i18n = {
       privacyKeysText: "Les clés API que vous saisissez sont stockées dans le stockage local de votre navigateur et envoyées uniquement au point d’accès API du fournisseur respectif. Parlance ne voit ni ne stocke jamais vos clés API.",
       privacyTrackingTitle: "Aucun suivi",
       privacyTrackingText: "Parlance n’utilise ni analyses, ni cookies, ni aucune forme de suivi. Rien concernant votre utilisation n’est collecté ni partagé.",
-      privacyUpdated: "Dernière mise à jour : mai 2026"
+      privacyUpdated: "Dernière mise à jour : mai 2026",
+      prompts_es_1: "Décrivez votre premier jour d'apprentissage de l'espagnol.",
+      prompts_es_2: "Que signifie être interprète pour vous ?",
+      prompts_es_3: "Parlez d'un endroit que vous aimeriez visiter en Espagne ou en Amérique latine.",
+      prompts_es_4: "Décrivez une personne importante dans votre vie.",
+      prompts_es_5: "Quels sont vos objectifs professionnels pour cette année ?",
+      prompts_es_6: "Écrivez sur une tradition culturelle que vous trouvez intéressante.",
+      prompts_es_7: "Que pensez-vous de l'importance des langues dans le monde actuel ?",
+      prompts_fr_1: "Décrivez votre premier jour d'apprentissage du français.",
+      prompts_fr_2: "Que signifie être interprète pour vous ?",
+      prompts_fr_3: "Parlez d'un endroit que vous aimeriez visiter en France ou dans un pays francophone.",
+      prompts_fr_4: "Décrivez une personne importante dans votre vie.",
+      prompts_fr_5: "Quels sont vos objectifs professionnels pour cette année ?",
+      prompts_fr_6: "Écrivez sur une tradition culturelle française que vous trouvez intéressante.",
+      prompts_fr_7: "Que pensez-vous de l'importance des langues dans le monde actuel ?"
     }
   }
 };

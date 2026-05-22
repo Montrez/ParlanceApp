@@ -33,5 +33,19 @@
   "privacyKeysText": "API keys you enter are stored in your browser's local storage and are sent only to the respective provider's API endpoint. Parlance never sees or stores your API keys.",
   "privacyTrackingTitle": "No Tracking",
   "privacyTrackingText": "Parlance does not use analytics, cookies, or any form of tracking. Nothing about your usage is collected or shared.",
-  "privacyUpdated": "Last updated: May 2026"
+  "privacyUpdated": "Last updated: May 2026",
+  "prompts_es_1": "Describe your first day learning Spanish.",
+  "prompts_es_2": "What does being an interpreter mean to you?",
+  "prompts_es_3": "Talk about a place you would like to visit in Spain or Latin America.",
+  "prompts_es_4": "Describe an important person in your life.",
+  "prompts_es_5": "What are your professional goals for this year?",
+  "prompts_es_6": "Write about a cultural tradition you find interesting.",
+  "prompts_es_7": "What do you think about the importance of languages in today's world?",
+  "prompts_fr_1": "Describe your first day learning French.",
+  "prompts_fr_2": "What does being an interpreter mean to you?",
+  "prompts_fr_3": "Talk about a place you would like to visit in France or a Francophone country.",
+  "prompts_fr_4": "Describe an important person in your life.",
+  "prompts_fr_5": "What are your professional goals for this year?",
+  "prompts_fr_6": "Write about a French cultural tradition you find interesting.",
+  "prompts_fr_7": "What do you think about the importance of languages in today's world?"
 }

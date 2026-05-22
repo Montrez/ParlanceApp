@@ -33,5 +33,19 @@
   "privacyKeysText": "Les clés API que vous saisissez sont stockées dans le stockage local de votre navigateur et envoyées uniquement au point d'accès API du fournisseur respectif. Parlance ne voit ni ne stocke jamais vos clés API.",
   "privacyTrackingTitle": "Aucun suivi",
   "privacyTrackingText": "Parlance n'utilise ni analyses, ni cookies, ni aucune forme de suivi. Rien concernant votre utilisation n'est collecté ni partagé.",
-  "privacyUpdated": "Dernière mise à jour : mai 2026"
+  "privacyUpdated": "Dernière mise à jour : mai 2026",
+  "prompts_es_1": "Décrivez votre premier jour d'apprentissage de l'espagnol.",
+  "prompts_es_2": "Que signifie être interprète pour vous ?",
+  "prompts_es_3": "Parlez d'un endroit que vous aimeriez visiter en Espagne ou en Amérique latine.",
+  "prompts_es_4": "Décrivez une personne importante dans votre vie.",
+  "prompts_es_5": "Quels sont vos objectifs professionnels pour cette année ?",
+  "prompts_es_6": "Écrivez sur une tradition culturelle que vous trouvez intéressante.",
+  "prompts_es_7": "Que pensez-vous de l'importance des langues dans le monde actuel ?",
+  "prompts_fr_1": "Décrivez votre premier jour d'apprentissage du français.",
+  "prompts_fr_2": "Que signifie être interprète pour vous ?",
+  "prompts_fr_3": "Parlez d'un endroit que vous aimeriez visiter en France ou dans un pays francophone.",
+  "prompts_fr_4": "Décrivez une personne importante dans votre vie.",
+  "prompts_fr_5": "Quels sont vos objectifs professionnels pour cette année ?",
+  "prompts_fr_6": "Écrivez sur une tradition culturelle française que vous trouvez intéressante.",
+  "prompts_fr_7": "Que pensez-vous de l'importance des langues dans le monde actuel ?"
 }

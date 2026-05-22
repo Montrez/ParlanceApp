@@ -1,4 +1,8 @@
 // ── AI PROVIDER CONFIGURATION ────────────────────────────────────
+const ANALYZE_DEBOUNCE_MS = 3000;
+const MIN_SENTENCE_CHARS = 15;
+const MIN_SENTENCE_WORDS = 3;
+
 const AI_PROVIDERS = {
   webllm: {
     id: 'webllm',
@@ -258,7 +262,7 @@ Provide next_level_alt (A2 with slightly more complex structures) and target_lev
   }
 
   const targetLine = targetLevel
-    ? `"target_level_alt": "Same idea at ${targetLevel} level in ${langName}"`
+    ? `"target_level_alt": "COMPLETE SENTENCE in ${langName}: rewrite the learner's exact idea using ${targetLevel}-level grammar and vocabulary"`
     : '"target_level_alt": null';
 
   let prompt = `You are a ${langName} professor training professional interpreters. The learner is at CEFR level ${level}.
@@ -278,7 +282,8 @@ ${ragContext}
 - Do NOT invent grammatical errors. Only flag real, clear mistakes.
 - A simple, grammatically correct sentence is "Excellent" even if it could be more sophisticated.
 - Only mark "Needs Improvement" when there is an actual grammar error — not just a style preference.
-- ALL example sentences (correction, next_level_alt, target_level_alt) MUST be written in ${langName}, NEVER in English.
+- ALL example sentences (correction, next_level_alt, target_level_alt) MUST be COMPLETE SENTENCES written in ${langName}, NEVER in English. Do NOT return short labels or descriptions — return full, natural sentences.
+- next_level_alt and target_level_alt must express the SAME idea as the original sentence rephrased with grammar and vocabulary appropriate for that CEFR level. Do NOT add new information or embellish.
 - grammar_rule, explanation, register, and tip must be in English.
 
 Respond with ONLY a valid JSON object. No markdown fences, no text outside the JSON, no <think> tags:
@@ -288,7 +293,7 @@ Respond with ONLY a valid JSON object. No markdown fences, no text outside the J
   "explanation": "WHY the sentence is correct or incorrect at the ${level} level — be specific and actionable",
   "correction": null or "Corrected sentence in ${langName} (only if Needs Improvement)",
   "register": "Identify the register: formal (${langName === 'French' ? 'vous' : 'usted'}) or informal (${langName === 'French' ? 'tu' : 'tú'}), and whether appropriate for a professional interpreter",
-  "next_level_alt": "Same idea at ${nextLevel} level in ${langName}",
+  "next_level_alt": "COMPLETE SENTENCE in ${langName}: rewrite the learner's exact idea using ${nextLevel}-level grammar and vocabulary",
   ${targetLine},
   "tip": "A practical tip about register, Anglicisms, or word precision for interpreter training"
 }`;
@@ -512,148 +517,13 @@ async function analyzeWithAI(sentence, language, level, progressCallback) {
 }
 
 // ── UI LANGUAGE (i18n) ───────────────────────────────────────────
-const UI_LANGS = {
-  en: { name: 'English' },
-  es: { name: 'Español' },
-  fr: { name: 'Français' },
-};
-
-const UI_STRINGS = {
-  en: {
-    appTitle: 'Parlance',
-    entryTitlePlaceholder: 'Entry title…',
-    sentenceCount: (n) => `${n} sentence${n !== 1 ? 's' : ''}`,
-    wordCount: (n) => `${n} word${n !== 1 ? 's' : ''}`,
-    addSentence: 'Add another sentence',
-    saveEntry: 'Save Entry',
-    feedback: 'Feedback',
-    prompts: 'Prompts',
-    guide: 'Guide',
-    waitingText: 'Write a sentence and pause.<br><br>AI feedback appears here automatically.',
-    promptLabel: 'Click a prompt to use it as your first sentence',
-    pastEntries: 'Past Entries',
-    analyzing: 'Analyzing your sentence…',
-    delete: 'Delete',
-    loadAll: 'Load All to Editor',
-    reAnalyze: 'Re-analyze',
-    entrySaved: 'Entry saved!',
-    entryDeleted: 'Entry deleted.',
-    entryLoaded: 'Entry loaded into editor.',
-    writeFirst: 'Write at least one sentence first.',
-    privacy: 'Privacy',
-    offline: "You're offline — writing is saved locally, but cloud AI feedback requires a connection.",
-  },
-  es: {
-    appTitle: 'Parlance',
-    entryTitlePlaceholder: 'Título de la entrada…',
-    sentenceCount: (n) => `${n} oración${n !== 1 ? 'es' : ''}`,
-    wordCount: (n) => `${n} palabra${n !== 1 ? 's' : ''}`,
-    addSentence: 'Agregar otra oración',
-    saveEntry: 'Guardar entrada',
-    feedback: 'Retroalimentación',
-    prompts: 'Ideas',
-    guide: 'Guía',
-    waitingText: 'Escribe una oración y pausa.<br><br>La retroalimentación aparecerá aquí automáticamente.',
-    promptLabel: 'Haz clic en una idea para usarla como tu primera oración',
-    pastEntries: 'Entradas anteriores',
-    analyzing: 'Analizando tu oración…',
-    delete: 'Eliminar',
-    loadAll: 'Cargar todo al editor',
-    reAnalyze: 'Re-analizar',
-    entrySaved: '¡Entrada guardada!',
-    entryDeleted: 'Entrada eliminada.',
-    entryLoaded: 'Entrada cargada en el editor.',
-    writeFirst: 'Escribe al menos una oración primero.',
-    privacy: 'Privacidad',
-    offline: 'Estás sin conexión — lo escrito se guarda localmente, pero la IA en la nube requiere conexión.',
-  },
-  fr: {
-    appTitle: 'Parlance',
-    entryTitlePlaceholder: "Titre de l'entrée…",
-    sentenceCount: (n) => `${n} phrase${n !== 1 ? 's' : ''}`,
-    wordCount: (n) => `${n} mot${n !== 1 ? 's' : ''}`,
-    addSentence: 'Ajouter une phrase',
-    saveEntry: "Sauvegarder l'entrée",
-    feedback: 'Retour',
-    prompts: 'Idées',
-    guide: 'Guide',
-    waitingText: 'Écrivez une phrase et faites une pause.<br><br>Le retour apparaîtra ici automatiquement.',
-    promptLabel: 'Cliquez sur une idée pour commencer',
-    pastEntries: 'Entrées précédentes',
-    analyzing: 'Analyse de votre phrase…',
-    delete: 'Supprimer',
-    loadAll: "Tout charger dans l'éditeur",
-    reAnalyze: 'Ré-analyser',
-    entrySaved: 'Entrée sauvegardée !',
-    entryDeleted: 'Entrée supprimée.',
-    entryLoaded: "Entrée chargée dans l'éditeur.",
-    writeFirst: "Écrivez au moins une phrase d'abord.",
-    privacy: 'Confidentialité',
-    offline: 'Vous êtes hors ligne — vos écrits sont sauvegardés localement, mais le retour IA nécessite une connexion.',
-  },
-};
-
-function getUILang() {
-  return localStorage.getItem('parlance_ui_lang') || 'en';
-}
-
-function setUILang(lang) {
-  localStorage.setItem('parlance_ui_lang', lang);
-}
-
-function t(key) {
-  const lang = getUILang();
-  const strings = UI_STRINGS[lang] || UI_STRINGS.en;
-  return strings[key] || UI_STRINGS.en[key] || key;
-}
+// Locale data lives in locales/*.json — loaded by i18n.js module.
+// HTML elements use data-i18n attributes for declarative binding.
+// To add a language: create locales/xx.json and add an <option> to #uiLangSelect.
 
 function onUILangChange() {
   const lang = document.getElementById('uiLangSelect').value;
-  setUILang(lang);
-  applyUILang();
-}
-
-function applyUILang() {
-  const lang = getUILang();
-  document.getElementById('uiLangSelect').value = lang;
-
-  // Update static UI text
-  document.getElementById('entryTitle').placeholder = t('entryTitlePlaceholder');
-  document.querySelector('.add-sentence-btn').innerHTML = '<span>+</span> ' + t('addSentence');
-  document.querySelector('.save-btn').textContent = t('saveEntry');
-
-  // Tabs
-  const tabs = document.querySelectorAll('.feedback-tab');
-  if (tabs[0]) tabs[0].textContent = t('feedback');
-  if (tabs[1]) tabs[1].textContent = t('prompts');
-  if (tabs[2]) tabs[2].textContent = t('guide');
-
-  // Waiting text
-  const waitingText = document.getElementById('waitingText');
-  if (waitingText) waitingText.innerHTML = t('waitingText');
-
-  // Prompt label
-  const promptLabel = document.querySelector('.prompt-label');
-  if (promptLabel) promptLabel.textContent = t('promptLabel');
-
-  // Past entries title
-  const pastTitle = document.querySelector('.past-bar-title');
-  if (pastTitle) pastTitle.textContent = t('pastEntries');
-
-  // Offline banner
-  const offlineBanner = document.getElementById('offlineBanner');
-  if (offlineBanner) offlineBanner.textContent = t('offline');
-
-  // Privacy button
-  const privacyBtn = document.querySelector('.privacy-link:not(.ai-settings-btn):not([onclick*="openAISettings"])');
-  if (privacyBtn && !privacyBtn.textContent.includes('AI')) privacyBtn.textContent = t('privacy');
-
-  // Delete button in entry viewer
-  const deleteBtn = document.getElementById('entryDeleteBtn');
-  if (deleteBtn) deleteBtn.textContent = t('delete');
-
-  // Update counts with correct language
-  updateCounts();
+  i18n.load(lang).then(() => { updateCounts(); renderPrompts(); });
 }
 
 // ── DARK MODE ────────────────────────────────────────────────────
@@ -697,15 +567,6 @@ const languages = {
     titlePlaceholder: 'Entry title… (e.g. Mi primer día en Valencia)',
     coachRole: 'Spanish',
     guideFile: 'guide-es.html',
-    prompts: [
-      'Describe your first day learning Spanish.',
-      'What does being an interpreter mean to you?',
-      'Talk about a place you would like to visit in Spain or Latin America.',
-      'Describe an important person in your life.',
-      'What are your professional goals for this year?',
-      'Write about a cultural tradition you find interesting.',
-      'What do you think about the importance of languages in today\'s world?',
-    ],
   },
   fr: {
     code: 'fr',
@@ -714,15 +575,6 @@ const languages = {
     titlePlaceholder: 'Entry title… (e.g. Mon premier jour à Paris)',
     coachRole: 'French',
     guideFile: 'guide-fr.html',
-    prompts: [
-      'Describe your first day learning French.',
-      'What does being an interpreter mean to you?',
-      'Talk about a place you would like to visit in France or Francophone Africa.',
-      'Describe an important person in your life.',
-      'What are your professional goals for this year?',
-      'Write about a cultural tradition you find interesting.',
-      'What do you think about the importance of languages in today\'s world?',
-    ],
   },
 };
 
@@ -731,6 +583,7 @@ const state = {
   sentences: [],
   activeSentenceId: null,
   debounceTimers: {},
+  analyzingSentenceIds: new Set(),
   savedEntries: [],
   isOnline: navigator.onLine,
   currentLanguage: 'es',
@@ -834,11 +687,10 @@ const hasWebGPU   = !!navigator.gpu;
 const canUseWebLLM = hasWebGPU && !isCapacitor;
 
 // ── INIT ──────────────────────────────────────────────────────────
-function init() {
+async function init() {
   initTheme();
-  const savedUILang = getUILang();
-  document.getElementById('uiLangSelect').value = savedUILang;
-  applyUILang();
+  await i18n.init();
+  document.getElementById('uiLangSelect').value = i18n.getLocale();
 
   document.getElementById('dateBadge').textContent = new Date()
     .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -928,7 +780,36 @@ function updateOnlineStatus(online) {
 
 // ── PRIVACY POLICY ────────────────────────────────────────────────
 function showPrivacyPolicy() {
-  document.getElementById('privacyOverlay').style.display = 'flex';
+  // Update privacy modal content with current UI language
+  const overlay = document.getElementById('privacyOverlay');
+  const header = overlay.querySelector('.modal-header h2');
+  if (header) header.textContent = i18n.t('privacyTitle');
+
+  const body = overlay.querySelector('.modal-body');
+  if (body) {
+    body.innerHTML = `
+      <div class="privacy-section">
+        <h3>${i18n.t('privacyWritingTitle')}</h3>
+        <p>${i18n.t('privacyWritingText')}</p>
+      </div>
+      <div class="privacy-section">
+        <h3>${i18n.t('privacyAITitle')}</h3>
+        <p><strong>${i18n.t('privacyAIText1')}</strong></p>
+        <p style="margin-top:0.5rem">${i18n.t('privacyAIText2')}</p>
+      </div>
+      <div class="privacy-section">
+        <h3>${i18n.t('privacyKeysTitle')}</h3>
+        <p>${i18n.t('privacyKeysText')}</p>
+      </div>
+      <div class="privacy-section">
+        <h3>${i18n.t('privacyTrackingTitle')}</h3>
+        <p>${i18n.t('privacyTrackingText')}</p>
+      </div>
+      <div class="privacy-updated">${i18n.t('privacyUpdated')}</div>
+    `;
+  }
+
+  overlay.style.display = 'flex';
 }
 
 function closePrivacyPolicy() {
@@ -939,12 +820,15 @@ function closePrivacyPolicy() {
 function renderPrompts() {
   const list = document.getElementById('promptList');
   list.innerHTML = '';
-  currentLang().prompts.forEach(p => {
+  const langCode = state.currentLanguage;
+  for (let n = 1; n <= 7; n++) {
+    const text = i18n.t(`prompts_${langCode}_${n}`);
+    if (text === `prompts_${langCode}_${n}`) continue;
     const el = document.createElement('div');
     el.className = 'prompt-item';
-    el.textContent = p;
+    el.textContent = text;
     list.appendChild(el);
-  });
+  }
 }
 
 function usePrompt(p) {
@@ -1004,6 +888,12 @@ function addSentence(prefill = '') {
   return id;
 }
 
+function sentenceReadyToAnalyze(text) {
+  const trimmed = text.trim();
+  if (trimmed.length < MIN_SENTENCE_CHARS) return false;
+  return trimmed.split(/\s+/).filter(Boolean).length >= MIN_SENTENCE_WORDS;
+}
+
 function onSentenceInput(id) {
   const ta       = document.getElementById('ta-' + id);
   const text     = ta.value;
@@ -1015,12 +905,16 @@ function onSentenceInput(id) {
   updateCounts();
 
   clearTimeout(state.debounceTimers[id]);
-  if (text.trim().length > 5) {
-    showAnalyzingState(id);
-    state.debounceTimers[id] = setTimeout(() => {
-      if (sentence.text.trim()) analyzeSentence(id);
-    }, 1500);
-  }
+  if (state.analyzingSentenceIds.has(id)) return;
+
+  const snapshot = text.trim();
+  if (!sentenceReadyToAnalyze(snapshot)) return;
+
+  state.debounceTimers[id] = setTimeout(() => {
+    if (sentence.text.trim() !== snapshot) return;
+    if (!sentenceReadyToAnalyze(sentence.text)) return;
+    analyzeSentence(id);
+  }, ANALYZE_DEBOUNCE_MS);
 }
 
 function onSentenceKeydown(e, id) {
@@ -1028,7 +922,7 @@ function onSentenceKeydown(e, id) {
     e.preventDefault();
     const ta   = document.getElementById('ta-' + id);
     const text = ta.value.trim();
-    if (text) {
+    if (sentenceReadyToAnalyze(text)) {
       clearTimeout(state.debounceTimers[id]);
       state.activeSentenceId = id;   // ensure panel updates for this sentence
       analyzeSentence(id);
@@ -1039,12 +933,12 @@ function onSentenceKeydown(e, id) {
 function updateCounts() {
   const sentences = state.sentences.filter(s => s.text.trim());
   document.getElementById('sentenceCount').textContent =
-    t('sentenceCount')(sentences.length);
+    i18n.tc('sentenceCount', sentences.length);
   const words = sentences.reduce(
     (acc, s) => acc + s.text.trim().split(/\s+/).filter(Boolean).length, 0
   );
   document.getElementById('wordCount').textContent =
-    t('wordCount')(words);
+    i18n.tc('wordCount', words);
 
   state.sentences.forEach((s, i) => {
     const num = document.querySelector(`#row-${s.id} .sentence-num`);
@@ -1055,7 +949,12 @@ function updateCounts() {
 // ── ANALYSIS ──────────────────────────────────────────────────────
 async function analyzeSentence(id) {
   const sentence = state.sentences.find(s => s.id === id);
-  if (!sentence || !sentence.text.trim()) return;
+  if (!sentence || !sentenceReadyToAnalyze(sentence.text)) return;
+  if (state.analyzingSentenceIds.has(id)) return;
+
+  clearTimeout(state.debounceTimers[id]);
+  delete state.debounceTimers[id];
+  state.analyzingSentenceIds.add(id);
 
   const ta       = document.getElementById('ta-' + id);
   const statusEl = document.getElementById('status-' + id);
@@ -1093,6 +992,8 @@ async function analyzeSentence(id) {
     const msg = err.message || 'Could not analyze — check your settings.';
     showErrorInPanel(msg);
     showToast(msg.length > 80 ? msg.slice(0, 80) + '…' : msg);
+  } finally {
+    state.analyzingSentenceIds.delete(id);
   }
 }
 
@@ -1131,7 +1032,7 @@ function showAnalyzingState(id) {
   card.id = 'analyzing-card';
   card.innerHTML = `
     <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-    <div class="analyzing-text">${t('analyzing')}</div>
+    <div class="analyzing-text">${i18n.t('analyzing')}</div>
   `;
   inner.appendChild(card);
 }
@@ -1280,7 +1181,7 @@ window.addEventListener('message', (e) => {
 function saveEntry() {
   const title     = document.getElementById('entryTitle').value || 'Untitled Entry';
   const sentences = state.sentences.filter(s => s.text.trim());
-  if (!sentences.length) { showToast(t('writeFirst')); return; }
+  if (!sentences.length) { showToast(i18n.t('writeFirst')); return; }
 
   const entry = {
     id:       Date.now(),
@@ -1299,7 +1200,7 @@ function saveEntry() {
   try { localStorage.setItem('parlance_entries', JSON.stringify(state.savedEntries)); } catch (_) {}
 
   renderPastEntries();
-  showToast(t('entrySaved') + ' ✓');
+  showToast(i18n.t('entrySaved') + ' ✓');
 }
 
 function loadSavedEntries() {
@@ -1454,7 +1355,7 @@ function loadEntryToEditor(entry) {
 
   closeEntryViewer();
   switchTab('feedback', document.querySelector('.feedback-tab'));
-  showToast(t('entryLoaded'));
+  showToast(i18n.t('entryLoaded'));
 }
 
 function deleteEntry(entryId) {
@@ -1465,7 +1366,7 @@ function deleteEntry(entryId) {
   closeEntryViewer();
   renderPastEntries();
   if (!state.savedEntries.length) document.getElementById('pastBar').style.display = 'none';
-  showToast(t('entryDeleted'));
+  showToast(i18n.t('entryDeleted'));
 }
 
 function closeEntryViewer() {

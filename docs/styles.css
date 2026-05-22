@@ -51,6 +51,15 @@
 [data-theme="dark"] .privacy-updated { color: #8a8a94; }
 [data-theme="dark"] .entry-viewer-delete { border-color: #5a3030; color: #e07070; }
 [data-theme="dark"] .entry-viewer-delete:hover { background: rgba(224,112,112,0.1); }
+[data-theme="dark"] #entryOverlay { background: rgba(0,0,0,0.7); }
+[data-theme="dark"] .privacy-link { border-color: #3a3a40; }
+[data-theme="dark"] .sentence-input.analyzing {
+  background: linear-gradient(90deg, transparent, rgba(61,184,232,0.06), transparent);
+  background-size: 200% 100%;
+}
+[data-theme="dark"] .entry-feedback-badge.excellent { background: rgba(92,184,138,0.12); color: #5cb88a; }
+[data-theme="dark"] .entry-feedback-badge.needs-work { background: rgba(212,160,78,0.12); color: #d4a04e; }
+[data-theme="dark"] .entry-load-btn { background: var(--accent); color: #111114; }
 
 * { margin:0; padding:0; box-sizing:border-box; }
 
