@@ -52,7 +52,7 @@ function altVersionLabels(assessedLevel) {
 }
 
 function analysisCacheHash(sentence, language) {
-  return btoa(unescape(encodeURIComponent(sentence + '|' + language + '|fbv9'))).slice(0, 40);
+  return btoa(unescape(encodeURIComponent(sentence + '|' + language + '|fbv10'))).slice(0, 40);
 }
 
 function sanitizeFeedbackResult(sentence, result, language = 'es') {

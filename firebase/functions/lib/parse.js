@@ -2,6 +2,8 @@
  * Response parsing — uses shared feedback-sanitize.js (aligned with parlance_slm_validate.py).
  */
 
+require("./coach-rules-es");
+require("./coach-rules-engine");
 const { sanitizeFeedbackResult } = require("./feedback-sanitize");
 
 function sanitizeLatin(text) {
