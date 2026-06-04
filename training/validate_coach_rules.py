@@ -10,6 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 RULES_DIR = ROOT / "shared" / "coach-rules"
+STANDARDS_DIR = ROOT / "shared" / "standards"
 REQUIRED_RULE_KEYS = ("id", "category", "priority", "detect", "issue", "grammar_rule", "source", "regression")
 REQUIRED_SOURCE_KEYS = ("authority", "topic")
 
@@ -61,6 +62,16 @@ def validate_pack(path: Path) -> list[str]:
     with path.open(encoding="utf-8") as f:
         pack = json.load(f)
     lang = pack.get("lang", path.stem)
+    std_ver = pack.get("standard_version")
+    if std_ver is not None:
+        std_path = STANDARDS_DIR / f"{lang}-coach-standard.json"
+        if std_path.exists():
+            with std_path.open(encoding="utf-8") as f:
+                std = json.load(f)
+            if int(std.get("version") or 0) != int(std_ver):
+                errors.append(
+                    f"standard_version {std_ver} does not match {std_path.name} version {std.get('version')}"
+                )
     regression_ids = load_regression_ids(lang)
     seen: set[str] = set()
     for rule in pack.get("rules") or []:

@@ -358,10 +358,13 @@ def _preserve_inferred_fields(
 
 def spanish_coach_system_prompt(level: str = "", dialect: str = DEFAULT_ES_DIALECT, rag_context: str = "") -> str:
     """Inference prompt — CEFR level inferred from the sentence only."""
+    from coach_standard import standard_prompt_block
+
     prompt = (
         f"You are a Spanish grammar coach for interpreter training, "
         f"with expertise in {dialect} dialect variation. "
         "Do NOT assume the learner picked a CEFR level.\n\n"
+        f"{standard_prompt_block('es')}"
         f"{CEFR_COMPLEXITY_PROMPT}"
         "CRITICAL ACCURACY RULES:\n"
         "- Do NOT invent grammatical errors. Only flag real, clear mistakes.\n"

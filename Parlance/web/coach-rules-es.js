@@ -3,6 +3,8 @@
   root.ParlanceCoachRulesES = {
   "version": 2,
   "lang": "es",
+  "standard_version": 1,
+  "standard_path": "shared/standards/es-coach-standard.json",
   "grammar_rule_default": "Spanish agreement, prepositions, and clause structure",
   "feminine_nouns": [
     "aplicación",

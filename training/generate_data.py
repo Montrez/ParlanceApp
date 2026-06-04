@@ -251,11 +251,14 @@ def gemini_generate(api_key: str, model: str, prompt: str) -> str:
 # ── GENERATION ────────────────────────────────────────────────────
 
 def build_prompt(lang: str, level: str, batch_size: int) -> str:
+    from coach_standard import standard_prompt_block
+
     config = LANG_CONFIG[lang]
     topic = random.choice(config["topics"][level])
     errors = ", ".join(random.sample(config["error_types"][level], min(3, len(config["error_types"][level]))))
+    standard = standard_prompt_block(lang) if lang == "es" else ""
 
-    return GENERATION_PROMPT.format(
+    base = GENERATION_PROMPT.format(
         batch_size=batch_size,
         lang_name=config["name"],
         lang_code=lang,
@@ -266,6 +269,9 @@ def build_prompt(lang: str, level: str, batch_size: int) -> str:
         next_level=NEXT_LEVELS[level],
         target_level=TARGET_LEVELS[level] or "N/A",
     )
+    if standard:
+        return f"{standard}\n{base}"
+    return base
 
 
 def generate_batch(backend_fn, api_key: str, model: str, lang: str, level: str, batch_size: int = 10) -> list:

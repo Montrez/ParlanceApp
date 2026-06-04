@@ -52,7 +52,7 @@ function altVersionLabels(assessedLevel) {
 }
 
 function analysisCacheHash(sentence, language) {
-  return btoa(unescape(encodeURIComponent(sentence + '|' + language + '|fbv10'))).slice(0, 40);
+  return btoa(unescape(encodeURIComponent(sentence + '|' + language + '|fbv12'))).slice(0, 40);
 }
 
 function sanitizeFeedbackResult(sentence, result, language = 'es') {
@@ -560,12 +560,21 @@ function buildSystemPrompt(langName, ragContext) {
   const registerLabel = langName === 'French' ? 'tu/vous' : 'tú/usted';
   const formalRegister = langName === 'French' ? 'vous' : 'usted';
   const informalRegister = langName === 'French' ? 'tu' : 'tú';
+  const langKey = langName === 'French' ? 'fr' : 'es';
+  const standardBlock = (typeof ParlanceCoachStandard !== 'undefined' && ParlanceCoachStandard.forLang)
+    ? ParlanceCoachStandard.forLang(langKey)
+    : '';
 
   let prompt = `You are a ${langName} professor training professional interpreters. Do NOT assume the learner picked a CEFR level.
 
 Evaluate verb tense and mood, gender/number agreement, register (${registerLabel}), Anglicisms, and naturalness for professional interpreting.
 
-CEFR & COMPLEXITY:
+`;
+  if (standardBlock) {
+    prompt += `${standardBlock}\n`;
+  }
+
+  prompt += `CEFR & COMPLEXITY:
 - assessed_level: A1–C2 ONLY if highly confident from specific structures in this sentence. When uncertain, omit and use complexity_note without a CEFR label. Never guess from word count.
 - complexity_note: 1–2 English sentences on vocabulary, syntax, subordination, and register — what makes this sentence simple or advanced. Always include when possible, even without assessed_level.
 - next_level_alt / target_level_alt: stronger rewrites; CEFR labels only when assessed_level is set.

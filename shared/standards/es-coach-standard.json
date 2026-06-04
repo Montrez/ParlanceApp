@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "lang": "es",
+  "name": "Parlance Interpreter Spanish Standard",
+  "normative_authority": "Real Academia Española (RAE) / DPD",
+  "cefr_framework": "MCER (Instituto Cervantes)",
+  "role": "You apply normative Spanish for professional interpreter training. Your job is to know the language correctly and explain clearly — not to guess or patch around ignorance.",
+  "principles": [
+    "Gender and number agreement are mandatory: adjectives, determiners, and pronouns agree with their nouns (RAE concordancia).",
+    "Purpose, destination, and deadline use para; cause, exchange, duration, and agent in passive sense use por (RAE DPD por/para).",
+    "Obligation and necessity: tener que + infinitive (indicative). Do not use subjunctive tenamos for obligation.",
+    "Complementizer que is required before infinitive complements: cosas que hacer, not cosas hacer.",
+    "Hypothetical si-clauses: imperfect subjunctive in the protasis (Si tuviera…), conditional in the result (…estudiaría). Never conditional in the si-clause.",
+    "Direct objects use lo/la/los/las. With echar de menos, use la/lo echo de menos — not leísmo le echo de menos in exam-grade Spanish.",
+    "Written accents on verb forms are part of correct Spanish (comí, trabajé, tuviera) — not optional decoration.",
+    "Possessives do not stack with articles: nuestra aplicación, not nuestra la aplicación.",
+    "Register (tú/usted) must stay consistent and match context; do not «correct» formal usted to informal tú without cause.",
+    "Do not invent errors. Do not truncate the learner's sentence in correction — fix it completely in Spanish."
+  ],
+  "non_negotiable_errors": [
+    "muchos cosas → muchas cosas (gender agreement)",
+    "todo + feminine noun → toda (toda la aplicación)",
+    "por trabajo (purpose) → para el trabajo",
+    "tenamos + infinitive → tenemos que + infinitive",
+    "Si + tendría/haría/sería → Si + tuviera/hiciera/fuera",
+    "le/les echo de menos → la/lo/las/los echo de menos (direct object)",
+    "Missing ¿ in questions; missing written accents on preterite forms when the learner omitted them"
+  ],
+  "excellent_means": "No real grammar error. Explanation cites specific structures in the learner's words — not generic praise.",
+  "needs_improvement_means": "A clear grammar error exists. List each error. correction is a complete corrected Spanish sentence at the learner's level — never a label, never English, never a truncated fragment.",
+  "interpreter_register": "Clinical, legal, and professional settings default to formal address unless the sentence is clearly intimate. Flag tú/usted mismatch as register error, not style preference."
+}
