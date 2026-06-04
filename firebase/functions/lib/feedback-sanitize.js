@@ -232,6 +232,36 @@
     delete out.complexityNote;
   }
 
+  function isPlaceholderFeedbackText(text) {
+    if (!text || typeof text !== 'string') return true;
+    const t = text.trim();
+    if (t.length < 15) return true;
+    const lower = t.toLowerCase().replace(/[.:]+$/, '');
+    const placeholders = [
+      'corrected sentence',
+      'correction',
+      'n/a',
+      'null',
+      'none',
+      'not applicable',
+      'no correction',
+    ];
+    if (placeholders.includes(lower)) return true;
+    if (/^(corrected|correction|fixed)\s*(sentence|version)?[.:]?$/i.test(t)) return true;
+    return !/[áéíóúñü]|(?:\b(el|la|los|las|que|por|para|tengo|tenemos|hacer|trabajo|aplicaci)\b)/i.test(t);
+  }
+
+  function correctionIsIncomplete(sentence, correction) {
+    if (!correction || isPlaceholderFeedbackText(correction)) return true;
+    const sent = normalizeTextForCompare(sentence);
+    const corr = normalizeTextForCompare(correction);
+    if (corr.length < sent.length * 0.6) return true;
+    if (/aplicaci/.test(sent) && !/aplicaci/.test(corr)) return true;
+    if (/\btenamos\b/.test(sent) && /\btenamos\b/.test(corr)) return true;
+    if (/\btodo\b/.test(sent) && /\baplicaci/.test(sent) && /\btodo\b/.test(corr) && !/\btoda\b/.test(corr)) return true;
+    return false;
+  }
+
   /** Detect common Spanish learner errors the small Browser AI model often under-explains. */
   function detectSpanishIssues(text, opts) {
     const isLearnerSentence = !opts || opts.isLearnerSentence !== false;
@@ -259,11 +289,18 @@
         mention: ['para el trabajo', 'para (el) trabajo'],
       });
     }
-    if (/\btenamos\s+terminar\b/i.test(text)) {
+    if (/\bpara\s+trabajo\b/i.test(text) && !/\bpara\s+el\s+trabajo\b/i.test(text)) {
+      issues.push({
+        key: 'para_el',
+        issue: 'Add the article: «para el trabajo», not «para trabajo».',
+        mention: ['para el trabajo'],
+      });
+    }
+    if (/\btenamos\b/i.test(text)) {
       issues.push({
         key: 'tenemos_que',
-        issue: 'Use «tenemos que + infinitive», not «tenamos terminar».',
-        mention: ['tenemos que', 'tenamos terminar'],
+        issue: 'Use indicative «tenemos que + infinitive», not subjunctive «tenamos».',
+        mention: ['tenemos que', 'tenamos'],
       });
     }
     if (/\bnuestra\s+la\s+aplicaci/i.test(text)) {
@@ -273,7 +310,13 @@
         mention: ['nuestra la', 'nuestra aplicación'],
       });
     }
-    if (/\btodo\s+la\s+aplicaci/i.test(text)) {
+    if (/\btodo\s+por\s+la\s+aplicaci/i.test(text)) {
+      issues.push({
+        key: 'todo_por_app',
+        issue: '«Aplicación» is feminine — use «toda la aplicación»; avoid «todo por la aplicación».',
+        mention: ['toda la aplicación', 'todo por la'],
+      });
+    } else if (/\btodo\s+la\s+aplicaci/i.test(text)) {
       issues.push({
         key: 'todo_toda',
         issue: '«Aplicación» is feminine — use «toda la aplicación», not «todo la aplicación».',
@@ -300,7 +343,10 @@
     c = c.replace(/\bmuchos\s+cosas\b/gi, 'muchas cosas');
     c = c.replace(/\bcosas\s+(?!que\s+)hacer\b/gi, 'cosas que hacer');
     c = c.replace(/\bpor\s+(el\s+)?trabajo\b/gi, 'para el trabajo');
+    c = c.replace(/\bpara\s+trabajo\b/gi, 'para el trabajo');
+    c = c.replace(/\btenamos\s+todo\s+por\s+la\s+aplicaci([oó]n)/gi, 'tenemos que terminar toda la aplicación');
     c = c.replace(/\btenamos\s+terminar\b/gi, 'tenemos que terminar');
+    c = c.replace(/\btodo\s+por\s+la\s+aplicaci([oó]n)/gi, 'toda la aplicación');
     c = c.replace(/\btodo\s+la\s+aplicaci([oó]n)/gi, 'toda la aplicación');
     c = c.replace(
       /\bterminar\s+todo\s+por\s+nuestra\s+la\s+aplicaci([oó]n)\b/gi,
@@ -313,6 +359,9 @@
     );
     c = c.replace(/\bterminar\s+todo\b/gi, 'terminar toda la aplicación');
     c = c.replace(/\bpor\s+nuestra\s+aplicaci/gi, 'en nuestra aplicación');
+    c = c.replace(/\btenemos\s+todo\b/gi, 'tenemos que terminar toda la aplicación');
+    c = c.replace(/\btenamos\b/gi, 'tenemos que');
+    c = c.replace(/\btenemos que que\b/gi, 'tenemos que');
     return c.replace(/\s+/g, ' ').trim();
   }
 
@@ -327,10 +376,15 @@
   function explanationCoversIssue(explanation, issue) {
     const expl = String(explanation || '');
     const lower = expl.toLowerCase();
-    if (issue.key === 'todo_toda') {
-      if (/\btodo\s+la\s+aplicaci/i.test(expl)) return false;
+    if (issue.key === 'todo_toda' || issue.key === 'todo_por_app') {
+      if (/\btodo\s+la\s+aplicaci/i.test(expl) || /\btodo\s+por\s+la\s+aplicaci/i.test(expl)) return false;
+      if (/\btenemos\s+todo\b/i.test(expl) && !/\btoda\b/i.test(expl)) return false;
       return /\btoda\s+la\s+aplicaci/i.test(expl)
         || (lower.includes('toda') && lower.includes('feminine') && lower.includes('aplic'));
+    }
+    if (issue.key === 'tenemos_que') {
+      if (/\btenamos\b/i.test(expl)) return false;
+      return lower.includes('tenemos que');
     }
     return issue.mention.some((m) => lower.includes(m.toLowerCase()));
   }
@@ -340,19 +394,28 @@
     const issues = detectSpanishIssues(sentence);
     if (!issues.length) return out;
 
-    const missed = issues.filter((i) => !explanationCoversIssue(out.explanation, i));
     const built = buildSpanishCorrection(sentence);
-    const needsCorrection = built && normalizeTextForCompare(built) !== normalizeTextForCompare(sentence);
-    const existingCorrNorm = out.correction ? normalizeTextForCompare(out.correction) : '';
     const sentNorm = normalizeTextForCompare(sentence);
+    const builtNorm = built ? normalizeTextForCompare(built) : '';
+    const needsCorrection = builtNorm && builtNorm !== sentNorm;
+    const existingCorrNorm = out.correction ? normalizeTextForCompare(out.correction) : '';
     const modelCorrBad = correctionHasSpanishErrors(out.correction);
-    const correctionWeak = !existingCorrNorm || existingCorrNorm === sentNorm || modelCorrBad;
+    const correctionWeak = !existingCorrNorm
+      || existingCorrNorm === sentNorm
+      || modelCorrBad
+      || isPlaceholderFeedbackText(out.correction)
+      || correctionIsIncomplete(sentence, out.correction);
 
-    if (out.explanation && /\btodo\s+la\s+aplicaci/i.test(out.explanation)) {
+    const missed = issues.filter((i) => !explanationCoversIssue(out.explanation, i));
+
+    if (out.explanation) {
       out.explanation = repairSpanishText(out.explanation);
     }
+    if (out.correction && isPlaceholderFeedbackText(out.correction)) {
+      delete out.correction;
+    }
 
-    if (!missed.length && !correctionWeak) return out;
+    if (!missed.length && !correctionWeak && !needsCorrection) return out;
 
     out.status = 'Needs Improvement';
 
@@ -363,10 +426,13 @@
       out.explanation = out.explanation ? `${out.explanation.trim()}\n\n${block}` : block;
     }
 
-    if (needsCorrection && correctionWeak) {
+    if (needsCorrection && (correctionWeak || !out.correction)) {
       out.correction = built;
-    } else if (out.correction && modelCorrBad) {
+    } else if (out.correction && (modelCorrBad || correctionIsIncomplete(sentence, out.correction))) {
       out.correction = repairSpanishText(out.correction);
+      if (correctionIsIncomplete(sentence, out.correction) && needsCorrection) {
+        out.correction = built;
+      }
     }
 
     for (const key of ['next_level_alt', 'target_level_alt', 'tip']) {

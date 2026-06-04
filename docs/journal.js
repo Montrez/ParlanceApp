@@ -52,7 +52,7 @@ function altVersionLabels(assessedLevel) {
 }
 
 function analysisCacheHash(sentence, language) {
-  return btoa(unescape(encodeURIComponent(sentence + '|' + language + '|fbv8'))).slice(0, 40);
+  return btoa(unescape(encodeURIComponent(sentence + '|' + language + '|fbv9'))).slice(0, 40);
 }
 
 function sanitizeFeedbackResult(sentence, result, language = 'es') {
@@ -1757,6 +1757,7 @@ function feedbackItem(labelClass, label, text) {
   const display = (typeof ParlanceFeedbackSanitize !== 'undefined' && ParlanceFeedbackSanitize.coerceFeedbackText)
     ? (ParlanceFeedbackSanitize.coerceFeedbackText(text) || '')
     : String(text || '');
+  if (!display.trim()) return '';
   return `
     <div class="feedback-item">
       <div class="feedback-item-label ${labelClass}">${label}</div>
