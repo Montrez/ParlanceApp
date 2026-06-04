@@ -1,6 +1,12 @@
 # Secrets — API keys and credentials (never commit)
 Parlance/Secrets.plist
 Secrets.plist
+Parlance/GoogleService-Info.plist
+GoogleService-Info.plist
+docs/firebase-config.js
+Parlance/web/firebase-config.js
+firebase/functions/.env
+firebase/functions/.env.*
 
 # Xcode build artifacts
 build/
@@ -20,6 +26,11 @@ DerivedData/
 # Training data and model artifacts
 training/data/
 training/adapters/
+training/models/
+Parlance/Models/parlance-es-mlx/
+Parlance/Models/parlance-fr-mlx/
+training/models/parlance-fr-mlx/
+training/checkpoints/
 
 # Node / Capacitor
 node_modules/

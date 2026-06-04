@@ -25,7 +25,7 @@ final class GeminiAnalyzer: Sendable {
         let systemPrompt = ExternalAnalyzer.shared.buildSystemPromptPublic(
             langName: langName, level: level, ragContext: ragContext
         )
-        let userMessage  = "Analyze this \(langName) sentence at \(level) level: \"\(sentence)\""
+        let userMessage  = "Analyze this \(langName) sentence: \"\(sentence)\""
 
         let payload: [String: Any] = [
             "system_instruction": [
@@ -66,6 +66,6 @@ final class GeminiAnalyzer: Sendable {
             throw ExternalError.parseError
         }
 
-        return try ExternalAnalyzer.shared.parseAndNormalize(text)
+        return try ExternalAnalyzer.shared.parseAndNormalize(text, sentence: sentence)
     }
 }

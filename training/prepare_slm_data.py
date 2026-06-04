@@ -15,10 +15,31 @@ Output:
     training/data/french/train.jsonl, training/data/french/valid.jsonl
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import random
+import sys
 from pathlib import Path
+from typing import Optional
+
+TRAINING_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(TRAINING_DIR))
+
+from coach_training_format import legacy_seed_to_training  # noqa: E402
+
+
+def normalize_example(example: dict, lang: str) -> Optional[dict]:
+    """Ensure chat `messages` format (convert legacy flat seed rows)."""
+    if example.get("messages"):
+        return example
+    if example.get("sentence") or example.get("input_sentence"):
+        try:
+            return legacy_seed_to_training(example, lang)
+        except ValueError:
+            return None
+    return None
 
 
 def extract_input_sentence(example: dict) -> str:
@@ -35,6 +56,14 @@ def extract_input_sentence(example: dict) -> str:
 
 def get_level(example: dict) -> str:
     for msg in example.get("messages", []):
+        if msg.get("role") == "assistant":
+            try:
+                fb = json.loads(msg["content"])
+                lvl = fb.get("assessed_level")
+                if lvl in ("A1", "A2", "B1", "B2", "C1", "C2"):
+                    return lvl
+            except (json.JSONDecodeError, TypeError):
+                pass
         if msg.get("role") == "user":
             for lvl in ["A1", "A2", "B1", "B2", "C1", "C2"]:
                 if f"at {lvl} level" in msg["content"]:
@@ -42,9 +71,14 @@ def get_level(example: dict) -> str:
     return ""
 
 
-def merge_and_split(lang_dir: Path, split_ratio: float = 0.9, level_cap: int = 350):
+def merge_and_split(lang_dir: Path, lang: str, split_ratio: float = 0.9, level_cap: int = 350):
     source_files = sorted(lang_dir.glob("*.jsonl"))
-    source_files = [f for f in source_files if f.name not in ("train.jsonl", "valid.jsonl")]
+    source_files = [
+        f
+        for f in source_files
+        if f.name not in ("train.jsonl", "valid.jsonl")
+        and f.name != f"seed_assessed_level_{lang}.jsonl"
+    ]
 
     if not source_files:
         print(f"  No JSONL files found in {lang_dir}")
@@ -62,7 +96,10 @@ def merge_and_split(lang_dir: Path, split_ratio: float = 0.9, level_cap: int = 3
                 if not line:
                     continue
                 try:
-                    example = json.loads(line)
+                    raw = json.loads(line)
+                    example = normalize_example(raw, lang)
+                    if not example:
+                        continue
                     sentence = extract_input_sentence(example)
                     if sentence and sentence in seen_sentences:
                         duplicates += 1
@@ -139,16 +176,16 @@ def main():
     args = parser.parse_args()
 
     random.seed(args.seed)
-    data_dir = Path("training/data")
+    data_dir = Path(__file__).resolve().parent / "data"
 
     if args.lang in ("es", "both"):
         print("═══ Spanish SLM Data ═══")
-        merge_and_split(data_dir / "spanish", args.split)
+        merge_and_split(data_dir / "spanish", "es", args.split)
         print()
 
     if args.lang in ("fr", "both"):
         print("═══ French SLM Data ═══")
-        merge_and_split(data_dir / "french", args.split)
+        merge_and_split(data_dir / "french", "fr", args.split)
 
 
 if __name__ == "__main__":

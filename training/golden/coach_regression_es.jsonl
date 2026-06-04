@@ -1,0 +1,14 @@
+{"sentence": "Yo soy estudiante.", "expect_assessed_level": "A1", "max_assessed_level": null, "min_word_count": null, "notes": "basic present"}
+{"sentence": "Voy.", "expect_assessed_level": "A1", "max_assessed_level": "A2", "min_word_count": null, "notes": "must not label C1/C2"}
+{"sentence": "Me gusta el café por la mañana.", "expect_assessed_level": "A2", "max_assessed_level": null, "min_word_count": null, "notes": "gustar + simple phrase"}
+{"sentence": "Ayer fui al mercado con mi madre.", "expect_assessed_level": "A2", "max_assessed_level": "B1", "min_word_count": null, "notes": "preterite narrative"}
+{"sentence": "Ayer, mi día fue bien. Comi con mi madre, y yo trabajé.", "expect_assessed_level": "A2", "max_assessed_level": "B1", "min_word_count": null, "notes": "past narrative — accent on comí/trabajé, not preterite Ayer", "forbid_in_explanation": ["preterite 'ayer' instead", "imperfect 'ayer' instead", "preterite \"ayer\" instead", "imperfect \"ayer\" instead"], "require_explanation_contains": "accent"}
+{"sentence": "Estoy incómoda y no dejo de pensar en el examen.", "expect_assessed_level": "B1", "max_assessed_level": "B2", "min_word_count": null, "notes": "estar + gerund; emotional state"}
+{"sentence": "Hola señora Dominga, ¿cómo está?", "expect_assessed_level": "B1", "max_assessed_level": "B2", "min_word_count": null, "notes": "formal address"}
+{"sentence": "Si yo tuviera más tiempo, estudiaría más cada día.", "expect_assessed_level": "B2", "max_assessed_level": null, "min_word_count": null, "notes": "si + imperfect subjunctive + conditional"}
+{"sentence": "Yo quiero que tú vengas conmigo al mercado.", "expect_assessed_level": "B2", "max_assessed_level": null, "min_word_count": null, "notes": "querer que + subjunctive"}
+{"sentence": "Si yo tendría más tiempo, estudiaría más.", "expect_assessed_level": "B2", "max_assessed_level": null, "min_word_count": null, "notes": "si-clause error — known-error path keeps B2"}
+{"sentence": "Le echo de menos a mi novia.", "expect_assessed_level": null, "max_assessed_level": null, "min_word_count": null, "notes": "grammar error le/la — may still infer B1/B2"}
+{"sentence": "La paciente debe suspender los AINEs antes de la cirugía programada.", "expect_assessed_level": "C1", "max_assessed_level": null, "min_word_count": null, "notes": "medical register"}
+{"sentence": "El hecho de que hubiera llegado tarde complicó la negociación.", "expect_assessed_level": "C1", "max_assessed_level": null, "min_word_count": null, "notes": "subordination + subjunctive"}
+{"sentence": "En la medida en que el laudo arbitral resulte vinculante, las partes renuncian expresamente a cualquier recurso ordinario que pudiera corresponderles en sede judicial.", "expect_assessed_level": "C2", "max_assessed_level": null, "min_word_count": null, "notes": "legal subordination + subjunctive"}

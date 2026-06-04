@@ -21,8 +21,8 @@ final class ExternalAnalyzer: Sendable {
 
         let endpoint = try endpointURL(for: provider)
         let langName = language == "fr" ? "French" : "Spanish"
-        let systemPrompt = buildSystemPrompt(langName: langName, level: level, ragContext: ragContext)
-        let userPrompt   = "Analyze this \(langName) sentence at \(level) level: \"\(sentence)\""
+        let systemPrompt = buildSystemPrompt(langName: langName, ragContext: ragContext)
+        let userPrompt   = "Analyze this \(langName) sentence: \"\(sentence)\""
 
         let payload: [String: Any] = [
             "model": model,
@@ -60,7 +60,7 @@ final class ExternalAnalyzer: Sendable {
             throw ExternalError.parseError
         }
 
-        return try parseAndNormalize(text)
+        return try parseAndNormalize(text, sentence: sentence)
     }
 
     // MARK: - Provider endpoints
@@ -86,82 +86,23 @@ final class ExternalAnalyzer: Sendable {
 
     /// Public alias so AnthropicAnalyzer and GeminiAnalyzer can share the same prompt.
     func buildSystemPromptPublic(langName: String, level: String, ragContext: String) -> String {
-        buildSystemPrompt(langName: langName, level: level, ragContext: ragContext)
+        buildSystemPrompt(langName: langName, ragContext: ragContext)
     }
 
-    private func buildSystemPrompt(langName: String, level: String, ragContext: String) -> String {
+    private func buildSystemPrompt(langName: String, ragContext: String) -> String {
         let registerLabel = langName == "French" ? "tu/vous" : "tú/usted"
-
-        let nextLevel:    String
-        let targetLevel:  String?
-        let levelGuidance: String
-
-        switch level.uppercased() {
-        case "C2":
-            nextLevel   = "native-polish"
-            targetLevel = nil
-            levelGuidance = """
-            Focus on near-native precision, stylistic elegance, idiomatic naturalness, and register mastery \
-            for professional interpreting. Flag any residual Anglicisms, calques, or unnatural phrasing. \
-            Provide a next_level_alt showing the most polished native-level phrasing. \
-            Identify the register used (\(registerLabel), formal/informal) and whether it is appropriate.
-            """
-        case "C1":
-            nextLevel   = "C2"
-            targetLevel = nil
-            levelGuidance = """
-            Focus on professional register, advanced word precision, and naturalness for interpreting. \
-            Flag Anglicisms (English sentence structures used in \(langName)). \
-            Provide a next_level_alt showing C2 native-mastery phrasing. \
-            Identify the register (\(registerLabel)) and whether it matches a professional interpreting context.
-            """
-        case "B2":
-            nextLevel   = "C1"
-            targetLevel = "C2"
-            levelGuidance = """
-            Focus on verb tense correctness (especially subjunctive vs indicative), gender/number agreement, \
-            and Anglicisms. Identify the register: is the sentence formal or informal? Would an interpreter \
-            use this phrasing in a professional setting? Explain \(registerLabel) choice. \
-            Provide next_level_alt (C1 professional interpreter phrasing) and target_level_alt (C2 native mastery).
-            """
-        case "B1":
-            nextLevel   = "B2"
-            targetLevel = "C1"
-            levelGuidance = """
-            Focus on basic verb tense correctness and gender agreement. Be encouraging and clear. \
-            Identify the register: is the learner using \(registerLabel) appropriately? \
-            Introduce the concept of formal vs informal register for interpreter training. \
-            Provide next_level_alt (B2 with more complex structures) and target_level_alt (C1 professional interpreter phrasing).
-            """
-        case "A2":
-            nextLevel   = "B1"
-            targetLevel = "B2"
-            levelGuidance = """
-            Focus on basic present tense conjugation, gender agreement, and simple sentence structure. \
-            Be encouraging. Check reflexive verbs, near future constructions, and basic vocabulary. \
-            Gently introduce register awareness: note whether the sentence uses \(registerLabel) and explain why it matters \
-            for someone training to become an interpreter. \
-            Provide next_level_alt (B1 with past tenses) and target_level_alt (B2 complexity).
-            """
-        default: // A1
-            nextLevel   = "A2"
-            targetLevel = "B1"
-            levelGuidance = """
-            Focus on basic present tense, fundamental verb usage, and simple vocabulary. \
-            Be very encouraging — this is an absolute beginner training to become an interpreter. \
-            Check subject-verb agreement and basic word order. Gently note register: is the learner using \
-            \(registerLabel)? Explain the difference simply and why interpreters must know both forms. \
-            Provide next_level_alt (A2 with slightly more complex structures) and target_level_alt (B1 phrasing).
-            """
-        }
-
-        let targetLine = targetLevel.map { "\"target_level_alt\": \"Same idea at \($0) level in \(langName)\"" }
-            ?? "\"target_level_alt\": null"
+        let formalRegister = langName == "French" ? "vous" : "usted"
+        let informalRegister = langName == "French" ? "tu" : "tú"
 
         var prompt = """
-        You are a \(langName) professor training professional interpreters. The learner is at CEFR level \(level).
+        You are a \(langName) professor training professional interpreters. Do NOT assume the learner picked a CEFR level.
 
-        \(levelGuidance)
+        Evaluate verb tense and mood, gender/number agreement, register (\(registerLabel)), Anglicisms, and naturalness for professional interpreting.
+
+        CEFR & COMPLEXITY:
+        - assessed_level: A1–C2 ONLY if highly confident from specific structures in this sentence. When uncertain, omit and use complexity_note without a CEFR label.
+        - complexity_note: 1–2 English sentences on vocabulary, syntax, subordination, and register — what makes this sentence simple or advanced. Always include when possible, even without assessed_level.
+        - next_level_alt / target_level_alt: stronger rewrites; CEFR labels only when assessed_level is set.
 
         """
 
@@ -176,23 +117,28 @@ final class ExternalAnalyzer: Sendable {
         prompt += """
         CRITICAL ACCURACY RULES:
         - Do NOT invent grammatical errors. Only flag real, clear mistakes.
-        - A simple, grammatically correct sentence is "Excellent" even if it could be more sophisticated.
+        - Grammatically correct sentences are "Excellent" — but explanation must cite specific structures in the learner's words (not generic praise).
         - Only mark "Needs Improvement" when there is an actual grammar error — not a style preference.
-        - ALL example sentences (correction, next_level_alt, target_level_alt) MUST be in \(langName), NEVER in English.
-        - next_level_alt and target_level_alt must express ONLY the same idea as the original sentence — do NOT add new information, embellish, or invent extra content. Just rephrase the same meaning using grammar and vocabulary appropriate for that CEFR level.
+        - Do NOT set assessed_level unless highly confident from specific structures in the sentence. When uncertain, omit and use complexity_note.
+        - ALWAYS include complexity_note describing THIS sentence's structures.
+        - next_level_alt MUST rewrite the sentence at a higher level — never copy the input verbatim.
+        - ALL example sentences (correction, next_level_alt, target_level_alt) MUST be COMPLETE SENTENCES in \(langName), NEVER in English. Do NOT return short labels or descriptions — return full, natural sentences.
+        - next_level_alt and target_level_alt must express the SAME idea as the original sentence rephrased with grammar and vocabulary appropriate for that CEFR level. Do NOT add new information or embellish.
         - NEVER use Chinese, Japanese, Korean, Cyrillic, or any non-Latin characters in \(langName) sentences. Use ONLY Latin alphabet characters with standard \(langName) diacritics.
         - grammar_rule, explanation, register, and tip must be in English.
 
         Respond with ONLY a valid JSON object (no markdown, no text outside the JSON, no <think> tags):
         {
+          "assessed_level": "A1" | "A2" | "B1" | "B2" | "C1" | "C2" | null,
+          "complexity_note": "1–2 English sentences on sentence complexity (vocabulary, syntax, subordination, register)",
           "status": "Excellent" or "Needs Improvement",
           "grammar_rule": "The specific grammar rule tested or applied — always explain, even when correct",
-          "explanation": "WHY the sentence is correct or incorrect at the \(level) level — be specific and actionable",
+          "explanation": "WHY the sentence is correct or incorrect — be specific and actionable",
           "correction": null or "Corrected sentence in \(langName) (only if Needs Improvement)",
-          "register": "Identify the register: formal (\(langName == "French" ? "vous" : "usted")) or informal (\(langName == "French" ? "tu" : "tú")), and whether appropriate for a professional interpreter",
-          "next_level_alt": "The SAME idea rephrased at \(nextLevel) level in \(langName) — same meaning, no added content",
-          \(targetLine),
-          "tip": "A practical tip about register, Anglicisms, or word precision for interpreter training"
+          "register": "Identify the register: formal (\(formalRegister)) or informal (\(informalRegister)), and whether appropriate for a professional interpreter",
+          "next_level_alt": "COMPLETE SENTENCE in \(langName): same idea one CEFR level above assessed_level, or null if no assessed_level",
+          "target_level_alt": "COMPLETE SENTENCE in \(langName): two levels above assessed_level, or null",
+          "tip": "Practical tip with a complete \(langName) example sentence showing stronger phrasing"
         }
         """
 
@@ -201,7 +147,7 @@ final class ExternalAnalyzer: Sendable {
 
     // MARK: - Response parsing
 
-    func parseAndNormalize(_ raw: String) throws -> [String: Any] {
+    func parseAndNormalize(_ raw: String, sentence: String = "") throws -> [String: Any] {
         let cleaned = raw
             .replacingOccurrences(of: "<think>[\\s\\S]*?</think>", with: "", options: .regularExpression)
             .replacingOccurrences(of: "```json", with: "")
@@ -219,10 +165,10 @@ final class ExternalAnalyzer: Sendable {
             throw ExternalError.parseError
         }
 
-        return normalize(result)
+        return normalize(result, sentence: sentence)
     }
 
-    func normalize(_ raw: [String: Any]) -> [String: Any] {
+    func normalize(_ raw: [String: Any], sentence: String = "") -> [String: Any] {
         var result: [String: Any] = [:]
         let status = raw["status"] as? String ?? "Excellent"
         result["status"]       = (status == "Excellent" || status == "Needs Improvement") ? status : "Excellent"
@@ -233,7 +179,102 @@ final class ExternalAnalyzer: Sendable {
         if let v = raw["next_level_alt"]   as? String { result["next_level_alt"]   = sanitizeLatin(v) }
         if let v = raw["target_level_alt"] as? String { result["target_level_alt"] = sanitizeLatin(v) }
         if let v = raw["tip"]              as? String { result["tip"]              = v }
+        if let assessed = Self.normalizeAssessedLevel(raw["assessed_level"] as? String
+            ?? raw["assessedLevel"] as? String
+            ?? raw["sentence_level"] as? String) {
+            result["assessed_level"] = assessed
+        }
+        if let note = (raw["complexity_note"] as? String ?? raw["complexityNote"] as? String)?
+            .trimmingCharacters(in: .whitespacesAndNewlines), !note.isEmpty {
+            result["complexity_note"] = note
+        }
+        if !sentence.isEmpty {
+            applyFeedbackSanitizer(sentence: sentence, feedback: &result)
+        }
         return result
+    }
+
+    /// Strip unreliable CEFR labels and verbatim upgrade copies — shared by all cloud providers.
+    func applyFeedbackSanitizer(sentence: String, feedback: inout [String: Any]) {
+        if feedback["_coach_repaired"] as? Bool == true {
+            feedback.removeValue(forKey: "assessed_level")
+        } else if let level = Self.normalizeAssessedLevel(
+            feedback["assessed_level"] as? String
+                ?? feedback["assessedLevel"] as? String
+                ?? feedback["sentence_level"] as? String
+        ) {
+            if Self.assessedLevelPlausible(sentence: sentence, level: level) {
+                feedback["assessed_level"] = level
+            } else {
+                feedback.removeValue(forKey: "assessed_level")
+            }
+        } else {
+            feedback.removeValue(forKey: "assessed_level")
+        }
+        feedback.removeValue(forKey: "assessedLevel")
+        feedback.removeValue(forKey: "sentence_level")
+
+        let sentNorm = Self.normalizeForCompare(sentence)
+        if let next = feedback["next_level_alt"] as? String,
+           Self.normalizeForCompare(next) == sentNorm {
+            feedback.removeValue(forKey: "next_level_alt")
+        }
+        if let target = feedback["target_level_alt"] as? String,
+           Self.normalizeForCompare(target) == sentNorm {
+            feedback.removeValue(forKey: "target_level_alt")
+        }
+    }
+
+    static func assessedLevelPlausible(sentence: String, level: String) -> Bool {
+        let norm = normalizeForCompare(sentence)
+        let wordCount = sentence.split(whereSeparator: { $0.isWhitespace }).count
+        let hasSub = hasSubordinator(sentence)
+        let hasSubjunctive = norm.range(
+            of: #"\b(hubiera|tuviera|fuera|pudiera|quisiera|hiciera|hubiese|tuviese)\b"#,
+            options: .regularExpression
+        ) != nil
+        let hasConditional = norm.range(
+            of: #"\b(habria|habría|tendria|tendría|seria|sería|podria|podría)\b"#,
+            options: .regularExpression
+        ) != nil
+
+        switch level.uppercased() {
+        case "A1":
+            return wordCount <= 8 && !hasSub && !hasSubjunctive && !hasConditional
+        case "A2":
+            return wordCount <= 12 && !hasSubjunctive
+        case "B1", "B2":
+            return true
+        case "C1", "C2":
+            return hasSubjunctive || (hasSub && wordCount >= 12) || hasConditional
+        default:
+            return false
+        }
+    }
+
+    private static func hasSubordinator(_ sentence: String) -> Bool {
+        let n = " " + normalizeForCompare(sentence) + " "
+        let markers = [
+            " porque ", " pues ", " que ", " cuando ", " si ", " aunque ",
+            " mientras ", " lo cual ", " donde ", " como ", " sino ",
+        ]
+        return markers.contains { n.contains($0) }
+    }
+
+    private static func normalizeForCompare(_ text: String) -> String {
+        text.lowercased()
+            .folding(options: .diacriticInsensitive, locale: .current)
+            .replacingOccurrences(of: #"[^\w\s]"#, with: " ", options: .regularExpression)
+            .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static let validCEFRLevels = ["A1", "A2", "B1", "B2", "C1", "C2"]
+
+    static func normalizeAssessedLevel(_ raw: String?) -> String? {
+        guard let raw else { return nil }
+        let u = raw.uppercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        return validCEFRLevels.contains(u) ? u : nil
     }
 
     private func sanitizeLatin(_ text: String) -> String {

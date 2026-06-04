@@ -1,0 +1,12 @@
+{"sentence": "Je suis étudiant.", "expect_assessed_level": "A1", "max_assessed_level": null, "min_word_count": null, "notes": "basic present"}
+{"sentence": "Je vais.", "expect_assessed_level": "A1", "max_assessed_level": "A2", "min_word_count": null, "notes": "must not label C1/C2"}
+{"sentence": "J'aime le café le matin.", "expect_assessed_level": "A2", "max_assessed_level": null, "min_word_count": null, "notes": "aimer + simple phrase"}
+{"sentence": "Hier, je suis allé au marché avec ma mère.", "expect_assessed_level": "A2", "max_assessed_level": "B1", "min_word_count": null, "notes": "passé composé"}
+{"sentence": "Je pense que nous devons prendre une décision rapidement.", "expect_assessed_level": "B1", "max_assessed_level": "B2", "min_word_count": null, "notes": "subordinate clause"}
+{"sentence": "Bonjour madame, comment allez-vous ?", "expect_assessed_level": "B1", "max_assessed_level": "B2", "min_word_count": null, "notes": "formal address"}
+{"sentence": "Si j'avais su, je serais venu plus tôt.", "expect_assessed_level": "B2", "max_assessed_level": null, "min_word_count": null, "notes": "si + imparfait + conditionnel"}
+{"sentence": "Je veux que tu viennes avec moi au marché.", "expect_assessed_level": "B2", "max_assessed_level": null, "min_word_count": null, "notes": "vouloir que + subjonctif"}
+{"sentence": "Si j'aurais su, je serais venu plus tôt.", "expect_assessed_level": "B2", "max_assessed_level": null, "min_word_count": null, "notes": "si-clause error — known-error path keeps B2"}
+{"sentence": "Le patient doit arrêter les AINS avant l'intervention chirurgicale.", "expect_assessed_level": "C1", "max_assessed_level": null, "min_word_count": null, "notes": "medical"}
+{"sentence": "Le fait qu'il soit arrivé en retard a compliqué la négociation.", "expect_assessed_level": "C1", "max_assessed_level": null, "min_word_count": null, "notes": "subordination + subjonctif"}
+{"sentence": "Eu égard aux stipulations qui précèdent, les parties conviennent que tout différend relatif à l'interprétation du présent accord sera soumis à un arbitrage international ayant force obligatoire.", "expect_assessed_level": "C2", "max_assessed_level": null, "min_word_count": null, "notes": "legal subordination + register"}

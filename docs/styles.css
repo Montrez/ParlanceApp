@@ -362,6 +362,22 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.5rem;
+}
+.feedback-header-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.feedback-level-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: var(--blue-bg);
+  color: var(--blue);
 }
 .feedback-sentence-ref {
   font-family: 'DM Mono', monospace;
@@ -413,6 +429,7 @@ header {
 .label-b1 { color: var(--green); }
 .label-c1 { color: var(--accent); }
 .label-tip { color: #6b4f9e; }
+.label-level { color: var(--blue); }
 
 .feedback-item-text {
   font-family: 'Spectral', serif;
@@ -631,6 +648,43 @@ header {
   border: 1px solid var(--rule);
   border-radius: 3px;
   margin-left: auto;
+}
+
+.feedback-rag-topics {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0 0;
+  border-top: 1px solid var(--rule);
+  margin-top: 0.25rem;
+}
+
+.feedback-rag-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-right: 0.15rem;
+}
+
+.feedback-rag-chip {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(11, 156, 208, 0.08);
+  color: #0b7ea8;
+}
+
+.feedback-coach-warning {
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-style: italic;
+  padding: 0.35rem 0.5rem;
+  background: rgba(146, 64, 14, 0.06);
+  border-radius: 4px;
 }
 
 /* ── ENTRY VIEWER ── */
@@ -874,6 +928,48 @@ header {
   font-size: 0.68rem;
   color: var(--amber);
   line-height: 1.5;
+}
+
+.auth-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.auth-btn {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border-radius: 4px;
+  border: 1px solid var(--rule);
+  background: var(--paper2);
+  color: var(--ink);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.auth-btn:hover {
+  border-color: var(--accent);
+}
+
+.auth-btn-google {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+.auth-btn-outline {
+  margin-top: 0.35rem;
+  background: transparent;
+}
+
+.auth-signed-in-label {
+  font-family: 'Spectral', serif;
+  font-size: 0.9rem;
+  color: var(--ink);
+  margin: 0 0 0.25rem;
 }
 
 .modal-footer {

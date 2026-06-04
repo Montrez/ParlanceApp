@@ -3,8 +3,10 @@ import WebKit
 import Network
 
 struct ContentView: View {
+    @Environment(AuthManager.self) private var authManager
     @State private var showPrivacyPolicy = false
     @State private var showAISettings   = false
+    @State private var aiSettingsRefreshId = UUID()
 
     var body: some View {
         ZStack {
@@ -17,9 +19,110 @@ struct ContentView: View {
                 PrivacyPolicyView(isPresented: $showPrivacyPolicy)
             }
         }
-        .sheet(isPresented: $showAISettings) {
+        .sheet(isPresented: $showAISettings, onDismiss: {
+            syncAISettingsToWeb()
+        }) {
             AISettingsView()
+                .id(aiSettingsRefreshId)
+                .environment(authManager)
         }
+        .onChange(of: showAISettings) { _, showing in
+            if showing {
+                syncAISettingsFromWeb {
+                    aiSettingsRefreshId = UUID()
+                }
+            }
+        }
+        .onChange(of: authManager.isSignedIn) { _, _ in
+            authManager.injectAuth(into: ParlanceWebView.activeWebView)
+        }
+        .onChange(of: authManager.displayLabel) { _, _ in
+            authManager.injectAuth(into: ParlanceWebView.activeWebView)
+        }
+    }
+
+    private func syncAISettingsFromWeb(completion: (() -> Void)? = nil) {
+        guard let webView = ParlanceWebView.activeWebView else {
+            completion?()
+            return
+        }
+        webView.evaluateJavaScript(
+            """
+            (function(){
+              var p=localStorage.getItem('parlance_ai_provider')||'parlance';
+              var m=localStorage.getItem('parlance_ai_model_'+p)||'';
+              var lang=localStorage.getItem('parlance_language')||'es';
+              return JSON.stringify({provider:p,model:m,language:lang});
+            })()
+            """
+        ) { result, _ in
+            if let json = result as? String,
+               let data = json.data(using: .utf8),
+               let obj = try? JSONSerialization.jsonObject(with: data) as? [String: String],
+               let providerId = obj["provider"] {
+                if let lang = obj["language"] {
+                    UserDefaults.standard.set(lang, forKey: "parlance_language")
+                }
+
+                let provider = Self.nativeProvider(fromWebId: providerId)
+                AIProviderSettings.shared.selectedProvider = provider
+
+                if provider == .parlanceCoach {
+                    let lang = obj["language"] ?? UserDefaults.standard.string(forKey: "parlance_language") ?? "es"
+                    let modelId = lang == "fr" ? "parlance-fr" : "parlance-es"
+                    AIProviderSettings.shared.setModel(modelId, for: .parlanceCoach)
+                } else if let model = obj["model"], !model.isEmpty {
+                    AIProviderSettings.shared.setModel(model, for: provider)
+                }
+            }
+            DispatchQueue.main.async { completion?() }
+        }
+    }
+
+    private func syncAISettingsToWeb() {
+        guard let webView = ParlanceWebView.activeWebView else { return }
+        let provider = AIProviderSettings.shared.selectedProvider
+
+        if provider == .parlanceCoach {
+            webView.evaluateJavaScript(
+                """
+                (function(){
+                  var lang=localStorage.getItem('parlance_language')||'es';
+                  return lang==='fr'?'parlance-fr':'parlance-es';
+                })()
+                """
+            ) { result, _ in
+                let model = (result as? String) ?? "parlance-es"
+                webView.evaluateJavaScript(
+                    "if(typeof applyNativeAISettings==='function')applyNativeAISettings('parlance','\(Self.jsSingleQuoted(model))');"
+                ) { _, _ in }
+            }
+            return
+        }
+
+        guard provider != .onDevice else { return }
+        let webId = Self.webProviderId(for: provider)
+        let model = AIProviderSettings.shared.model(for: provider)
+        webView.evaluateJavaScript(
+            "if(typeof applyNativeAISettings==='function')applyNativeAISettings('\(webId)','\(Self.jsSingleQuoted(model))');"
+        ) { _, _ in }
+    }
+
+    private static func nativeProvider(fromWebId id: String) -> AIProvider {
+        if id == "parlance" { return .parlanceCoach }
+        if let mapped = FirebaseCloudAnalyzer.provider(fromWebId: id) { return mapped }
+        if let provider = AIProvider(rawValue: id) { return provider }
+        return ParlanceSLMAnalyzer.isOnDeviceModelAvailable ? .parlanceCoach : .groq
+    }
+
+    private static func webProviderId(for provider: AIProvider) -> String {
+        provider.webProviderId
+    }
+
+    private static func jsSingleQuoted(_ str: String) -> String {
+        str.replacingOccurrences(of: "\\", with: "\\\\")
+           .replacingOccurrences(of: "'", with: "\\'")
+           .replacingOccurrences(of: "\n", with: "\\n")
     }
 }
 
@@ -47,18 +150,25 @@ extension EnvironmentValues {
 struct ParlanceWebView: UIViewRepresentable {
     @Environment(\.showPrivacyPolicy) private var showPrivacyPolicy
     @Environment(\.showAISettings)    private var showAISettings
+    @Environment(AuthManager.self) private var authManager
+
+    /// Latest WKWebView for auth injection from SwiftUI `onChange`.
+    static weak var activeWebView: WKWebView?
 
     func makeCoordinator() -> Coordinator {
         Coordinator(
             showPrivacyPolicy: showPrivacyPolicy,
-            showAISettings:    showAISettings
+            showAISettings:    showAISettings,
+            authManager:       authManager
         )
     }
 
     func updateUIView(_ uiView: WKWebView, context: Context) {
-        // Keep coordinator bindings fresh on every SwiftUI update
         context.coordinator.showPrivacyPolicy = showPrivacyPolicy
         context.coordinator.showAISettings    = showAISettings
+        context.coordinator.authManager       = authManager
+        Self.activeWebView = uiView
+        authManager.injectAuth(into: uiView)
     }
 
     func makeUIView(context: Context) -> WKWebView {
@@ -70,7 +180,10 @@ struct ParlanceWebView: UIViewRepresentable {
 
         // Inject configuration at document start
         let configJSON = buildConfigJSON()
-        let injectionScript = "window.__PARLANCE_CONFIG__ = \(configJSON);"
+        let injectionScript = """
+        window.__PARLANCE_CONFIG__ = \(configJSON);
+        window.__PARLANCE_AUTH__ = \(context.coordinator.authManager.authInjectionJSON());
+        """
         contentController.addUserScript(WKUserScript(
             source: injectionScript,
             injectionTime: .atDocumentStart,
@@ -86,9 +199,13 @@ struct ParlanceWebView: UIViewRepresentable {
         webView.backgroundColor = UIColor(red: 0.98, green: 0.97, blue: 0.95, alpha: 1)
 
         context.coordinator.webView = webView
+        Self.activeWebView = webView
         context.coordinator.startNetworkMonitor()
 
         loadHTML(into: webView)
+        DispatchQueue.main.async {
+            authManager.injectAuth(into: webView)
+        }
         return webView
     }
 
@@ -100,8 +217,11 @@ struct ParlanceWebView: UIViewRepresentable {
             onDeviceAvail = OnDeviceAnalyzer.isAvailable
         }
         #endif
+        let coachLangs = ParlanceSLMAnalyzer.availableCoachLanguages()
+        let coachAvailable = !coachLangs.isEmpty
+        let langsJSON = coachLangs.map { "\"\($0)\"" }.joined(separator: ",")
         return """
-        {"mode":"unified","onDeviceAvailable":\(onDeviceAvail),"groqAvailable":true,"activeProvider":"\(providerName)"}
+        {"mode":"unified","onDeviceAvailable":\(onDeviceAvail),"groqAvailable":true,"activeProvider":"\(providerName)","parlanceCoachAvailable":\(coachAvailable),"parlanceCoachLanguages":[\(langsJSON)]}
         """
     }
 
@@ -123,13 +243,15 @@ struct ParlanceWebView: UIViewRepresentable {
     class Coordinator: NSObject, WKScriptMessageHandler {
         var showPrivacyPolicy: Binding<Bool>
         var showAISettings:    Binding<Bool>
+        var authManager: AuthManager
         weak var webView: WKWebView?
         private let monitor      = NWPathMonitor()
         private let monitorQueue = DispatchQueue(label: "NetworkMonitor")
 
-        init(showPrivacyPolicy: Binding<Bool>, showAISettings: Binding<Bool>) {
+        init(showPrivacyPolicy: Binding<Bool>, showAISettings: Binding<Bool>, authManager: AuthManager) {
             self.showPrivacyPolicy = showPrivacyPolicy
             self.showAISettings    = showAISettings
+            self.authManager       = authManager
         }
 
         func startNetworkMonitor() {
@@ -161,26 +283,43 @@ struct ParlanceWebView: UIViewRepresentable {
             guard let body   = message.body as? [String: Any],
                   let action = body["action"] as? String else { return }
 
-            // analyzeGroq now routes through UnifiedAnalyzer
-            if action == "analyzeGroq" || action == "analyzeUnified" {
+            if action == "analyzeFirebase" {
+                handleFirebaseAnalysis(body)
+            } else if action == "analyzeGroq" || action == "analyzeUnified" {
                 handleUnifiedAnalysis(body)
+            } else if action == "analyzeParlanceSLM" {
+                handleParlanceSLMAnalysis(body)
+            } else if action == "unloadParlanceSLM" {
+                Task {
+                    await ParlanceSLMEngine.shared.unload()
+                }
             } else if action == "analyzeOnDevice" {
                 handleOnDeviceAnalysis(body)
+            } else if action == "signInApple" {
+                handleSignInApple(body)
+            } else if action == "signInGoogle" {
+                handleSignInGoogle(body)
+            } else if action == "signOut" {
+                handleSignOut(body)
             }
         }
 
         private func handleUnifiedAnalysis(_ body: [String: Any]) {
             guard let requestId = body["requestId"] as? String,
                   let sentence  = body["sentence"]  as? String,
-                  let language  = body["language"]  as? String,
-                  let level     = body["level"]     as? String else { return }
+                  let language  = body["language"]  as? String else { return }
 
+            let level = body["level"] as? String ?? ""
             let ragContext = body["ragContext"] as? String ?? ""
 
             Task { @MainActor in
                 do {
                     let result = try await UnifiedAnalyzer.shared.analyze(
-                        sentence: sentence, language: language, level: level, ragContext: ragContext
+                        sentence: sentence,
+                        language: language,
+                        level: level,
+                        ragContext: ragContext,
+                        isSignedIn: authManager.isSignedIn
                     )
                     let jsonData   = try JSONSerialization.data(withJSONObject: result)
                     let jsonString = String(data: jsonData, encoding: .utf8) ?? "{}"
@@ -201,6 +340,52 @@ struct ParlanceWebView: UIViewRepresentable {
             }
         }
 
+        private func handleFirebaseAnalysis(_ body: [String: Any]) {
+            guard let requestId = body["requestId"] as? String,
+                  let sentence  = body["sentence"]  as? String,
+                  let language  = body["language"]  as? String else { return }
+
+            let level = body["level"] as? String ?? ""
+            let ragContext   = body["ragContext"] as? String ?? ""
+            let providerId   = (body["provider"] as? String) ?? (body["providerId"] as? String)
+            let model        = body["model"] as? String
+
+            Task { @MainActor in
+                guard authManager.isSignedIn else {
+                    let errJSON = Self.jsonEscaped("Sign in required for cloud analysis.")
+                    self.webView?.evaluateJavaScript(
+                        "window.__parlanceFirebaseResult(\"\(requestId)\", null, \"\(errJSON)\")"
+                    ) { _, _ in }
+                    return
+                }
+
+                do {
+                    let result = try await UnifiedAnalyzer.shared.analyze(
+                        sentence: sentence,
+                        language: language,
+                        level: level,
+                        ragContext: ragContext,
+                        isSignedIn: true,
+                        webProviderId: providerId,
+                        webModel: model
+                    )
+                    let jsonData   = try JSONSerialization.data(withJSONObject: result)
+                    let jsonString = String(data: jsonData, encoding: .utf8) ?? "{}"
+                    self.webView?.evaluateJavaScript(
+                        "window.__parlanceFirebaseResult('\(requestId)', \(jsonString), null)"
+                    ) { _, jsErr in
+                        if let jsErr { print("[Parlance] Firebase JS callback error:", jsErr) }
+                    }
+                } catch {
+                    print("[Parlance] Firebase analysis failed:", error.localizedDescription)
+                    let errJSON = Self.jsonEscaped(error.localizedDescription)
+                    self.webView?.evaluateJavaScript(
+                        "window.__parlanceFirebaseResult(\"\(requestId)\", null, \"\(errJSON)\")"
+                    ) { _, _ in }
+                }
+            }
+        }
+
         private static func jsonEscaped(_ str: String) -> String {
             str.replacingOccurrences(of: "\\", with: "\\\\")
                .replacingOccurrences(of: "\"", with: "\\\"")
@@ -209,11 +394,100 @@ struct ParlanceWebView: UIViewRepresentable {
                .replacingOccurrences(of: "\t", with: "\\t")
         }
 
+        private func completeAuthRequest(_ requestId: String, error: String?) {
+            let errJS: String
+            if let error {
+                errJS = "\"\(Self.jsonEscaped(error))\""
+            } else {
+                errJS = "null"
+            }
+            webView?.evaluateJavaScript(
+                "window.__parlanceAuthResult(\"\(requestId)\", \(errJS))"
+            ) { _, _ in }
+        }
+
+        private func handleSignInApple(_ body: [String: Any]) {
+            guard let requestId = body["requestId"] as? String else { return }
+            Task { @MainActor in
+                do {
+                    try await authManager.signInWithApple()
+                    authManager.injectAuth(into: webView)
+                    completeAuthRequest(requestId, error: nil)
+                } catch AuthManagerError.cancelled {
+                    completeAuthRequest(requestId, error: "cancelled")
+                } catch {
+                    completeAuthRequest(requestId, error: error.localizedDescription)
+                }
+            }
+        }
+
+        private func handleSignInGoogle(_ body: [String: Any]) {
+            guard let requestId = body["requestId"] as? String else { return }
+            Task { @MainActor in
+                do {
+                    try await authManager.signInWithGoogle()
+                    authManager.injectAuth(into: webView)
+                    completeAuthRequest(requestId, error: nil)
+                } catch AuthManagerError.cancelled {
+                    completeAuthRequest(requestId, error: "cancelled")
+                } catch {
+                    completeAuthRequest(requestId, error: error.localizedDescription)
+                }
+            }
+        }
+
+        private func handleSignOut(_ body: [String: Any]) {
+            guard let requestId = body["requestId"] as? String else { return }
+            Task { @MainActor in
+                do {
+                    try authManager.signOut()
+                    authManager.injectAuth(into: webView)
+                    completeAuthRequest(requestId, error: nil)
+                } catch {
+                    completeAuthRequest(requestId, error: error.localizedDescription)
+                }
+            }
+        }
+
+        private func handleParlanceSLMAnalysis(_ body: [String: Any]) {
+            guard let requestId = body["requestId"] as? String,
+                  let sentence  = body["sentence"]  as? String,
+                  let language  = body["language"]  as? String else { return }
+
+            let level = body["level"] as? String ?? ""
+            let ragContext = body["ragContext"] as? String ?? ""
+
+            Task { @MainActor in
+                do {
+                    guard await ParlanceSLMAnalyzer.isAvailable(language: language) else {
+                        throw ParlanceSLMError.modelMissing
+                    }
+
+                    let result = try await ParlanceSLMAnalyzer.analyze(
+                        sentence: sentence, language: language, level: level, ragContext: ragContext
+                    )
+                    let jsonData   = try JSONSerialization.data(withJSONObject: result)
+                    let jsonString = String(data: jsonData, encoding: .utf8) ?? "{}"
+                    self.webView?.evaluateJavaScript(
+                        "window.__parlanceSLMResult('\(requestId)', \(jsonString), null)"
+                    ) { _, jsErr in
+                        if let jsErr { print("[Parlance] SLM JS callback error:", jsErr) }
+                    }
+                } catch {
+                    let errJSON = Self.jsonEscaped(error.localizedDescription)
+                    self.webView?.evaluateJavaScript(
+                        "window.__parlanceSLMResult(\"\(requestId)\", null, \"\(errJSON)\")"
+                    ) { _, _ in }
+                }
+            }
+        }
+
         private func handleOnDeviceAnalysis(_ body: [String: Any]) {
             guard let requestId = body["requestId"] as? String,
                   let sentence = body["sentence"] as? String,
-                  let language = body["language"] as? String,
-                  let level = body["level"] as? String else { return }
+                  let language = body["language"] as? String else { return }
+
+            let level = body["level"] as? String ?? ""
 
             #if canImport(FoundationModels)
             if #available(iOS 26, *) {

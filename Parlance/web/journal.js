@@ -1,218 +1,1031 @@
-// ── CONFIG (injected by Swift) ────────────────────────────────────
-const parlanceConfig = window.__PARLANCE_CONFIG__ || { mode: 'direct', apiKey: '', proxyURL: '', onDeviceAvailable: false };
+// ── AI PROVIDER CONFIGURATION ────────────────────────────────────
+const PARLANCE_SLM_URL = localStorage.getItem('parlance_slm_server_url') || 'http://127.0.0.1:8765';
 
-// ── GROQ BRIDGE ─────────────────────────────────────────────────
-const pendingGroqRequests = {};
-let groqRequestCounter = 0;
+/** Min trimmed length to analyze on Enter. */
+const MIN_SENTENCE_CHARS = 15;
+const MIN_SENTENCE_WORDS = 3;
 
-window.__parlanceGroqResult = function(requestId, result, error) {
-  const pending = pendingGroqRequests[requestId];
-  if (!pending) return;
-  delete pendingGroqRequests[requestId];
-  if (error) pending.reject(new Error(error));
-  else pending.resolve(result);
+/** Parlance Coach on-device first load can take 60–120s+ on iPhone. */
+const TIMEOUT_MS = {
+  parlanceNative: 300000,
+  parlanceServer: 180000,
+  webllm: 180000,
+  cloud: 20000,
 };
 
-function requestGroqAnalysis(sentence, language, level) {
-  const ragContext = (typeof getRAGContext === 'function')
-    ? getRAGContext(language, level, sentence)
-    : '';
+const VALID_CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
-  return new Promise((resolve, reject) => {
-    const requestId = 'groq_' + (++groqRequestCounter);
-    pendingGroqRequests[requestId] = { resolve, reject };
-    window.webkit.messageHandlers.parlance.postMessage({
-      action: 'analyzeGroq',
-      requestId, sentence, language, level, ragContext
-    });
-    setTimeout(() => {
-      if (pendingGroqRequests[requestId]) {
-        delete pendingGroqRequests[requestId];
-        reject(new Error('Analysis timed out. Check your AI settings or connection.'));
+function normalizeAssessedLevel(raw) {
+  if (!raw) return null;
+  const u = String(raw).toUpperCase().trim();
+  return VALID_CEFR_LEVELS.includes(u) ? u : null;
+}
+
+function extractAssessedLevel(obj) {
+  if (!obj) return null;
+  return normalizeAssessedLevel(obj.assessed_level || obj.assessedLevel || obj.sentence_level);
+}
+
+function extractComplexityNote(obj) {
+  if (!obj) return null;
+  const raw = obj.complexity_note || obj.complexityNote;
+  if (!raw || typeof raw !== 'string') return null;
+  const t = raw.trim();
+  return t.length ? t : null;
+}
+
+function altVersionLabels(assessedLevel) {
+  if (!assessedLevel) {
+    return { nextLabel: 'Next Level', targetLabel: 'Higher Level' };
+  }
+  const nextLabels = {
+    C2: 'Native Polish', C1: 'C2 Mastery', B2: 'C1 Professional',
+    B1: 'B2 Version', A2: 'B1 Version', A1: 'A2 Version',
+  };
+  const targetLabels = {
+    B2: 'C2 Mastery', B1: 'C1 Professional', A2: 'B2 Version', A1: 'B1 Version',
+  };
+  return {
+    nextLabel: nextLabels[assessedLevel] || 'Next Level',
+    targetLabel: targetLabels[assessedLevel] || null,
+  };
+}
+
+function analysisCacheHash(sentence, language) {
+  return btoa(unescape(encodeURIComponent(sentence + '|' + language + '|fbv5'))).slice(0, 40);
+}
+
+function sanitizeFeedbackResult(sentence, result, language = 'es') {
+  return ParlanceFeedbackSanitize.sanitizeFeedbackResult(sentence, result, language);
+}
+
+const AI_PROVIDERS = {
+  parlance: {
+    id: 'parlance',
+    name: 'Parlance Coach',
+    subtitle: 'Spanish & French fine-tuned · On-device',
+    icon: '🎓',
+    requiresKey: false,
+    local: true,
+    corsNote: false,
+    models: [
+      { id: 'parlance-es', name: 'Parlance Spanish (Qwen 0.5B)' },
+      { id: 'parlance-fr', name: 'Parlance French (Qwen 0.5B)' },
+    ],
+    defaultModel: 'parlance-es',
+  },
+  webllm: {
+    id: 'webllm',
+    name: 'Browser AI',
+    subtitle: 'Free · No account · On-device',
+    icon: '🧠',
+    requiresKey: false,
+    local: true,
+    corsNote: false,
+    models: [
+      { id: 'Qwen2.5-0.5B-Instruct-q4f16_1-MLC', name: 'Qwen 0.5B — Fast (~380 MB)' },
+      { id: 'Qwen2.5-1.5B-Instruct-q4f16_1-MLC', name: 'Qwen 1.5B — Better (~900 MB)' },
+    ],
+    defaultModel: 'Qwen2.5-0.5B-Instruct-q4f16_1-MLC',
+  },
+  groq: {
+    id: 'groq',
+    name: 'Groq',
+    subtitle: 'Free · Very fast',
+    icon: '⚡',
+    requiresKey: true,
+    local: false,
+    corsNote: false,
+    free: true,
+    endpoint: 'https://api.groq.com/openai/v1/chat/completions',
+    keyUrl: 'https://console.groq.com/keys',
+    models: [
+      { id: 'qwen/qwen3-32b', name: 'Qwen3 32B (multilingual)' },
+      { id: 'openai/gpt-oss-120b', name: 'GPT-OSS 120B (best)' },
+      { id: 'meta-llama/llama-4-scout-17b-16e-instruct', name: 'Llama 4 Scout (fast)' },
+    ],
+    defaultModel: 'qwen/qwen3-32b',
+  },
+  deepseek: {
+    id: 'deepseek',
+    name: 'DeepSeek',
+    subtitle: 'Free · DeepSeek V4',
+    icon: '🐋',
+    requiresKey: true,
+    local: false,
+    corsNote: false,
+    free: true,
+    endpoint: 'https://api.deepseek.com/chat/completions',
+    keyUrl: 'https://platform.deepseek.com/api_keys',
+    models: [
+      { id: 'deepseek-v4-flash', name: 'DeepSeek V4 Flash (fast)' },
+      { id: 'deepseek-v4-pro', name: 'DeepSeek V4 Pro (best)' },
+    ],
+    defaultModel: 'deepseek-v4-flash',
+  },
+  gemini: {
+    id: 'gemini',
+    name: 'Gemini',
+    subtitle: 'Free · 1M tokens/day',
+    icon: '✨',
+    requiresKey: true,
+    local: false,
+    corsNote: false,
+    free: true,
+    keyUrl: 'https://aistudio.google.com/app/apikey',
+    models: [
+      { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (stable)' },
+      { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash (best)' },
+    ],
+    defaultModel: 'gemini-2.5-flash',
+  },
+  openrouter: {
+    id: 'openrouter',
+    name: 'OpenRouter',
+    subtitle: 'Free models · Multi-provider',
+    icon: '🔀',
+    requiresKey: true,
+    local: false,
+    corsNote: false,
+    free: true,
+    endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+    keyUrl: 'https://openrouter.ai/keys',
+    models: [
+      { id: 'meta-llama/llama-3.3-70b-instruct:free', name: 'Llama 3.3 70B (free)' },
+      { id: 'google/gemma-3-27b-it:free', name: 'Gemma 3 27B (free)' },
+      { id: 'qwen/qwen3-8b:free', name: 'Qwen3 8B (free)' },
+    ],
+    defaultModel: 'meta-llama/llama-3.3-70b-instruct:free',
+  },
+  openai: {
+    id: 'openai',
+    name: 'OpenAI',
+    subtitle: 'GPT-5 · Paid',
+    icon: '💎',
+    requiresKey: true,
+    local: false,
+    corsNote: false,
+    free: false,
+    endpoint: 'https://api.openai.com/v1/chat/completions',
+    keyUrl: 'https://platform.openai.com/api-keys',
+    models: [
+      { id: 'gpt-5.4-nano', name: 'GPT-5.4 Nano (fast)' },
+      { id: 'gpt-5.4-mini', name: 'GPT-5.4 Mini (best)' },
+      { id: 'gpt-5.5', name: 'GPT-5.5 (premium)' },
+    ],
+    defaultModel: 'gpt-5.4-nano',
+  },
+  anthropic: {
+    id: 'anthropic',
+    name: 'Anthropic',
+    subtitle: 'Claude · Paid',
+    icon: '🤖',
+    requiresKey: true,
+    local: false,
+    corsNote: true,
+    free: false,
+    keyUrl: 'https://console.anthropic.com/settings/keys',
+    models: [
+      { id: 'claude-haiku-4-5', name: 'Claude Haiku 4.5 (fast)' },
+      { id: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6 (best)' },
+      { id: 'claude-opus-4-7', name: 'Claude Opus 4.7 (premium)' },
+    ],
+    defaultModel: 'claude-haiku-4-5',
+  },
+  kimi: {
+    id: 'kimi',
+    name: 'Kimi',
+    subtitle: 'Kimi K2.6 · Paid',
+    icon: '🌙',
+    requiresKey: true,
+    local: false,
+    corsNote: true,
+    free: false,
+    endpoint: 'https://api.moonshot.cn/v1/chat/completions',
+    keyUrl: 'https://platform.moonshot.cn/console/api-keys',
+    models: [
+      { id: 'kimi-k2.5', name: 'Kimi K2.5 (multimodal)' },
+      { id: 'kimi-k2.6', name: 'Kimi K2.6 (best)' },
+    ],
+    defaultModel: 'kimi-k2.6',
+  },
+};
+
+// ── AI SETTINGS (localStorage) ───────────────────────────────────
+const LS_PROVIDER = 'parlance_ai_provider';
+const LS_MODEL    = 'parlance_ai_model_';
+const LS_KEY      = 'parlance_ai_key_';
+
+function getSelectedProvider() {
+  return localStorage.getItem(LS_PROVIDER) || 'webllm';
+}
+
+function getProviderModel(providerId) {
+  return localStorage.getItem(LS_MODEL + providerId) || AI_PROVIDERS[providerId]?.defaultModel || '';
+}
+
+function getProviderKey(providerId) {
+  return localStorage.getItem(LS_KEY + providerId) || '';
+}
+
+function setSelectedProvider(id) { localStorage.setItem(LS_PROVIDER, id); }
+function setProviderModel(id, m)  { localStorage.setItem(LS_MODEL + id, m); }
+function setProviderKey(id, k)    { localStorage.setItem(LS_KEY + id, k); }
+
+// ── FIREBASE AUTH & CLOUD PROXY ──────────────────────────────────
+let firebaseApp = null;
+let firebaseAuth = null;
+let analyzeTextCallable = null;
+let firebaseAuthUser = null;
+let firebaseInitPromise = null;
+
+const FIREBASE_PLACEHOLDER_API_KEY = 'YOUR_API_KEY';
+
+function hasFirebaseConfig() {
+  return typeof firebaseConfig !== 'undefined'
+    && firebaseConfig?.apiKey
+    && firebaseConfig.apiKey !== FIREBASE_PLACEHOLDER_API_KEY;
+}
+
+function isCloudProvider(providerId) {
+  const p = AI_PROVIDERS[providerId];
+  return !!(p && !p.local);
+}
+
+function isFirebaseSignedIn() {
+  if (isNativeParlanceApp()) {
+    return !!(window.__PARLANCE_AUTH__?.signedIn);
+  }
+  return !!firebaseAuthUser;
+}
+
+function firebaseDisplayName() {
+  if (isNativeParlanceApp()) {
+    const a = window.__PARLANCE_AUTH__ || {};
+    return a.displayName || a.email || 'Signed in';
+  }
+  if (firebaseAuthUser) {
+    return firebaseAuthUser.displayName || firebaseAuthUser.email || 'Signed in';
+  }
+  return '';
+}
+
+function shouldUseFirebaseCloud(providerId) {
+  if (!isCloudProvider(providerId)) return false;
+  return isFirebaseSignedIn();
+}
+
+function canUseFirebaseWebAuth() {
+  return hasFirebaseConfig()
+    && typeof firebase !== 'undefined'
+    && !isNativeParlanceApp();
+}
+
+async function ensureFirebaseReady() {
+  if (!canUseFirebaseWebAuth()) return false;
+  if (firebaseApp && analyzeTextCallable) return true;
+  if (firebaseInitPromise) return firebaseInitPromise;
+
+  firebaseInitPromise = (async () => {
+    try {
+      if (!firebase.apps?.length) {
+        firebaseApp = firebase.initializeApp(firebaseConfig);
+      } else {
+        firebaseApp = firebase.app();
       }
-    }, 20000);
+      firebaseAuth = firebase.auth();
+      analyzeTextCallable = firebase.functions().httpsCallable('analyzeText');
+      firebaseAuth.onAuthStateChanged((user) => {
+        firebaseAuthUser = user;
+        updateFirebaseAuthUI();
+        updateModalForProvider(modalSelectedProvider);
+        updateWaitingCard();
+      });
+      return true;
+    } catch (e) {
+      console.warn('[Parlance] Firebase init failed:', e);
+      return false;
+    } finally {
+      firebaseInitPromise = null;
+    }
+  })();
+
+  return firebaseInitPromise;
+}
+
+async function signInWithApple() {
+  if (isNativeParlanceApp()) {
+    try {
+      await callNativeAuth('signInApple');
+      showToast('Signed in with Apple. ✓');
+    } catch (e) {
+      const msg = e?.message || '';
+      if (msg && msg !== 'cancelled' && !msg.includes('canceled')) {
+        showToast(msg || 'Apple sign-in failed');
+      }
+    }
+    updateFirebaseAuthUI();
+    updateModalForProvider(modalSelectedProvider);
+    updateWaitingCard();
+    return;
+  }
+  if (!canUseFirebaseWebAuth()) return;
+  await ensureFirebaseReady();
+  const provider = new firebase.auth.OAuthProvider('apple.com');
+  provider.addScope('email');
+  provider.addScope('name');
+  try {
+    await firebaseAuth.signInWithPopup(provider);
+    showToast('Signed in with Apple. ✓');
+  } catch (e) {
+    if (e?.code !== 'auth/popup-closed-by-user') {
+      showToast(e?.message || 'Apple sign-in failed');
+    }
+  }
+  updateFirebaseAuthUI();
+}
+
+async function signInWithGoogle() {
+  if (isNativeParlanceApp()) {
+    try {
+      await callNativeAuth('signInGoogle');
+      showToast('Signed in with Google. ✓');
+    } catch (e) {
+      const msg = e?.message || '';
+      if (msg && msg !== 'cancelled' && !msg.includes('canceled')) {
+        showToast(msg || 'Google sign-in failed');
+      }
+    }
+    updateFirebaseAuthUI();
+    updateModalForProvider(modalSelectedProvider);
+    updateWaitingCard();
+    return;
+  }
+  if (!canUseFirebaseWebAuth()) return;
+  await ensureFirebaseReady();
+  try {
+    await firebaseAuth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+    showToast('Signed in with Google. ✓');
+  } catch (e) {
+    if (e?.code !== 'auth/popup-closed-by-user') {
+      showToast(e?.message || 'Google sign-in failed');
+    }
+  }
+  updateFirebaseAuthUI();
+}
+
+async function signOutFirebase() {
+  if (isNativeParlanceApp()) {
+    try {
+      await callNativeAuth('signOut');
+      showToast('Signed out.');
+    } catch (e) {
+      showToast(e?.message || 'Sign out failed');
+    }
+    updateFirebaseAuthUI();
+    updateModalForProvider(modalSelectedProvider);
+    updateWaitingCard();
+    return;
+  }
+  if (canUseFirebaseWebAuth() && firebaseAuth) {
+    try {
+      await firebaseAuth.signOut();
+    } catch (_) {}
+  }
+  updateFirebaseAuthUI();
+  updateModalForProvider(modalSelectedProvider);
+  updateWaitingCard();
+  showToast('Signed out.');
+}
+
+function updateFirebaseAuthUI() {
+  const section = document.getElementById('authSection');
+  if (!section) return;
+
+  const signedOut = document.getElementById('authSignedOut');
+  const signedInEl = document.getElementById('authSignedIn');
+  const authButtons = document.getElementById('authButtons');
+  const authSetupHint = document.getElementById('authSetupHint');
+  const native = isNativeParlanceApp();
+  const webAuth = canUseFirebaseWebAuth();
+
+  if (!hasFirebaseConfig() && !native) {
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = '';
+
+  if (native) {
+    if (authButtons) authButtons.style.display = '';
+    if (authSetupHint) {
+      authSetupHint.textContent =
+        'Sign in with Apple or Google to use cloud AI without API keys.';
+    }
+  } else if (!webAuth) {
+    section.style.display = 'none';
+    return;
+  } else {
+    if (authButtons) authButtons.style.display = '';
+    if (authSetupHint) {
+      authSetupHint.textContent =
+        'Sign in to use cloud AI without API keys (Groq, Gemini, …).';
+    }
+  }
+
+  const signedIn = isFirebaseSignedIn();
+  if (signedOut) signedOut.style.display = signedIn ? 'none' : '';
+  if (signedInEl) signedInEl.style.display = signedIn ? '' : 'none';
+  const label = document.getElementById('authUserLabel');
+  if (label && signedIn) label.textContent = firebaseDisplayName();
+}
+
+function normalizeFirebaseAnalyzeResult(data, sentence) {
+  if (!data) throw new Error('Empty response from cloud analysis');
+  if (data.status === 'Excellent' || data.status === 'Needs Improvement') {
+    return normalizeResult(data, sentence);
+  }
+  if (data.feedback && typeof data.feedback === 'object') {
+    return normalizeResult(data.feedback, sentence);
+  }
+  const raw = data.rawContent ?? data.raw ?? (typeof data === 'string' ? data : null);
+  if (raw) return normalizeResult(parseAIContent(raw), sentence);
+  return normalizeResult(data, sentence);
+}
+
+function callNativeFirebaseAnalyze(sentence, language, providerId) {
+  return new Promise((resolve, reject) => {
+    if (!isNativeParlanceApp()) {
+      reject(new Error('Native Firebase analysis is only available in the Parlance app.'));
+      return;
+    }
+    const requestId = 'fb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    const timeoutId = setTimeout(() => {
+      reject(new Error('Cloud AI via Parlance account timed out. Try again or switch provider in ⚙ AI.'));
+    }, TIMEOUT_MS.cloud);
+    const ragContext = typeof getRAGContext === 'function'
+      ? getRAGContext(language, null, sentence) : '';
+    window.__parlanceFirebaseResult = (id, result, err) => {
+      if (id !== requestId) return;
+      clearTimeout(timeoutId);
+      delete window.__parlanceFirebaseResult;
+      if (err) {
+        reject(new Error(err));
+        return;
+      }
+      try {
+        if (typeof result === 'string') {
+          resolve(normalizeFirebaseAnalyzeResult(parseAIContent(result), sentence));
+        } else {
+          resolve(normalizeFirebaseAnalyzeResult(result, sentence));
+        }
+      } catch (e) {
+        reject(e);
+      }
+    };
+    window.webkit.messageHandlers.parlance.postMessage({
+      action: 'analyzeFirebase',
+      requestId,
+      sentence,
+      language,
+      ragContext,
+      provider: providerId,
+      model: getProviderModel(providerId),
+    });
   });
 }
 
-// ── ON-DEVICE BRIDGE ─────────────────────────────────────────────
-const pendingOnDeviceRequests = {};
-let onDeviceRequestCounter = 0;
-
-window.__parlanceOnDeviceResult = function(requestId, result, error) {
-  const pending = pendingOnDeviceRequests[requestId];
-  if (!pending) return;
-  delete pendingOnDeviceRequests[requestId];
-  if (error) pending.reject(new Error(error));
-  else pending.resolve(result);
-};
-
-function requestOnDeviceAnalysis(sentence, language, level) {
-  return new Promise((resolve, reject) => {
-    const requestId = 'od_' + (++onDeviceRequestCounter);
-    pendingOnDeviceRequests[requestId] = { resolve, reject };
-    window.webkit.messageHandlers.parlance.postMessage({
-      action: 'analyzeOnDevice',
-      requestId, sentence, language, level
-    });
-    setTimeout(() => {
-      if (pendingOnDeviceRequests[requestId]) {
-        delete pendingOnDeviceRequests[requestId];
-        reject(new Error('On-device analysis timed out. Try again or switch to a cloud provider.'));
-      }
-    }, 20000);
+async function callFirebaseCloudAnalyze(sentence, language, providerId) {
+  if (isNativeParlanceApp() && window.__PARLANCE_AUTH__?.signedIn) {
+    return callNativeFirebaseAnalyze(sentence, language, providerId);
+  }
+  const ready = await ensureFirebaseReady();
+  if (!ready || !analyzeTextCallable) {
+    throw new Error('Firebase is not configured.');
+  }
+  const ragContext = typeof getRAGContext === 'function'
+    ? getRAGContext(language, null, sentence) : '';
+  const resp = await analyzeTextCallable({
+    sentence,
+    language,
+    ragContext,
+    provider: providerId,
+    model: getProviderModel(providerId),
   });
+  return normalizeFirebaseAnalyzeResult(resp.data, sentence);
+}
+
+// ── WEBLLM ENGINE ────────────────────────────────────────────────
+let webLLMEngine = null;
+let webLLMLoadingPromise = null;
+let webLLMCurrentModelId = null;
+
+async function ensureWebLLM(modelId, progressCallback) {
+  if (webLLMEngine && webLLMCurrentModelId === modelId) return webLLMEngine;
+
+  if (webLLMLoadingPromise) {
+    // Already loading — attach progress UI but share the same promise
+    return webLLMLoadingPromise;
+  }
+
+  webLLMEngine = null;
+
+  if (!navigator.gpu) {
+    throw new Error(
+      'WebGPU is not available in your browser. Please use Chrome 113+ or Edge 113+, ' +
+      'or switch to a cloud provider in ⚙ AI settings.'
+    );
+  }
+
+  webLLMLoadingPromise = (async () => {
+    try {
+      const webllm = await import('https://esm.run/@mlc-ai/web-llm');
+      const engine = await webllm.CreateMLCEngine(modelId, {
+        initProgressCallback: (report) => {
+          if (progressCallback) progressCallback(report);
+        },
+      });
+      webLLMEngine = engine;
+      webLLMCurrentModelId = modelId;
+      return engine;
+    } finally {
+      webLLMLoadingPromise = null;
+    }
+  })();
+
+  return webLLMLoadingPromise;
+}
+
+// ── SYSTEM PROMPT BUILDER ─────────────────────────────────────────
+function buildSystemPrompt(langName, ragContext) {
+  const registerLabel = langName === 'French' ? 'tu/vous' : 'tú/usted';
+  const formalRegister = langName === 'French' ? 'vous' : 'usted';
+  const informalRegister = langName === 'French' ? 'tu' : 'tú';
+
+  let prompt = `You are a ${langName} professor training professional interpreters. Do NOT assume the learner picked a CEFR level.
+
+Evaluate verb tense and mood, gender/number agreement, register (${registerLabel}), Anglicisms, and naturalness for professional interpreting.
+
+CEFR & COMPLEXITY:
+- assessed_level: A1–C2 ONLY if highly confident from specific structures in this sentence. When uncertain, omit and use complexity_note without a CEFR label. Never guess from word count.
+- complexity_note: 1–2 English sentences on vocabulary, syntax, subordination, and register — what makes this sentence simple or advanced. Always include when possible, even without assessed_level.
+- next_level_alt / target_level_alt: stronger rewrites; CEFR labels only when assessed_level is set.
+
+`;
+
+  if (ragContext) {
+    prompt += `REFERENCE KNOWLEDGE (use these rules to verify accuracy):
+${ragContext}
+
+`;
+  }
+
+  prompt += `CRITICAL ACCURACY RULES:
+- Do NOT invent grammatical errors. Only flag real, clear mistakes.
+- Grammatically correct sentences are "Excellent" — but explanation must cite specific structures in the learner's words (not generic praise).
+- Only mark "Needs Improvement" when there is an actual grammar error — not just a style preference.
+- Do NOT set assessed_level unless highly confident from specific structures in the sentence. When uncertain, omit and describe complexity in complexity_note.
+- ALWAYS include complexity_note describing THIS sentence's structures.
+- next_level_alt MUST rewrite the sentence at a higher level — never copy the input verbatim.
+- tip MUST include at least one complete example sentence in ${langName} showing a stronger phrasing.
+- ALL example sentences (correction, next_level_alt, target_level_alt) MUST be COMPLETE SENTENCES written in ${langName}, NEVER in English. Do NOT return short labels or descriptions — return full, natural sentences.
+- next_level_alt and target_level_alt must express the SAME idea as the original sentence rephrased with grammar and vocabulary appropriate for that CEFR level. Do NOT add new information or embellish.
+- grammar_rule, explanation, register, and tip must be in English.
+
+Respond with ONLY a valid JSON object. No markdown fences, no text outside the JSON, no <think> tags:
+{
+  "assessed_level": "A1" | "A2" | "B1" | "B2" | "C1" | "C2" | null,
+  "complexity_note": "1–2 English sentences on sentence complexity (vocabulary, syntax, subordination, register)",
+  "status": "Excellent" or "Needs Improvement",
+  "grammar_rule": "The specific grammar rule tested or applied — always explain, even when correct",
+  "explanation": "WHY the sentence is correct or incorrect — be specific and actionable",
+  "correction": null or "Corrected sentence in ${langName} (only if Needs Improvement)",
+  "register": "Identify the register: formal (${formalRegister}) or informal (${informalRegister}), and whether appropriate for a professional interpreter",
+  "next_level_alt": "COMPLETE SENTENCE in ${langName}: same idea one CEFR level above assessed_level, or null if no assessed_level",
+  "target_level_alt": "COMPLETE SENTENCE in ${langName}: two levels above assessed_level, or null",
+  "tip": "A practical tip about register, Anglicisms, or word precision for interpreter training"
+}`;
+
+  return prompt;
+}
+
+// ── API CALL: OpenAI-compatible format ────────────────────────────
+// Works for: Groq, OpenAI, Kimi
+async function callOpenAIFormat(endpoint, model, apiKey, systemPrompt, userMessage) {
+  const resp = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userMessage },
+      ],
+      temperature: 0.3,
+      max_tokens: 1024,
+      response_format: { type: 'json_object' },
+    }),
+  });
+
+  if (!resp.ok) {
+    const body = await resp.text().catch(() => '');
+    throw new Error(`${resp.status} from API: ${body.slice(0, 200)}`);
+  }
+
+  const data = await resp.json();
+  return data.choices?.[0]?.message?.content ?? '';
+}
+
+// ── API CALL: Anthropic Messages API ─────────────────────────────
+async function callAnthropic(model, apiKey, systemPrompt, userMessage) {
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 1024,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userMessage }],
+    }),
+  });
+
+  if (!resp.ok) {
+    const body = await resp.text().catch(() => '');
+    throw new Error(`Anthropic ${resp.status}: ${body.slice(0, 200)}`);
+  }
+
+  const data = await resp.json();
+  return data.content?.[0]?.text ?? '';
+}
+
+// ── API CALL: Gemini generateContent API ─────────────────────────
+async function callGemini(model, apiKey, systemPrompt, userMessage) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      system_instruction: { parts: [{ text: systemPrompt }] },
+      contents: [{ parts: [{ text: userMessage }] }],
+      generationConfig: {
+        temperature: 0.3,
+        maxOutputTokens: 1024,
+        responseMimeType: 'application/json',
+      },
+    }),
+  });
+
+  if (!resp.ok) {
+    const body = await resp.text().catch(() => '');
+    throw new Error(`Gemini ${resp.status}: ${body.slice(0, 200)}`);
+  }
+
+  const data = await resp.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+}
+
+// ── API CALL: Parlance fine-tuned SLM (local server) ─────────────
+async function callParlanceSLM(sentence, language, ragContext = '') {
+  const base = PARLANCE_SLM_URL.replace(/\/$/, '');
+  const resp = await fetch(`${base}/analyze`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sentence, language, ragContext }),
+  });
+  const data = await resp.json().catch(() => ({}));
+  if (!resp.ok) {
+    throw new Error(data.error || `Parlance SLM server error (${resp.status})`);
+  }
+  if (!data.feedback) throw new Error('No feedback from Parlance SLM server');
+  return JSON.stringify(data.feedback);
+}
+
+function isNativeParlanceApp() {
+  return !!(window.__PARLANCE_CONFIG__ && window.webkit?.messageHandlers?.parlance);
+}
+
+function parlanceAuthSignedIn() {
+  return isFirebaseSignedIn();
+}
+
+function effectiveRequiresKey(providerId) {
+  if (isFirebaseSignedIn() && isCloudProvider(providerId)) return false;
+  return AI_PROVIDERS[providerId]?.requiresKey ?? false;
+}
+
+function parlanceCoachAvailableForLanguage(language) {
+  const cfg = window.__PARLANCE_CONFIG__ || {};
+  const langs = cfg.parlanceCoachLanguages || (cfg.parlanceCoachAvailable ? ['es', 'fr'] : []);
+  return langs.includes(language);
+}
+
+/** SLM storage id for journal language (es → parlance-es, fr → parlance-fr). */
+function parlanceModelIdForLanguage(lang) {
+  return lang === 'fr' ? 'parlance-fr' : 'parlance-es';
+}
+
+/** On iOS with bundled coach, model follows journal language — not a manual dual picker. */
+function parlanceCoachModelFollowsJournal() {
+  const cfg = window.__PARLANCE_CONFIG__ || {};
+  return cfg.parlanceCoachAvailable && isNativeParlanceApp();
+}
+
+function parlanceCoachDisplayName(lang) {
+  return 'Parlance Coach';
+}
+
+/** Keep localStorage parlance model aligned with state.currentLanguage on native iOS. */
+function syncParlanceModelToJournalLanguage() {
+  if (!parlanceCoachModelFollowsJournal()) return null;
+  const modelId = parlanceModelIdForLanguage(state.currentLanguage);
+  if (getProviderModel('parlance') !== modelId) {
+    setProviderModel('parlance', modelId);
+  }
+  return modelId;
+}
+
+function unloadNativeParlanceSLM() {
+  if (!isNativeParlanceApp()) return;
+  try {
+    window.webkit?.messageHandlers?.parlance?.postMessage({ action: 'unloadParlanceSLM' });
+  } catch (_) {}
+}
+
+function buildRAGMeta(language, level, sentence, condensed = false) {
+  if (typeof getRAGContextWithMeta === 'function') {
+    return getRAGContextWithMeta(language, level, sentence, { condensed });
+  }
+  const context = typeof getRAGContext === 'function'
+    ? getRAGContext(language, level, sentence, { condensed }) : '';
+  return { context, topics: [] };
+}
+
+function attachRAGMeta(result, topics) {
+  if (topics?.length) result._rag_topics = topics;
+  return result;
+}
+
+function callNativeParlanceSLM(sentence, language, ragContext = '') {
+  return new Promise((resolve, reject) => {
+    const requestId = 'slm_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    const timeoutId = setTimeout(() => {
+      reject(new Error(parlanceTimeoutMessage(true)));
+    }, TIMEOUT_MS.parlanceNative);
+    window.__parlanceSLMResult = (id, result, err) => {
+      if (id !== requestId) return;
+      clearTimeout(timeoutId);
+      delete window.__parlanceSLMResult;
+      if (err) reject(new Error(err));
+      else resolve(JSON.stringify(result));
+    };
+    window.webkit.messageHandlers.parlance.postMessage({
+      action: 'analyzeParlanceSLM',
+      requestId,
+      sentence,
+      language,
+      ragContext,
+    });
+  });
+}
+
+function parlanceTimeoutMessage(nativeOnDevice) {
+  if (nativeOnDevice) {
+    return 'Parlance Coach is still working. The first on-device run can take 1–2 minutes while the model loads — keep the app open and wait, or try a shorter sentence.';
+  }
+  return 'Parlance Coach timed out. Check that the dev server is running, or switch provider in ⚙ AI.';
+}
+
+function analysisTimeoutMs(providerId) {
+  if (providerId === 'parlance') {
+    return isNativeParlanceApp() ? TIMEOUT_MS.parlanceNative : TIMEOUT_MS.parlanceServer;
+  }
+  if (providerId === 'webllm') return TIMEOUT_MS.webllm;
+  return TIMEOUT_MS.cloud;
+}
+
+function analysisTimeoutMessage(providerId) {
+  if (providerId === 'parlance') {
+    return parlanceTimeoutMessage(isNativeParlanceApp());
+  }
+  const provider = AI_PROVIDERS[providerId];
+  return `${provider?.name || 'AI'} timed out. Check your connection or try another provider in ⚙ AI.`;
+}
+
+async function checkParlanceSLMServer() {
+  try {
+    const base = PARLANCE_SLM_URL.replace(/\/$/, '');
+    const resp = await fetch(`${base}/health`, { signal: AbortSignal.timeout(2000) });
+    if (!resp.ok) return false;
+    const data = await resp.json().catch(() => ({}));
+    return data.spanish_ready === true || data.french_ready === true;
+  } catch (_) {
+    return false;
+  }
+}
+
+// ── API CALL: WebLLM (local) ─────────────────────────────────────
+async function callWebLLM(engine, systemPrompt, userMessage) {
+  const reply = await engine.chat.completions.create({
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userMessage },
+    ],
+    temperature: 0.3,
+    max_tokens: 1024,
+  });
+  return reply.choices?.[0]?.message?.content ?? '';
+}
+
+// ── JSON PARSE & NORMALIZE ────────────────────────────────────────
+function parseAIContent(raw) {
+  const cleaned = (raw || '')
+    .replace(/<think>[\s\S]*?<\/think>/gi, '')
+    .replace(/```json\s*/gi, '')
+    .replace(/```\s*/g, '')
+    .trim();
+
+  // Find the first JSON object in the response
+  const start = cleaned.indexOf('{');
+  const end = cleaned.lastIndexOf('}');
+  if (start === -1 || end === -1) throw new Error('No JSON object found in response');
+
+  const jsonStr = cleaned.slice(start, end + 1)
+    .replace(/,\s*}/g, '}')
+    .replace(/,\s*]/g, ']');
+  return JSON.parse(jsonStr);
+}
+
+function normalizeResult(raw, sentence = '', language = 'es') {
+  const result = {};
+  const assessed = extractAssessedLevel(raw);
+  if (assessed) result.assessed_level = assessed;
+  const complexity = extractComplexityNote(raw);
+  if (complexity) result.complexity_note = complexity;
+  result.status      = (raw.status === 'Excellent' || raw.status === 'Needs Improvement')
+    ? raw.status : 'Excellent';
+  result.grammar_rule = raw.grammar_rule || raw.grammarRule || 'Grammar rule not identified';
+  result.explanation  = raw.explanation  || '';
+  if (raw.correction)       result.correction      = raw.correction;
+  if (raw.register)         result.register        = raw.register;
+  if (raw.next_level_alt)   result.next_level_alt  = raw.next_level_alt;
+  if (raw.target_level_alt) result.target_level_alt = raw.target_level_alt;
+  if (raw.tip)              result.tip             = raw.tip;
+  if (raw._coach_warning)   result._coach_warning  = raw._coach_warning;
+  if (raw._coach_repaired)  result._coach_repaired = raw._coach_repaired;
+  if (raw._rag_topics)      result._rag_topics     = raw._rag_topics;
+  return sentence ? sanitizeFeedbackResult(sentence, result, language) : result;
+}
+
+// ── UNIFIED ANALYSIS ─────────────────────────────────────────────
+// Called by analyzeSentence() — routes to the selected provider
+async function analyzeWithAI(sentence, language, progressCallback) {
+  // Check offline cache first
+  try {
+    const cacheKey = 'parlance_analysis_cache';
+    const cache = JSON.parse(localStorage.getItem(cacheKey) || '{}');
+    const hash = analysisCacheHash(sentence, language);
+    if (cache[hash]) {
+      return {
+        ...sanitizeFeedbackResult(sentence, cache[hash].feedback, language),
+        _cachedSource: (cache[hash].source || 'cached') + ' (cached)',
+      };
+    }
+  } catch (_) {}
+
+  const providerId = getSelectedProvider();
+  const provider   = AI_PROVIDERS[providerId];
+  if (!provider) throw new Error('Unknown AI provider');
+
+  if (shouldUseFirebaseCloud(providerId)) {
+    const ragMeta = buildRAGMeta(language, null, sentence, false);
+    const timeoutMs = analysisTimeoutMs(providerId);
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(analysisTimeoutMessage(providerId))), timeoutMs)
+    );
+    let result = await Promise.race([
+      callFirebaseCloudAnalyze(sentence, language, providerId),
+      timeoutPromise,
+    ]);
+    if (ragMeta.topics.length) attachRAGMeta(result, ragMeta.topics);
+    result = sanitizeFeedbackResult(sentence, result, language);
+    try {
+      const cacheKey = 'parlance_analysis_cache';
+      const cache = JSON.parse(localStorage.getItem(cacheKey) || '{}');
+      const hash = analysisCacheHash(sentence, language);
+      cache[hash] = { feedback: result, source: `${provider.name} (account)`, ts: Date.now() };
+      const keys = Object.keys(cache);
+      if (keys.length > 200) {
+        const sorted = keys.sort((a, b) => cache[a].ts - cache[b].ts);
+        sorted.slice(0, keys.length - 200).forEach(k => delete cache[k]);
+      }
+      localStorage.setItem(cacheKey, JSON.stringify(cache));
+    } catch (_) {}
+    return result;
+  }
+
+  const ragMeta     = buildRAGMeta(language, null, sentence, providerId === 'parlance');
+  const ragContext  = ragMeta.context;
+  const langName    = language === 'fr' ? 'French' : 'Spanish';
+  const systemPrompt = buildSystemPrompt(langName, ragContext);
+  const userMessage  = `Analyze this ${langName} sentence: "${sentence}"`;
+
+  const timeoutMs = analysisTimeoutMs(providerId);
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error(analysisTimeoutMessage(providerId))), timeoutMs)
+  );
+
+  const analysisPromise = (async () => {
+    let rawContent;
+
+    if (providerId === 'parlance') {
+      if (isNativeParlanceApp() && !parlanceCoachAvailableForLanguage(language)) {
+        throw new Error(`Parlance Coach model is not bundled in this build. Run ./training/prepare_ios_coach_model.sh and re-archive, or use another provider in ⚙ AI.`);
+      }
+      if (isNativeParlanceApp()) {
+        const nativeRaw = await callNativeParlanceSLM(sentence, language, ragContext);
+        // Native bridge returns pre-validated JSON from ParlanceSLMFeedbackValidator.
+        const nativeParsed = typeof nativeRaw === 'string' ? JSON.parse(nativeRaw) : nativeRaw;
+        return attachRAGMeta(normalizeResult(nativeParsed, sentence, language), ragMeta.topics);
+      }
+      rawContent = await callParlanceSLM(sentence, language, ragContext);
+
+    } else if (providerId === 'webllm') {
+      if (!navigator.gpu) {
+        throw new Error('Your browser does not support WebGPU (needed for Browser AI). Switch to a cloud provider like Groq (free) in ⚙ AI settings.');
+      }
+      const modelId = getProviderModel('webllm');
+      const engine  = await ensureWebLLM(modelId, progressCallback);
+      rawContent    = await callWebLLM(engine, systemPrompt, userMessage);
+
+    } else if (providerId === 'anthropic') {
+      const key   = getProviderKey('anthropic');
+      if (effectiveRequiresKey('anthropic') && !key) {
+        throw new Error('No Anthropic API key. Add one in ⚙ AI settings.');
+      }
+      rawContent  = await callAnthropic(getProviderModel('anthropic'), key, systemPrompt, userMessage);
+
+    } else if (providerId === 'gemini') {
+      const key   = getProviderKey('gemini');
+      if (effectiveRequiresKey('gemini') && !key) {
+        throw new Error('No Gemini API key. Add one in ⚙ AI settings.');
+      }
+      rawContent  = await callGemini(getProviderModel('gemini'), key, systemPrompt, userMessage);
+
+    } else {
+      // OpenAI-compatible: groq, openai, kimi, deepseek, openrouter
+      const key   = getProviderKey(providerId);
+      if (effectiveRequiresKey(providerId) && !key) {
+        throw new Error(`No ${provider.name} API key. Add one in ⚙ AI settings.`);
+      }
+      rawContent  = await callOpenAIFormat(
+        provider.endpoint, getProviderModel(providerId), key, systemPrompt, userMessage
+      );
+    }
+
+    return rawContent;
+  })();
+
+  const analysisResult = await Promise.race([analysisPromise, timeoutPromise]);
+  let result = (typeof analysisResult === 'object' && analysisResult?.status)
+    ? sanitizeFeedbackResult(sentence, analysisResult, language)
+    : normalizeResult(parseAIContent(analysisResult), sentence, language);
+  if (ragMeta.topics.length && !result._rag_topics) {
+    attachRAGMeta(result, ragMeta.topics);
+  }
+
+  // Cache the analysis result in localStorage
+  try {
+    const cacheKey = 'parlance_analysis_cache';
+    const cache = JSON.parse(localStorage.getItem(cacheKey) || '{}');
+    const hash = analysisCacheHash(sentence, language);
+    cache[hash] = { feedback: result, source: AI_PROVIDERS[providerId]?.name || providerId, ts: Date.now() };
+    // Keep cache to 200 entries max
+    const keys = Object.keys(cache);
+    if (keys.length > 200) {
+      const sorted = keys.sort((a, b) => cache[a].ts - cache[b].ts);
+      sorted.slice(0, keys.length - 200).forEach(k => delete cache[k]);
+    }
+    localStorage.setItem(cacheKey, JSON.stringify(cache));
+  } catch (_) {}
+
+  return result;
 }
 
 // ── UI LANGUAGE (i18n) ───────────────────────────────────────────
-const UI_LANGS = {
-  en: { name: 'English' },
-  es: { name: 'Español' },
-  fr: { name: 'Français' },
-};
-
-const UI_STRINGS = {
-  en: {
-    appTitle: 'Parlance',
-    entryTitlePlaceholder: 'Entry title…',
-    sentenceCount: (n) => `${n} sentence${n !== 1 ? 's' : ''}`,
-    wordCount: (n) => `${n} word${n !== 1 ? 's' : ''}`,
-    addSentence: 'Add another sentence',
-    saveEntry: 'Save Entry',
-    feedback: 'Feedback',
-    prompts: 'Prompts',
-    guide: 'Guide',
-    waitingText: 'Write a sentence and pause.<br><br>AI feedback appears here automatically.',
-    promptLabel: 'Click a prompt to use it as your first sentence',
-    pastEntries: 'Past Entries',
-    analyzing: 'Analyzing your sentence…',
-    delete: 'Delete',
-    loadAll: 'Load All to Editor',
-    reAnalyze: 'Re-analyze',
-    entrySaved: 'Entry saved!',
-    entryDeleted: 'Entry deleted.',
-    entryLoaded: 'Entry loaded into editor.',
-    writeFirst: 'Write at least one sentence first.',
-    privacy: 'Privacy',
-    offline: "You're offline — writing is saved locally, but cloud AI feedback requires a connection.",
-  },
-  es: {
-    appTitle: 'Parlance',
-    entryTitlePlaceholder: 'Título de la entrada…',
-    sentenceCount: (n) => `${n} oración${n !== 1 ? 'es' : ''}`,
-    wordCount: (n) => `${n} palabra${n !== 1 ? 's' : ''}`,
-    addSentence: 'Agregar otra oración',
-    saveEntry: 'Guardar entrada',
-    feedback: 'Retroalimentación',
-    prompts: 'Ideas',
-    guide: 'Guía',
-    waitingText: 'Escribe una oración y pausa.<br><br>La retroalimentación aparecerá aquí automáticamente.',
-    promptLabel: 'Haz clic en una idea para usarla como tu primera oración',
-    pastEntries: 'Entradas anteriores',
-    analyzing: 'Analizando tu oración…',
-    delete: 'Eliminar',
-    loadAll: 'Cargar todo al editor',
-    reAnalyze: 'Re-analizar',
-    entrySaved: '¡Entrada guardada!',
-    entryDeleted: 'Entrada eliminada.',
-    entryLoaded: 'Entrada cargada en el editor.',
-    writeFirst: 'Escribe al menos una oración primero.',
-    privacy: 'Privacidad',
-    offline: 'Estás sin conexión — lo escrito se guarda localmente, pero la IA en la nube requiere conexión.',
-  },
-  fr: {
-    appTitle: 'Parlance',
-    entryTitlePlaceholder: "Titre de l'entrée…",
-    sentenceCount: (n) => `${n} phrase${n !== 1 ? 's' : ''}`,
-    wordCount: (n) => `${n} mot${n !== 1 ? 's' : ''}`,
-    addSentence: 'Ajouter une phrase',
-    saveEntry: "Sauvegarder l'entrée",
-    feedback: 'Retour',
-    prompts: 'Idées',
-    guide: 'Guide',
-    waitingText: 'Écrivez une phrase et faites une pause.<br><br>Le retour apparaîtra ici automatiquement.',
-    promptLabel: 'Cliquez sur une idée pour commencer',
-    pastEntries: 'Entrées précédentes',
-    analyzing: 'Analyse de votre phrase…',
-    delete: 'Supprimer',
-    loadAll: "Tout charger dans l'éditeur",
-    reAnalyze: 'Ré-analyser',
-    entrySaved: 'Entrée sauvegardée !',
-    entryDeleted: 'Entrée supprimée.',
-    entryLoaded: "Entrée chargée dans l'éditeur.",
-    writeFirst: "Écrivez au moins une phrase d'abord.",
-    privacy: 'Confidentialité',
-    offline: 'Vous êtes hors ligne — vos écrits sont sauvegardés localement, mais le retour IA nécessite une connexion.',
-  },
-};
-
-function getUILang() {
-  return localStorage.getItem('parlance_ui_lang') || 'en';
-}
-
-function setUILang(lang) {
-  localStorage.setItem('parlance_ui_lang', lang);
-}
-
-function t(key) {
-  const lang = getUILang();
-  const strings = UI_STRINGS[lang] || UI_STRINGS.en;
-  return strings[key] || UI_STRINGS.en[key] || key;
-}
+// Locale data lives in locales/*.json — loaded by i18n.js module.
+// HTML elements use data-i18n attributes for declarative binding.
+// To add a language: create locales/xx.json and add an <option> to #uiLangSelect.
 
 function onUILangChange() {
   const lang = document.getElementById('uiLangSelect').value;
-  setUILang(lang);
-  applyUILang();
-}
-
-function applyUILang() {
-  const lang = getUILang();
-  document.getElementById('uiLangSelect').value = lang;
-
-  // Update static UI text
-  document.getElementById('entryTitle').placeholder = t('entryTitlePlaceholder');
-  document.querySelector('.add-sentence-btn').innerHTML = '<span>+</span> ' + t('addSentence');
-  document.querySelector('.save-btn').textContent = t('saveEntry');
-
-  // Tabs
-  const tabs = document.querySelectorAll('.feedback-tab');
-  if (tabs[0]) tabs[0].textContent = t('feedback');
-  if (tabs[1]) tabs[1].textContent = t('prompts');
-  if (tabs[2]) tabs[2].textContent = t('guide');
-
-  // Waiting text
-  const waitingText = document.querySelector('.waiting-text');
-  if (waitingText) waitingText.innerHTML = t('waitingText');
-
-  // Prompt label
-  const promptLabel = document.querySelector('.prompt-label');
-  if (promptLabel) promptLabel.textContent = t('promptLabel');
-
-  // Past entries title
-  const pastTitle = document.querySelector('.past-bar-title');
-  if (pastTitle) pastTitle.textContent = t('pastEntries');
-
-  // Offline banner
-  const offlineBanner = document.getElementById('offlineBanner');
-  if (offlineBanner) offlineBanner.textContent = t('offline');
-
-  // Privacy button — in iOS version, exclude the AI settings button
-  const privacyBtns = document.querySelectorAll('.privacy-link');
-  privacyBtns.forEach(btn => {
-    if (btn.textContent.trim() === 'Privacy' || btn.textContent.trim() === t('privacy') ||
-        (!btn.textContent.includes('AI') && !btn.textContent.includes('⚙'))) {
-      if (btn.onclick && btn.getAttribute('onclick')?.includes('showPrivacyPolicy')) {
-        btn.textContent = t('privacy');
-      }
-    }
-  });
-
-  // Delete button in entry viewer
-  const deleteBtn = document.getElementById('entryDeleteBtn');
-  if (deleteBtn) deleteBtn.textContent = t('delete');
-
-  // Update counts with correct language
-  updateCounts();
+  i18n.load(lang).then(() => { updateCounts(); renderPrompts(); });
 }
 
 // ── DARK MODE ────────────────────────────────────────────────────
@@ -247,7 +1060,7 @@ function updateThemeIcon() {
   btn.textContent = isDark ? '☾' : '☀';
 }
 
-// ── LANGUAGE DEFINITIONS ─────────────────────────────────────────
+// ── LANGUAGE DEFINITIONS ──────────────────────────────────────────
 const languages = {
   es: {
     code: 'es',
@@ -256,15 +1069,6 @@ const languages = {
     titlePlaceholder: 'Entry title… (e.g. Mi primer día en Valencia)',
     coachRole: 'Spanish',
     guideFile: 'guide-es.html',
-    prompts: [
-      'Describe your first day learning Spanish.',
-      'What does being an interpreter mean to you?',
-      'Talk about a place you would like to visit in Spain or Latin America.',
-      'Describe an important person in your life.',
-      'What are your professional goals for this year?',
-      'Write about a cultural tradition you find interesting.',
-      'What do you think about the importance of languages in today\'s world?',
-    ]
   },
   fr: {
     code: 'fr',
@@ -273,59 +1077,284 @@ const languages = {
     titlePlaceholder: 'Entry title… (e.g. Mon premier jour à Paris)',
     coachRole: 'French',
     guideFile: 'guide-fr.html',
-    prompts: [
-      'Describe your first day learning French.',
-      'What does being an interpreter mean to you?',
-      'Talk about a place you would like to visit in France or Francophone Africa.',
-      'Describe an important person in your life.',
-      'What are your professional goals for this year?',
-      'Write about a cultural tradition you find interesting.',
-      'What do you think about the importance of languages in today\'s world?',
-    ]
-  }
+  },
 };
 
 // ── STATE ─────────────────────────────────────────────────────────
 const state = {
   sentences: [],
   activeSentenceId: null,
-  analysisQueue: [],
-  isAnalyzing: false,
-  debounceTimers: {},
-  entryCount: 0,
+  analyzingSentenceIds: new Set(),
   savedEntries: [],
   isOnline: navigator.onLine,
   currentLanguage: 'es',
 };
 
+// ── AI SETTINGS UI ────────────────────────────────────────────────
+let modalSelectedProvider = 'webllm';
+
+function openAISettings() {
+  if (isNativeParlanceApp() && window.webkit?.messageHandlers?.parlance) {
+    window.webkit.messageHandlers.parlance.postMessage('showAISettings');
+    return;
+  }
+  syncParlanceModelToJournalLanguage();
+  modalSelectedProvider = getSelectedProvider();
+  renderProviderGrid();
+  updateFirebaseAuthUI();
+  updateModalForProvider(modalSelectedProvider);
+  document.getElementById('aiSettingsOverlay').style.display = 'flex';
+}
+
+/** Called from iOS after native AI Settings sheet closes. */
+function applyNativeAISettings(providerId, model) {
+  if (providerId && AI_PROVIDERS[providerId]) {
+    setSelectedProvider(providerId);
+    if (model) setProviderModel(providerId, model);
+  }
+  updateFirebaseAuthUI();
+  updateWaitingCard();
+}
+
+function callNativeAuth(action) {
+  return new Promise((resolve, reject) => {
+    if (!isNativeParlanceApp()) {
+      reject(new Error('Not in native app'));
+      return;
+    }
+    const requestId = 'auth_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    const timeoutId = setTimeout(() => {
+      delete window.__parlanceAuthResult;
+      reject(new Error('Sign-in timed out'));
+    }, 120000);
+    window.__parlanceAuthResult = (id, err) => {
+      if (id !== requestId) return;
+      clearTimeout(timeoutId);
+      delete window.__parlanceAuthResult;
+      if (err) reject(new Error(err));
+      else resolve();
+    };
+    window.webkit.messageHandlers.parlance.postMessage({ action, requestId });
+  });
+}
+
+function closeAISettings() {
+  document.getElementById('aiSettingsOverlay').style.display = 'none';
+}
+
+function renderProviderGrid() {
+  const grid = document.getElementById('providerGrid');
+  grid.innerHTML = '';
+  Object.values(AI_PROVIDERS).filter(p => p.id !== 'webllm' || canUseWebLLM).forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'ai-provider-card' + (p.id === modalSelectedProvider ? ' selected' : '');
+    card.dataset.id = p.id;
+    card.innerHTML = `
+      <div class="ai-provider-icon">${p.icon}</div>
+      <div class="ai-provider-name">${p.name}</div>
+      <div class="ai-provider-sub">${p.subtitle}</div>
+    `;
+    card.addEventListener('click', () => {
+      modalSelectedProvider = p.id;
+      grid.querySelectorAll('.ai-provider-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      if (p.id === 'parlance') syncParlanceModelToJournalLanguage();
+      updateModalForProvider(p.id);
+    });
+    grid.appendChild(card);
+  });
+}
+
+function updateModalForProvider(id) {
+  const provider = AI_PROVIDERS[id];
+
+  const cloudNote = document.getElementById('authCloudNote');
+  if (cloudNote) {
+    cloudNote.style.display = (isFirebaseSignedIn() && isCloudProvider(id)) ? '' : 'none';
+  }
+
+  // API key section
+  const keySection  = document.getElementById('apiKeySection');
+  const apiKeyInput = document.getElementById('apiKeyInput');
+  const apiKeyHint  = document.getElementById('apiKeyHint');
+  if (effectiveRequiresKey(id)) {
+    keySection.style.display = '';
+    apiKeyInput.value = getProviderKey(id);
+    apiKeyHint.innerHTML = provider.keyUrl
+      ? `Get a free key at <a href="${provider.keyUrl}" target="_blank" rel="noopener" style="color:var(--accent)">${provider.keyUrl.replace('https://', '')}</a>`
+      : '';
+  } else {
+    keySection.style.display = 'none';
+    apiKeyInput.value = '';
+    apiKeyHint.innerHTML = '';
+  }
+
+  // Model dropdown (native iOS Parlance Coach: single model tied to journal language)
+  const modelSection = document.getElementById('modelSection');
+  const modelSel = document.getElementById('modalModelSelect');
+  modelSel.innerHTML = '';
+  if (id === 'parlance' && parlanceCoachModelFollowsJournal()) {
+    const modelId = syncParlanceModelToJournalLanguage();
+    modelSection.style.display = 'none';
+    const opt = document.createElement('option');
+    opt.value = modelId;
+    opt.textContent = parlanceCoachDisplayName(state.currentLanguage);
+    opt.selected = true;
+    modelSel.appendChild(opt);
+  } else {
+    modelSection.style.display = '';
+    const savedModel = getProviderModel(id);
+    provider.models.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m.id;
+      opt.textContent = m.name;
+      opt.selected = m.id === savedModel;
+      modelSel.appendChild(opt);
+    });
+  }
+
+  // CORS warning
+  document.getElementById('corsWarning').style.display = provider.corsNote ? '' : 'none';
+}
+
+function saveAISettingsFromModal() {
+  const id    = modalSelectedProvider;
+  let model   = document.getElementById('modalModelSelect').value;
+  const key   = document.getElementById('apiKeyInput').value.trim();
+
+  if (id === 'parlance' && parlanceCoachModelFollowsJournal()) {
+    model = syncParlanceModelToJournalLanguage();
+  }
+
+  setSelectedProvider(id);
+  setProviderModel(id, model);
+  if (effectiveRequiresKey(id) && key) setProviderKey(id, key);
+
+  // Reset engine if WebLLM model changed
+  if (id === 'webllm' && webLLMCurrentModelId !== model) {
+    webLLMEngine = null;
+    webLLMCurrentModelId = null;
+  }
+
+  closeAISettings();
+  updateWaitingCard();
+  showToast(`AI provider set to ${AI_PROVIDERS[id].name}. ✓`);
+}
+
+// ── PLATFORM DETECTION ────────────────────────────────────────────
+const isCapacitor = !!(window.Capacitor);
+const isAndroid   = isCapacitor && window.Capacitor.getPlatform?.() === 'android';
+const hasWebGPU   = !!navigator.gpu;
+const canUseWebLLM = hasWebGPU && !isCapacitor;
+
 // ── INIT ──────────────────────────────────────────────────────────
-function init() {
+async function init() {
   initTheme();
-  const savedUILang = getUILang();
-  document.getElementById('uiLangSelect').value = savedUILang;
-  applyUILang();
+  await i18n.init();
+  await ensureFirebaseReady().catch(() => {});
+  updateFirebaseAuthUI();
+  document.getElementById('uiLangSelect').value = i18n.getLocale();
 
   document.getElementById('dateBadge').textContent = new Date()
-    .toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+    .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
   const savedLang = localStorage.getItem('parlance_language') || 'es';
   state.currentLanguage = savedLang;
   document.getElementById('langSelect').value = savedLang;
+  if (getSelectedProvider() === 'parlance') {
+    syncParlanceModelToJournalLanguage();
+  }
 
+  // Auto-switch from WebLLM if it can't run (Android WebView, no WebGPU)
+  const currentProvider = getSelectedProvider();
+  if (currentProvider === 'webllm' && !canUseWebLLM) {
+    const fallback = ['groq', 'openai', 'gemini', 'anthropic', 'kimi']
+      .find(id => getProviderKey(id));
+    if (fallback) {
+      setSelectedProvider(fallback);
+    }
+  }
+
+  updateWaitingCard();
   renderPrompts();
   addSentence();
   loadSavedEntries();
   initNetworkMonitor();
   updatePlaceholders();
+
+  // iOS app with bundled MLX coach: default to Parlance Coach
+  const cfg = window.__PARLANCE_CONFIG__ || {};
+  if (cfg.parlanceCoachAvailable && isNativeParlanceApp()) {
+    setSelectedProvider('parlance');
+    syncParlanceModelToJournalLanguage();
+    updateWaitingCard();
+  } else if (await checkParlanceSLMServer()) {
+    // Web / dev: Mac Python server
+    setSelectedProvider('parlance');
+    updateWaitingCard();
+  }
+
+  // On Android/Capacitor with no cloud provider configured, prompt AI settings
+  if (!canUseWebLLM && getSelectedProvider() === 'webllm') {
+    setTimeout(() => openAISettings(), 500);
+  }
 }
 
-// ── LANGUAGE SWITCHING ───────────────────────────────────────────
+function updateWaitingCard() {
+  const id   = getSelectedProvider();
+  const p    = AI_PROVIDERS[id];
+  const hint = document.getElementById('waitingProviderHint');
+  const text = document.getElementById('waitingText');
+  if (!hint || !p) return;
+
+  if (id === 'parlance') {
+    const cfg = window.__PARLANCE_CONFIG__ || {};
+    const lang = state.currentLanguage;
+    if (cfg.parlanceCoachAvailable && isNativeParlanceApp()) {
+      if (parlanceCoachAvailableForLanguage(lang)) {
+        hint.innerHTML = `${p.icon} <strong>Parlance Coach</strong> — fine-tuned model runs on this device. First analysis may take 1–2 minutes while the model loads.`;
+      } else {
+        hint.innerHTML = `${p.icon} <strong>Parlance Coach</strong> — model not in this build. Re-archive after <code style="font-size:0.85em">./training/prepare_ios_coach_model.sh</code>, or switch provider in ⚙ AI.`;
+      }
+    } else {
+      hint.innerHTML = `${p.icon} <strong>Parlance Coach</strong> — on your Mac run <code style="font-size:0.85em">python3 training/parlance_slm_server.py</code>, or use the iOS app build with bundled models.`;
+    }
+  } else if (id === 'webllm') {
+    if (canUseWebLLM) {
+      hint.innerHTML = `${p.icon} <strong>Browser AI</strong> — first use downloads ~380 MB (cached after). Or <button onclick="openAISettings()" style="background:none;border:none;color:var(--accent);font-family:inherit;font-size:inherit;cursor:pointer;padding:0;text-decoration:underline">switch to a cloud API</button> for instant feedback.`;
+    } else {
+      hint.innerHTML = `⚙ <button onclick="openAISettings()" style="background:none;border:none;color:var(--accent);font-family:inherit;font-size:inherit;cursor:pointer;padding:0;text-decoration:underline">Set up an AI provider</button> to get feedback. Groq is free — get a key at <a href="https://console.groq.com/keys" target="_blank" style="color:var(--accent)">console.groq.com</a>.`;
+    }
+  } else {
+    if (isFirebaseSignedIn() && isCloudProvider(id)) {
+      hint.textContent = `${p.icon} ${p.name} — cloud AI via your Parlance account. Write a sentence to get feedback.`;
+    } else {
+      const hasKey = !!getProviderKey(id);
+      if (hasKey) {
+        hint.textContent = `${p.icon} ${p.name} — write a sentence to get feedback.`;
+      } else {
+        hint.innerHTML = `⚙ <button onclick="openAISettings()" style="background:none;border:none;color:var(--accent);font-family:inherit;font-size:inherit;cursor:pointer;padding:0;text-decoration:underline">Add your ${p.name} API key</button> to enable feedback.`;
+      }
+    }
+  }
+}
+
+// ── LANGUAGE SWITCHING ────────────────────────────────────────────
 function onLanguageChange() {
+  const prevModel = getProviderModel('parlance');
   state.currentLanguage = document.getElementById('langSelect').value;
   localStorage.setItem('parlance_language', state.currentLanguage);
   updatePlaceholders();
   renderPrompts();
   loadGuide();
+
+  if (getSelectedProvider() === 'parlance') {
+    syncParlanceModelToJournalLanguage();
+    if (parlanceCoachModelFollowsJournal() && prevModel !== getProviderModel('parlance')) {
+      unloadNativeParlanceSLM();
+    }
+    updateWaitingCard();
+  }
 }
 
 function currentLang() {
@@ -340,49 +1369,69 @@ function updatePlaceholders() {
   });
 }
 
-// ── NETWORK MONITOR ──────────────────────────────────────────────
+// ── NETWORK MONITOR ───────────────────────────────────────────────
 function initNetworkMonitor() {
   updateOnlineStatus(navigator.onLine);
-  window.addEventListener('online', () => updateOnlineStatus(true));
+  window.addEventListener('online',  () => updateOnlineStatus(true));
   window.addEventListener('offline', () => updateOnlineStatus(false));
-  window.addEventListener('nativeNetworkChange', (e) => {
-    updateOnlineStatus(e.detail.online);
-  });
 }
 
 function updateOnlineStatus(online) {
   state.isOnline = online;
-  const banner = document.getElementById('offlineBanner');
-  if (online) {
-    banner.classList.remove('show');
-  } else {
-    banner.classList.add('show');
-  }
+  document.getElementById('offlineBanner').classList.toggle('show', !online);
 }
 
-// ── PRIVACY POLICY ───────────────────────────────────────────────
+// ── PRIVACY POLICY ────────────────────────────────────────────────
 function showPrivacyPolicy() {
-  if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.parlance) {
-    window.webkit.messageHandlers.parlance.postMessage('showPrivacyPolicy');
+  // Update privacy modal content with current UI language
+  const overlay = document.getElementById('privacyOverlay');
+  const header = overlay.querySelector('.modal-header h2');
+  if (header) header.textContent = i18n.t('privacyTitle');
+
+  const body = overlay.querySelector('.modal-body');
+  if (body) {
+    body.innerHTML = `
+      <div class="privacy-section">
+        <h3>${i18n.t('privacyWritingTitle')}</h3>
+        <p>${i18n.t('privacyWritingText')}</p>
+      </div>
+      <div class="privacy-section">
+        <h3>${i18n.t('privacyAITitle')}</h3>
+        <p><strong>${i18n.t('privacyAIText1')}</strong></p>
+        <p style="margin-top:0.5rem">${i18n.t('privacyAIText2')}</p>
+      </div>
+      <div class="privacy-section">
+        <h3>${i18n.t('privacyKeysTitle')}</h3>
+        <p>${i18n.t('privacyKeysText')}</p>
+      </div>
+      <div class="privacy-section">
+        <h3>${i18n.t('privacyTrackingTitle')}</h3>
+        <p>${i18n.t('privacyTrackingText')}</p>
+      </div>
+      <div class="privacy-updated">${i18n.t('privacyUpdated')}</div>
+    `;
   }
+
+  overlay.style.display = 'flex';
 }
 
-function showAISettings() {
-  if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.parlance) {
-    window.webkit.messageHandlers.parlance.postMessage('showAISettings');
-  }
+function closePrivacyPolicy() {
+  document.getElementById('privacyOverlay').style.display = 'none';
 }
 
-// ── PROMPTS ──────────────────────────────────────────────────────
+// ── PROMPTS ───────────────────────────────────────────────────────
 function renderPrompts() {
   const list = document.getElementById('promptList');
   list.innerHTML = '';
-  currentLang().prompts.forEach(p => {
+  const langCode = state.currentLanguage;
+  for (let n = 1; n <= 7; n++) {
+    const text = i18n.t(`prompts_${langCode}_${n}`);
+    if (text === `prompts_${langCode}_${n}`) continue;
     const el = document.createElement('div');
     el.className = 'prompt-item';
-    el.textContent = p;
+    el.textContent = text;
     list.appendChild(el);
-  });
+  }
 }
 
 function usePrompt(p) {
@@ -393,18 +1442,19 @@ function usePrompt(p) {
   } else {
     addSentence(p);
   }
+  switchTab('feedback', document.querySelector('.feedback-tab'));
 }
 
-// ── SENTENCES ────────────────────────────────────────────────────
+// ── SENTENCES ─────────────────────────────────────────────────────
 let sentenceIdCounter = 0;
 
 function addSentence(prefill = '') {
-  const id = ++sentenceIdCounter;
+  const id       = ++sentenceIdCounter;
   const sentence = { id, text: '', feedback: null, status: 'empty' };
   state.sentences.push(sentence);
 
   const area = document.getElementById('sentencesArea');
-  const row = document.createElement('div');
+  const row  = document.createElement('div');
   row.className = 'sentence-row';
   row.id = 'row-' + id;
   row.innerHTML = `
@@ -426,7 +1476,6 @@ function addSentence(prefill = '') {
   ta.addEventListener('input', () => onSentenceInput(id));
   ta.addEventListener('keydown', (e) => onSentenceKeydown(e, id));
   ta.addEventListener('focus', () => { state.activeSentenceId = id; showFeedback(id); });
-
   ta.addEventListener('input', () => {
     ta.style.height = 'auto';
     ta.style.height = ta.scrollHeight + 'px';
@@ -442,32 +1491,31 @@ function addSentence(prefill = '') {
   return id;
 }
 
+function sentenceReadyToAnalyze(text) {
+  const trimmed = text.trim();
+  if (trimmed.length < MIN_SENTENCE_CHARS) return false;
+  const words = trimmed.split(/\s+/).filter(Boolean);
+  return words.length >= MIN_SENTENCE_WORDS;
+}
+
 function onSentenceInput(id) {
-  const ta = document.getElementById('ta-' + id);
-  const text = ta.value;
+  const ta       = document.getElementById('ta-' + id);
+  const text     = ta.value;
   const sentence = state.sentences.find(s => s.id === id);
   if (!sentence) return;
-  sentence.text = text;
-  sentence.status = 'dirty';
+  sentence.text     = text;
+  sentence.status   = 'dirty';
   sentence.feedback = null;
   updateCounts();
-
-  clearTimeout(state.debounceTimers[id]);
-  if (text.trim().length > 5) {
-    if (state.activeSentenceId === id) showAnalyzingState(id);
-    state.debounceTimers[id] = setTimeout(() => {
-      if (sentence.text.trim()) analyzeSentence(id);
-    }, 1500);
-  }
 }
 
 function onSentenceKeydown(e, id) {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
-    const ta = document.getElementById('ta-' + id);
+    const ta   = document.getElementById('ta-' + id);
     const text = ta.value.trim();
-    if (text) {
-      clearTimeout(state.debounceTimers[id]);
+    if (sentenceReadyToAnalyze(text)) {
+      state.activeSentenceId = id;
       analyzeSentence(id);
     }
   }
@@ -476,10 +1524,12 @@ function onSentenceKeydown(e, id) {
 function updateCounts() {
   const sentences = state.sentences.filter(s => s.text.trim());
   document.getElementById('sentenceCount').textContent =
-    t('sentenceCount')(sentences.length);
-  const words = sentences.reduce((acc, s) => acc + s.text.trim().split(/\s+/).filter(Boolean).length, 0);
+    i18n.tc('sentenceCount', sentences.length);
+  const words = sentences.reduce(
+    (acc, s) => acc + s.text.trim().split(/\s+/).filter(Boolean).length, 0
+  );
   document.getElementById('wordCount').textContent =
-    t('wordCount')(words);
+    i18n.tc('wordCount', words);
 
   state.sentences.forEach((s, i) => {
     const num = document.querySelector(`#row-${s.id} .sentence-num`);
@@ -487,77 +1537,55 @@ function updateCounts() {
   });
 }
 
-// ── ANALYSIS ─────────────────────────────────────────────────────
+// ── ANALYSIS ──────────────────────────────────────────────────────
 async function analyzeSentence(id) {
   const sentence = state.sentences.find(s => s.id === id);
-  if (!sentence || !sentence.text.trim()) return;
+  if (!sentence || !sentenceReadyToAnalyze(sentence.text)) return;
+  if (state.analyzingSentenceIds.has(id)) return;
 
-  const ta = document.getElementById('ta-' + id);
+  state.analyzingSentenceIds.add(id);
+
+  const ta       = document.getElementById('ta-' + id);
   const statusEl = document.getElementById('status-' + id);
   ta.classList.add('analyzing');
   ta.classList.remove('has-error', 'is-great');
   statusEl.textContent = '⏳';
 
-  if (state.activeSentenceId === id) showAnalyzingState(id);
+  showAnalyzingState(id);
 
-  const level = document.getElementById('levelSelect').value;
+  const providerId = getSelectedProvider();
 
-  // Check offline cache first
   try {
-    const cacheKey = 'parlance_analysis_cache';
-    const cache = JSON.parse(localStorage.getItem(cacheKey) || '{}');
-    const hash = btoa(unescape(encodeURIComponent(
-      sentence.text + '|' + state.currentLanguage + '|' + level
-    ))).slice(0, 40);
-    if (cache[hash]) {
-      sentence.analysisSource = (cache[hash].source || 'cached') + ' (cached)';
-      applyFeedback(id, sentence, cache[hash].feedback, ta, statusEl);
-      return;
+    const result = await analyzeWithAI(
+      sentence.text,
+      state.currentLanguage,
+      (report) => showWebLLMProgress(report)
+    );
+
+    if (result._cachedSource) {
+      sentence.analysisSource = result._cachedSource;
+      delete result._cachedSource;
+    } else {
+      sentence.analysisSource = AI_PROVIDERS[providerId]?.name || providerId;
     }
-  } catch (_) {}
+    applyFeedback(id, sentence, result, ta, statusEl);
 
-  try {
-    // Route through the native Swift bridge which uses UnifiedAnalyzer
-    const parsed = await requestGroqAnalysis(sentence.text, state.currentLanguage, level);
-    sentence.analysisSource = parlanceConfig.activeProvider || 'AI';
-
-    // Cache the result
-    try {
-      const cacheKey = 'parlance_analysis_cache';
-      const cache = JSON.parse(localStorage.getItem(cacheKey) || '{}');
-      const hash = btoa(unescape(encodeURIComponent(
-        sentence.text + '|' + state.currentLanguage + '|' + level
-      ))).slice(0, 40);
-      cache[hash] = { feedback: parsed, source: sentence.analysisSource, ts: Date.now() };
-      const keys = Object.keys(cache);
-      if (keys.length > 200) {
-        const sorted = keys.sort((a, b) => cache[a].ts - cache[b].ts);
-        sorted.slice(0, keys.length - 200).forEach(k => delete cache[k]);
-      }
-      localStorage.setItem(cacheKey, JSON.stringify(cache));
-    } catch (_) {}
-
-    applyFeedback(id, sentence, parsed, ta, statusEl);
   } catch (err) {
-    // Secondary fallback: on-device if native bridge fails
-    if (parlanceConfig.onDeviceAvailable) {
-      try {
-        const parsed = await requestOnDeviceAnalysis(sentence.text, state.currentLanguage, level);
-        sentence.analysisSource = 'On-Device';
-        applyFeedback(id, sentence, parsed, ta, statusEl);
-        return;
-      } catch (_) { /* fallback also failed */ }
-    }
     ta.classList.remove('analyzing');
     statusEl.textContent = '';
-    showToast('Could not analyze — check AI settings or your connection.');
-    console.error(err);
+    console.error('[Parlance] Analysis error:', err);
+
+    const msg = err.message || 'Could not analyze — check your settings.';
+    showErrorInPanel(msg);
+    showToast(msg.length > 80 ? msg.slice(0, 80) + '…' : msg);
+  } finally {
+    state.analyzingSentenceIds.delete(id);
   }
 }
 
 function applyFeedback(id, sentence, parsed, ta, statusEl) {
   sentence.feedback = parsed;
-  sentence.status = parsed.status === 'Excellent' ? 'great' : 'error';
+  sentence.status   = parsed.status === 'Excellent' ? 'great' : 'error';
   ta.classList.remove('analyzing');
   ta.classList.toggle('is-great', sentence.status === 'great');
   ta.classList.toggle('has-error', sentence.status === 'error');
@@ -565,34 +1593,77 @@ function applyFeedback(id, sentence, parsed, ta, statusEl) {
   if (state.activeSentenceId === id) showFeedback(id);
 }
 
-// buildPrompt is not used in the iOS web bridge (Swift builds the prompt natively),
-// but kept as a reference for the prompt structure.
-
-// ── FEEDBACK DISPLAY ─────────────────────────────────────────────
+// ── FEEDBACK DISPLAY ──────────────────────────────────────────────
 function switchTab(tab, btn) {
-  if (tab === 'guide') {
-    openGuideOverlay();
-    return;
-  }
+  if (tab === 'guide') { openGuideOverlay(); return; }
   document.querySelectorAll('.feedback-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('feedbackInner').style.display = tab === 'feedback' ? 'flex' : 'none';
-  document.getElementById('promptsInner').style.display = tab === 'prompts' ? 'flex' : 'none';
-  document.getElementById('guideInner').style.display = 'none';
+  if (btn) btn.classList.add('active');
+  document.getElementById('feedbackInner').style.display  = tab === 'feedback' ? 'flex' : 'none';
+  document.getElementById('promptsInner').style.display   = tab === 'prompts'  ? 'flex' : 'none';
+  document.getElementById('guideInner').style.display     = 'none';
 }
 
-function showAnalyzingState(id) {
+function clearFeedbackCards() {
   const inner = document.getElementById('feedbackInner');
   const waiting = document.getElementById('waitingCard');
   if (waiting) waiting.style.display = 'none';
-  inner.querySelectorAll('.feedback-card, .analyzing-card').forEach(el => el.remove());
+  inner.querySelectorAll('.feedback-card, .analyzing-card, .webllm-progress-card, .error-panel-card').forEach(el => el.remove());
+}
 
-  const card = document.createElement('div');
+function showAnalyzingState(id) {
+  clearFeedbackCards();
+  const inner = document.getElementById('feedbackInner');
+  const card  = document.createElement('div');
   card.className = 'analyzing-card';
   card.id = 'analyzing-card';
+  const providerId = getSelectedProvider();
+  let analyzingKey = 'analyzing';
+  if (providerId === 'parlance') {
+    analyzingKey = isNativeParlanceApp() ? 'analyzingParlanceOnDevice' : 'analyzingParlanceServer';
+  }
   card.innerHTML = `
     <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-    <div class="analyzing-text">${t('analyzing')}</div>
+    <div class="analyzing-text">${i18n.t(analyzingKey)}</div>
+  `;
+  inner.appendChild(card);
+}
+
+function showWebLLMProgress(report) {
+  const inner   = document.getElementById('feedbackInner');
+  let card      = inner.querySelector('.webllm-progress-card');
+  const pct     = Math.round((report.progress || 0) * 100);
+  const text    = report.text || 'Loading model…';
+
+  if (!card) {
+    clearFeedbackCards();
+    card = document.createElement('div');
+    card.className = 'webllm-progress-card';
+    card.innerHTML = `
+      <div class="webllm-progress-title">🧠 Loading Browser AI</div>
+      <div class="webllm-progress-text" id="webllmProgressText">${text}</div>
+      <div class="webllm-progress-bar-wrap">
+        <div class="webllm-progress-fill" id="webllmProgressFill" style="width:${pct}%"></div>
+      </div>
+      <div class="webllm-progress-sub">First load only — cached in your browser after this.</div>
+    `;
+    inner.appendChild(card);
+  } else {
+    const textEl = card.querySelector('#webllmProgressText');
+    const fillEl = card.querySelector('#webllmProgressFill');
+    if (textEl) textEl.textContent = text;
+    if (fillEl) fillEl.style.width = pct + '%';
+  }
+}
+
+function showErrorInPanel(msg) {
+  clearFeedbackCards();
+  const inner = document.getElementById('feedbackInner');
+  const card  = document.createElement('div');
+  card.className = 'error-panel-card';
+  card.innerHTML = `
+    <div class="error-panel-icon">⚠</div>
+    <div class="error-panel-msg">${escapeHTML(msg)}</div>
+    <button class="error-panel-btn" onclick="openAISettings()">⚙ Open AI Settings</button>
   `;
   inner.appendChild(card);
 }
@@ -601,78 +1672,97 @@ function showFeedback(id) {
   const sentence = state.sentences.find(s => s.id === id);
   if (!sentence) return;
 
-  const inner = document.getElementById('feedbackInner');
+  const inner   = document.getElementById('feedbackInner');
   const waiting = document.getElementById('waitingCard');
   if (waiting) waiting.style.display = 'none';
-
-  inner.querySelectorAll('.feedback-card, .analyzing-card').forEach(el => el.remove());
+  inner.querySelectorAll('.feedback-card, .analyzing-card, .webllm-progress-card, .error-panel-card').forEach(el => el.remove());
 
   if (!sentence.feedback) {
-    if (sentence.text.trim()) showAnalyzingState(id);
+    if (sentence.status === 'dirty' || sentence.text.trim()) showAnalyzingState(id);
     else if (waiting) waiting.style.display = 'block';
     return;
   }
 
-  const fb = sentence.feedback;
+  const fb          = sentence.feedback;
   const isExcellent = fb.status === 'Excellent';
   const statusLabel = isExcellent ? 'Excellent' : 'Needs Work';
   const statusClass = isExcellent ? 'score-excellent' : 'score-needs-work';
+  const assessedLevel = extractAssessedLevel(fb);
+  const complexityNote = extractComplexityNote(fb);
+  const { nextLabel, targetLabel } = altVersionLabels(assessedLevel);
+
+  let body = '';
+  if (assessedLevel) {
+    body += feedbackItem('label-level', i18n.t('assessedLevelLabel'), i18n.t('assessedLevelRichText', { level: assessedLevel }));
+  }
+  if (complexityNote) {
+    body += feedbackItem('label-complexity', i18n.t('complexityNoteLabel'), complexityNote);
+  }
+  body += feedbackItem('label-rule',         '📐 Grammar Rule',  fb.grammar_rule);
+  body += feedbackItem(
+    'label-explanation',
+    isExcellent ? '✨ Why This Works' : '⚠ What Needs Work',
+    fb.explanation
+  );
+  if (fb.correction)       body += feedbackItem('label-correction', '✍ Correction',             fb.correction);
+  if (fb.register)         body += feedbackItem('label-register',   '🎭 Register',               fb.register);
+  if (fb.next_level_alt)   body += feedbackItem('label-next',       `🔼 ${nextLabel} Version`,   fb.next_level_alt);
+  if (fb.target_level_alt && targetLabel)
+                           body += feedbackItem('label-target',     `🎯 ${targetLabel} Version`, fb.target_level_alt);
+  if (fb.tip)              body += feedbackItem('label-tip',        '💡 Tip',                    fb.tip);
+  if (fb._coach_warning) {
+    body += `<div class="feedback-coach-warning">${escapeHTML(fb._coach_warning)}</div>`;
+  }
+  if (fb._rag_topics?.length) {
+    const chips = fb._rag_topics.map(t =>
+      `<span class="feedback-rag-chip">${escapeHTML(t)}</span>`
+    ).join('');
+    body += `<div class="feedback-rag-topics"><span class="feedback-rag-label">Reference</span>${chips}</div>`;
+  }
+
+  const sourceLabel = sentence.analysisSource || 'AI';
+  const idx         = state.sentences.findIndex(s => s.id === id) + 1;
 
   const card = document.createElement('div');
   card.className = 'feedback-card';
-
-  const level = document.getElementById('levelSelect').value;
-  const nextLabels = { C2: 'Native Polish', C1: 'C2 Mastery', B2: 'C1 Professional', B1: 'B2 Version', A2: 'B1 Version', A1: 'A2 Version' };
-  const targetLabels = { B2: 'C2 Mastery', B1: 'C1 Professional', A2: 'B2 Version', A1: 'B1 Version' };
-  const nextLabel = nextLabels[level] || 'Next Level';
-  const targetLabel = targetLabels[level] || null;
-
-  let bodyHTML = '';
-  bodyHTML += feedbackItem('rule', 'label-rule', '📐 Grammar Rule', fb.grammar_rule, null);
-  bodyHTML += feedbackItem('explanation', 'label-explanation',
-    isExcellent ? '✨ Why This Works' : '⚠ What Needs Work', fb.explanation, null);
-  if (fb.correction) bodyHTML += feedbackItem('correction', 'label-correction', '✍ Correction', fb.correction, null);
-  if (fb.register) bodyHTML += feedbackItem('register', 'label-register', '🎭 Register', fb.register, null);
-  if (fb.next_level_alt) bodyHTML += feedbackItem('next', 'label-next', `🔼 ${nextLabel} Version`, fb.next_level_alt, null);
-  if (fb.target_level_alt && targetLabel) bodyHTML += feedbackItem('target', 'label-target', `🎯 ${targetLabel} Version`, fb.target_level_alt, null);
-  if (fb.tip) bodyHTML += feedbackItem('tip', 'label-tip', '💡 Tip', fb.tip, null);
-
-  const sourceLabel = sentence.analysisSource || parlanceConfig.activeProvider || 'AI';
-
   card.innerHTML = `
     <div class="feedback-card-header">
-      <div class="feedback-sentence-ref">Sentence ${state.sentences.findIndex(s => s.id === id) + 1}</div>
-      <div class="feedback-score ${statusClass}">${statusLabel}</div>
-      <div class="feedback-source">${sourceLabel}</div>
+      <div class="feedback-sentence-ref">Sentence ${idx}</div>
+      <div class="feedback-header-badges">
+        ${assessedLevel ? `<div class="feedback-level-badge" title="${escapeHTML(i18n.t('assessedLevelHint'))}">~${assessedLevel}</div>` : ''}
+        <div class="feedback-score ${statusClass}">${statusLabel}</div>
+        <div class="feedback-source">${escapeHTML(sourceLabel)}</div>
+      </div>
     </div>
-    <div class="feedback-original">"${sentence.text}"</div>
-    <div class="feedback-body">${bodyHTML}</div>
+    <div class="feedback-original">"${escapeHTML(sentence.text)}"</div>
+    <div class="feedback-body">${body}</div>
   `;
-
   inner.appendChild(card);
   inner.scrollTop = 0;
 }
 
-function feedbackItem(type, labelClass, label, text, example) {
+function feedbackItem(labelClass, label, text) {
   return `
     <div class="feedback-item">
       <div class="feedback-item-label ${labelClass}">${label}</div>
-      <div class="feedback-item-text">${text}</div>
-      ${example ? `<div class="feedback-example">${example}</div>` : ''}
+      <div class="feedback-item-text">${escapeHTML(String(text || ''))}</div>
     </div>
   `;
 }
 
-// ── GUIDE OVERLAY ────────────────────────────────────────────────
-function openGuideOverlay() {
-  const lang = currentLang();
-  const overlay = document.getElementById('guideOverlay');
+// ── GUIDE OVERLAY ─────────────────────────────────────────────────
+function loadGuide() {
+  // Called on language switch — resets the guide overlay
   const frame = document.getElementById('guideFrame');
+  if (frame && frame.src) frame.src = '';
+}
 
-  if (!lang.guideFile) {
-    showToast('Guide coming soon for this language.');
-    return;
-  }
+function openGuideOverlay() {
+  const lang    = currentLang();
+  const overlay = document.getElementById('guideOverlay');
+  const frame   = document.getElementById('guideFrame');
+
+  if (!lang.guideFile) { showToast('Guide coming soon for this language.'); return; }
 
   frame.src = lang.guideFile;
   frame.onload = () => {
@@ -685,28 +1775,25 @@ function openGuideOverlay() {
 }
 
 function closeGuideOverlay() {
-  const overlay = document.getElementById('guideOverlay');
-  const frame = document.getElementById('guideFrame');
-  overlay.style.display = 'none';
-  frame.src = '';
+  document.getElementById('guideOverlay').style.display = 'none';
+  document.getElementById('guideFrame').src = '';
 }
 
 window.addEventListener('message', (e) => {
   if (e.data === 'closeGuide') closeGuideOverlay();
 });
 
-// ── SAVE / LOAD ──────────────────────────────────────────────────
+// ── SAVE / LOAD ───────────────────────────────────────────────────
 function saveEntry() {
-  const title = document.getElementById('entryTitle').value || 'Untitled Entry';
+  const title     = document.getElementById('entryTitle').value || 'Untitled Entry';
   const sentences = state.sentences.filter(s => s.text.trim());
-  if (!sentences.length) { showToast(t('writeFirst')); return; }
+  if (!sentences.length) { showToast(i18n.t('writeFirst')); return; }
 
   const entry = {
-    id: Date.now(),
+    id:       Date.now(),
     title,
     language: state.currentLanguage,
-    level: document.getElementById('levelSelect').value,
-    date: new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }),
+    date:     new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
     sentences: sentences.map(s => ({
       text: s.text,
       feedback: s.feedback || null,
@@ -715,30 +1802,22 @@ function saveEntry() {
   };
 
   state.savedEntries.unshift(entry);
-  try { localStorage.setItem('parlance_entries', JSON.stringify(state.savedEntries)); } catch(e) {}
+  try { localStorage.setItem('parlance_entries', JSON.stringify(state.savedEntries)); } catch (_) {}
 
   renderPastEntries();
-  showToast(t('entrySaved') + ' ✓');
+  showToast(i18n.t('entrySaved') + ' ✓');
 }
 
 function loadSavedEntries() {
   try {
-    // Migrate from old key
-    const old = localStorage.getItem('parlance_entries_old');
-    if (old && !localStorage.getItem('parlance_entries')) {
-      localStorage.setItem('parlance_entries', old);
-    }
     const saved = localStorage.getItem('parlance_entries');
-    if (saved) {
-      state.savedEntries = JSON.parse(saved);
-      renderPastEntries();
-    }
-  } catch(e) {}
+    if (saved) { state.savedEntries = JSON.parse(saved); renderPastEntries(); }
+  } catch (_) {}
 }
 
 function renderPastEntries() {
   if (!state.savedEntries.length) return;
-  const bar = document.getElementById('pastBar');
+  const bar  = document.getElementById('pastBar');
   const list = document.getElementById('pastEntries');
   bar.style.display = 'block';
   list.innerHTML = '';
@@ -752,16 +1831,17 @@ function renderPastEntries() {
   });
 }
 
-// ── ENTRY VIEWER ────────────────────────────────────────────────
+// ── ENTRY VIEWER ──────────────────────────────────────────────────
 function viewEntry(entry) {
   document.getElementById('entryViewerTitle').textContent = entry.title || 'Untitled Entry';
   const langName = entry.language === 'fr' ? 'Français' : 'Español';
-  const levelLabel = entry.level ? ` · ${entry.level}` : '';
-  document.getElementById('entryViewerMeta').textContent = `${entry.date} · ${langName}${levelLabel}`;
+  document.getElementById('entryViewerMeta').textContent =
+    `${entry.date} · ${langName}`;
 
   const body = document.getElementById('entryViewerBody');
   body.innerHTML = '';
 
+  // "Load All to Editor" button at the top
   const loadAllRow = document.createElement('div');
   loadAllRow.style.cssText = 'margin-bottom: 1rem; text-align: right;';
   const loadAllBtn = document.createElement('button');
@@ -772,6 +1852,7 @@ function viewEntry(entry) {
   body.appendChild(loadAllRow);
 
   (entry.sentences || []).forEach((s, i) => {
+    // Backward compatibility: old entries stored sentences as plain strings
     const text = typeof s === 'string' ? s : s.text;
     const feedback = typeof s === 'string' ? null : s.feedback;
     const analysisSource = typeof s === 'string' ? null : s.analysisSource;
@@ -784,9 +1865,11 @@ function viewEntry(entry) {
       const isExcellent = feedback.status === 'Excellent';
       const badgeClass = isExcellent ? 'excellent' : 'needs-work';
       const badgeLabel = isExcellent ? 'Excellent' : 'Needs Work';
+      const assessed = extractAssessedLevel(feedback);
       feedbackHTML = `
         <div class="entry-sentence-actions">
           <span class="entry-feedback-badge ${badgeClass}">${badgeLabel}</span>
+          ${assessed ? `<span class="entry-feedback-badge" style="background:var(--blue-bg);color:var(--blue);">~${assessed}</span>` : ''}
           ${analysisSource ? `<span class="entry-feedback-badge" style="background:rgba(11,156,208,0.06);color:#0b9cd0;">${escapeHTML(analysisSource)}</span>` : ''}
         </div>
         ${feedback.grammar_rule ? `<div class="entry-feedback-rule">${escapeHTML(feedback.grammar_rule)}</div>` : ''}
@@ -805,8 +1888,9 @@ function viewEntry(entry) {
       </div>
     `;
 
+    // Attach re-analyze click handler
     row.querySelector('.entry-load-btn[data-index]').addEventListener('click', () => {
-      loadSentenceToEditor(text, entry.language, entry.level);
+      loadSentenceToEditor(text, entry.language);
     });
 
     body.appendChild(row);
@@ -819,7 +1903,7 @@ function viewEntry(entry) {
   overlay.onclick = (e) => { if (e.target === overlay) closeEntryViewer(); };
 }
 
-function loadSentenceToEditor(text, language, level) {
+function loadSentenceToEditor(text, language) {
   if (language) {
     state.currentLanguage = language;
     document.getElementById('langSelect').value = language;
@@ -827,9 +1911,8 @@ function loadSentenceToEditor(text, language, level) {
     updatePlaceholders();
     renderPrompts();
   }
-  if (level) {
-    document.getElementById('levelSelect').value = level;
-  }
+
+  // Find an empty sentence slot or add a new one
   const empty = state.sentences.find(s => !s.text.trim());
   if (empty) {
     const ta = document.getElementById('ta-' + empty.id);
@@ -837,6 +1920,7 @@ function loadSentenceToEditor(text, language, level) {
   } else {
     addSentence(text);
   }
+
   closeEntryViewer();
   switchTab('feedback', document.querySelector('.feedback-tab'));
 }
@@ -849,49 +1933,45 @@ function loadEntryToEditor(entry) {
     updatePlaceholders();
     renderPrompts();
   }
-  if (entry.level) {
-    document.getElementById('levelSelect').value = entry.level;
-  }
+
+  // Set title
   if (entry.title) {
     document.getElementById('entryTitle').value = entry.title;
   }
+
+  // Clear existing sentences from UI and state
   const area = document.getElementById('sentencesArea');
   area.innerHTML = '';
   state.sentences = [];
   sentenceIdCounter = 0;
+
+  // Load each sentence from the entry
   (entry.sentences || []).forEach(s => {
     const text = typeof s === 'string' ? s : s.text;
     addSentence(text);
   });
+
   closeEntryViewer();
   switchTab('feedback', document.querySelector('.feedback-tab'));
-  showToast(t('entryLoaded'));
+  showToast(i18n.t('entryLoaded'));
 }
 
 function deleteEntry(entryId) {
   const idx = state.savedEntries.findIndex(e => e.id === entryId);
   if (idx === -1) return;
   state.savedEntries.splice(idx, 1);
-  try { localStorage.setItem('parlance_entries', JSON.stringify(state.savedEntries)); } catch(e) {}
+  try { localStorage.setItem('parlance_entries', JSON.stringify(state.savedEntries)); } catch (_) {}
   closeEntryViewer();
   renderPastEntries();
-  if (!state.savedEntries.length) {
-    document.getElementById('pastBar').style.display = 'none';
-  }
-  showToast(t('entryDeleted'));
+  if (!state.savedEntries.length) document.getElementById('pastBar').style.display = 'none';
+  showToast(i18n.t('entryDeleted'));
 }
 
 function closeEntryViewer() {
   document.getElementById('entryOverlay').style.display = 'none';
 }
 
-// ── UTILS ────────────────────────────────────────────────────────
-function escapeHTML(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
-}
-
+// ── UTILS ─────────────────────────────────────────────────────────
 function showToast(msg) {
   const t = document.getElementById('errorToast');
   t.textContent = msg;
@@ -899,5 +1979,23 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 3500);
 }
 
-// ── START ────────────────────────────────────────────────────────
-init();
+function escapeHTML(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ── START ─────────────────────────────────────────────────────────
+try {
+  init();
+} catch (err) {
+  console.error('[Parlance] init failed:', err);
+  const inner = document.getElementById('feedbackInner');
+  if (inner) {
+    inner.innerHTML = `<div style="padding:1.5rem;font-family:'DM Mono',monospace;font-size:0.78rem;color:#b44;border:1px solid #f0d;border-radius:4px;">
+      ⚠ Parlance failed to start: ${err.message}<br><br>Try a hard refresh (Cmd+Shift+R).
+    </div>`;
+  }
+}

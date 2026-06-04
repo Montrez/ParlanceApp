@@ -3,20 +3,27 @@ import SwiftUI
 struct AISettingsView: View {
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(AuthManager.self) private var authManager
 
     @State private var selectedProvider: AIProvider = AIProviderSettings.shared.selectedProvider
     @State private var selectedModels:   [AIProvider: String] = [:]
     @State private var apiKeys:          [AIProvider: String] = [:]
     @State private var showKeySaved = false
+    @State private var authBusy = false
 
     var body: some View {
         NavigationStack {
             Form {
+                authSection
                 providerSection
-                if selectedProvider.requiresKey {
+                if selectedProvider.requiresAPIKey(isSignedIn: authManager.isSignedIn) {
                     apiKeySection
                 }
-                modelSection
+                if selectedProvider == .parlanceCoach {
+                    parlanceCoachInfoSection
+                } else {
+                    modelSection
+                }
                 if selectedProvider == .onDevice {
                     onDeviceInfoSection
                 }
@@ -54,6 +61,96 @@ struct AISettingsView: View {
         .animation(.spring(duration: 0.3), value: showKeySaved)
     }
 
+    // MARK: – Auth
+
+    @ViewBuilder
+    private var authSection: some View {
+        if authManager.isSignedIn {
+            Section {
+                HStack(alignment: .top, spacing: 10) {
+                    Image(systemName: "person.crop.circle.badge.checkmark")
+                        .foregroundStyle(.green)
+                        .font(.title3)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Signed in")
+                            .font(.subheadline.weight(.semibold))
+                        Text(authManager.displayLabel)
+                            .font(.subheadline)
+                            .foregroundStyle(Color.secondary)
+                        Text("Signed-in mode can use cloud AI without API keys (when enabled).")
+                            .font(.caption)
+                            .foregroundStyle(Color.secondary)
+                    }
+                }
+                .padding(.vertical, 4)
+
+                Button("Sign Out", role: .destructive) {
+                    authBusy = true
+                    Task {
+                        defer { authBusy = false }
+                        try? authManager.signOut()
+                    }
+                }
+                .disabled(authBusy)
+            } header: {
+                Text("Account")
+            }
+        } else {
+            Section {
+                Button {
+                    authBusy = true
+                    Task {
+                        defer { authBusy = false }
+                        do { try await authManager.signInWithApple() }
+                        catch AuthManagerError.cancelled { }
+                        catch { }
+                    }
+                } label: {
+                    Label("Sign in with Apple", systemImage: "apple.logo")
+                }
+                .disabled(authBusy)
+
+                if authManager.isGoogleSignInConfigured {
+                    Button {
+                        authBusy = true
+                        Task {
+                            defer { authBusy = false }
+                            do { try await authManager.signInWithGoogle() }
+                            catch AuthManagerError.cancelled { }
+                            catch { }
+                        }
+                    } label: {
+                        Label("Sign in with Google", systemImage: "globe")
+                    }
+                    .disabled(authBusy)
+                } else {
+                    HStack(alignment: .top, spacing: 10) {
+                        Image(systemName: "info.circle")
+                            .foregroundStyle(Color.secondary)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Google Sign-In isn’t configured yet.")
+                                .font(.subheadline.weight(.semibold))
+                            Text("Enable Google in Firebase Authentication, then re-download GoogleService-Info.plist so it includes CLIENT_ID / REVERSED_CLIENT_ID.")
+                                .font(.caption)
+                                .foregroundStyle(Color.secondary)
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+
+                if let err = authManager.authError {
+                    Text(err)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+            } header: {
+                Text("Account")
+            } footer: {
+                Text("Sign in to use cloud AI without entering API keys (when enabled). Parlance Coach and on-device options work without an account.")
+            }
+        }
+    }
+
     // MARK: – Sections
 
     private var providerSection: some View {
@@ -85,8 +182,12 @@ struct AISettingsView: View {
         } header: {
             Text("Provider")
         } footer: {
-            if selectedProvider == .onDevice {
+            if selectedProvider == .parlanceCoach {
+                Text("Fine-tuned model runs on this device. First analysis may take 1–2 minutes while the model loads.")
+            } else if selectedProvider == .onDevice {
                 Text("On-device analysis requires Apple Intelligence on iOS 26+.")
+            } else if authManager.isSignedIn {
+                Text("Your selected cloud provider runs through Parlance when signed in.")
             }
         }
     }
@@ -140,6 +241,36 @@ struct AISettingsView: View {
         }
     }
 
+    private var parlanceCoachInfoSection: some View {
+        Section {
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: "brain.head.profile")
+                    .foregroundStyle(.orange)
+                    .font(.title3)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Follows journal language")
+                        .font(.subheadline.weight(.semibold))
+                    Text(parlanceCoachModelSummary)
+                        .font(.subheadline)
+                        .foregroundStyle(Color.secondary)
+                }
+            }
+            .padding(.vertical, 4)
+        } header: {
+            Text("Model")
+        } footer: {
+            Text("Spanish and French models switch automatically based on the language you write in.")
+        }
+    }
+
+    private var parlanceCoachModelSummary: String {
+        let langs = ParlanceSLMAnalyzer.availableCoachLanguages()
+        if langs.isEmpty {
+            return "Not bundled in this build. Run ./training/prepare_ios_coach_model.sh and re-archive."
+        }
+        return langs.map { $0 == "fr" ? "French" : "Spanish" }.joined(separator: " · ")
+    }
+
     private var aboutSection: some View {
         Section {
             HStack {
@@ -159,11 +290,25 @@ struct AISettingsView: View {
     // MARK: – Helpers
 
     private var availableProviders: [AIProvider] {
-        #if canImport(FoundationModels)
-        return AIProvider.allCases
-        #else
-        return AIProvider.allCases.filter { $0 != .onDevice }
-        #endif
+        var list = AIProvider.allCases.filter { provider in
+            if provider == .onDevice {
+                #if canImport(FoundationModels)
+                return true
+                #else
+                return false
+                #endif
+            }
+            if provider == .parlanceCoach {
+                return ParlanceSLMAnalyzer.isOnDeviceModelAvailable
+            }
+            return true
+        }
+
+        if let coachIndex = list.firstIndex(of: .parlanceCoach), coachIndex > 0 {
+            list.remove(at: coachIndex)
+            list.insert(.parlanceCoach, at: 0)
+        }
+        return list
     }
 
     private func loadCurrentSettings() {
@@ -179,6 +324,11 @@ struct AISettingsView: View {
         for p in AIProvider.allCases {
             if let m = selectedModels[p] { AIProviderSettings.shared.setModel(m, for: p) }
             if let k = apiKeys[p]        { AIProviderSettings.shared.setAPIKey(k, for: p) }
+        }
+        if selectedProvider == .parlanceCoach {
+            let lang = UserDefaults.standard.string(forKey: "parlance_language") ?? "es"
+            let modelId = lang == "fr" ? "parlance-fr" : "parlance-es"
+            AIProviderSettings.shared.setModel(modelId, for: .parlanceCoach)
         }
 
         withAnimation { showKeySaved = true }
@@ -205,4 +355,5 @@ struct AISettingsView: View {
 
 #Preview {
     AISettingsView()
+        .environment(AuthManager.shared)
 }

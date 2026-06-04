@@ -4,6 +4,7 @@ import Security
 // MARK: - Provider enum
 
 enum AIProvider: String, CaseIterable, Codable {
+    case parlanceCoach = "parlance"
     case onDevice   = "onDevice"
     case groq       = "groq"
     case deepSeek   = "deepSeek"
@@ -15,6 +16,7 @@ enum AIProvider: String, CaseIterable, Codable {
 
     var displayName: String {
         switch self {
+        case .parlanceCoach: return "Parlance Coach"
         case .onDevice:   return "On-Device (Apple Intelligence)"
         case .groq:       return "Groq"
         case .deepSeek:   return "DeepSeek"
@@ -28,6 +30,11 @@ enum AIProvider: String, CaseIterable, Codable {
 
     var subtitle: String {
         switch self {
+        case .parlanceCoach:
+            if ParlanceSLMAnalyzer.isOnDeviceModelAvailable {
+                return "Private · Fine-tuned on device"
+            }
+            return "Model not bundled in this build"
         case .onDevice:   return "Private · No internet required"
         case .groq:       return "Free · Very fast"
         case .deepSeek:   return "Free · DeepSeek V4"
@@ -39,13 +46,30 @@ enum AIProvider: String, CaseIterable, Codable {
         }
     }
 
+    /// When signed in via Firebase, cloud keys are proxied server-side.
+    func requiresKey(isSignedIn: Bool = false) -> Bool {
+        switch self {
+        case .onDevice, .parlanceCoach:
+            return false
+        default:
+            if isSignedIn { return false }
+            return true
+        }
+    }
+
     var requiresKey: Bool {
-        self != .onDevice
+        requiresKey(isSignedIn: false)
+    }
+
+    /// When signed in with Firebase, cloud keys are held server-side.
+    func requiresAPIKey(isSignedIn: Bool) -> Bool {
+        guard requiresKey else { return false }
+        return !isSignedIn
     }
 
     var keyURL: URL? {
         switch self {
-        case .onDevice:   return nil
+        case .parlanceCoach, .onDevice: return nil
         case .groq:       return URL(string: "https://console.groq.com/keys")
         case .deepSeek:   return URL(string: "https://platform.deepseek.com/api_keys")
         case .gemini:     return URL(string: "https://aistudio.google.com/app/apikey")
@@ -58,6 +82,18 @@ enum AIProvider: String, CaseIterable, Codable {
 
     var models: [(id: String, name: String)] {
         switch self {
+        case .parlanceCoach:
+            var list: [(id: String, name: String)] = []
+            if ParlanceSLMAnalyzer.isOnDeviceModelAvailable(language: "es") {
+                list.append(("parlance-es", "Parlance Spanish (Qwen 0.5B)"))
+            }
+            if ParlanceSLMAnalyzer.isOnDeviceModelAvailable(language: "fr") {
+                list.append(("parlance-fr", "Parlance French (Qwen 0.5B)"))
+            }
+            if list.isEmpty {
+                list.append(("parlance-es", "Parlance Coach (not bundled)"))
+            }
+            return list
         case .onDevice:
             return [("system", "Apple Intelligence (default)")]
         case .groq:
@@ -109,7 +145,7 @@ enum AIProvider: String, CaseIterable, Codable {
 
 // MARK: - Settings storage
 
-final class AIProviderSettings {
+final class AIProviderSettings: @unchecked Sendable {
 
     static let shared = AIProviderSettings()
     private init() {}
@@ -118,10 +154,20 @@ final class AIProviderSettings {
 
     var selectedProvider: AIProvider {
         get {
-            let raw = UserDefaults.standard.string(forKey: "parlance_ai_provider") ?? "groq"
-            return AIProvider(rawValue: raw) ?? .groq
+            let raw = UserDefaults.standard.string(forKey: "parlance_ai_provider")
+                ?? defaultProviderId
+            if raw == "parlance" { return .parlanceCoach }
+            return AIProvider(rawValue: raw) ?? fallbackProvider
         }
         set { UserDefaults.standard.set(newValue.rawValue, forKey: "parlance_ai_provider") }
+    }
+
+    private var defaultProviderId: String {
+        ParlanceSLMAnalyzer.isOnDeviceModelAvailable ? "parlance" : "groq"
+    }
+
+    private var fallbackProvider: AIProvider {
+        ParlanceSLMAnalyzer.isOnDeviceModelAvailable ? .parlanceCoach : .groq
     }
 
     func model(for provider: AIProvider) -> String {
@@ -136,12 +182,12 @@ final class AIProviderSettings {
     // MARK: API keys (Keychain — sensitive)
 
     func apiKey(for provider: AIProvider) -> String {
-        guard provider.requiresKey else { return "" }
+        guard provider.requiresKey(isSignedIn: false) else { return "" }
         return KeychainHelper.load(key: keychainKey(provider)) ?? ""
     }
 
     func setAPIKey(_ key: String, for provider: AIProvider) {
-        guard provider.requiresKey else { return }
+        guard provider.requiresKey(isSignedIn: false) else { return }
         if key.isEmpty {
             KeychainHelper.delete(key: keychainKey(provider))
         } else {

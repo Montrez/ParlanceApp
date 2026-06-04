@@ -3,10 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Parlance — Language Journal</title>
+<title>Parlance</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Spectral:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="icon" type="image/png" href="favicon.png">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -25,14 +23,6 @@
     <select class="header-select" id="langSelect" onchange="onLanguageChange()">
       <option value="es">Español</option>
       <option value="fr">Français</option>
-    </select>
-    <select class="header-select" id="levelSelect">
-      <option value="A1">A1</option>
-      <option value="A2">A2</option>
-      <option value="B1">B1</option>
-      <option value="B2" selected>B2</option>
-      <option value="C1">C1</option>
-      <option value="C2">C2</option>
     </select>
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" data-i18n-title="toggleTheme">☀</button>
     <button class="privacy-link ai-settings-btn" id="aiSettingsBtn" onclick="openAISettings()">⚙ AI</button>
@@ -72,7 +62,7 @@
     <div class="feedback-panel-inner" id="feedbackInner">
       <div class="waiting-card" id="waitingCard">
         <div class="waiting-icon">🖊️</div>
-        <div class="waiting-text" id="waitingText" data-i18n-html="waitingText">Write a sentence and pause.<br><br>AI feedback appears here automatically.</div>
+        <div class="waiting-text" id="waitingText" data-i18n-html="waitingText">Write a sentence, then press <strong>Enter</strong>.<br><br>Parlance infers your CEFR level and shows feedback here.</div>
         <div class="waiting-provider-hint" id="waitingProviderHint"></div>
       </div>
     </div>
@@ -129,6 +119,21 @@
       <button class="modal-close" onclick="closeAISettings()">&times;</button>
     </div>
     <div class="modal-body">
+      <div class="settings-section" id="authSection" style="display:none">
+        <div class="settings-label">Parlance account</div>
+        <div id="authSignedOut">
+          <p class="settings-hint" id="authSetupHint">Sign in to use cloud AI without API keys.</p>
+          <div class="auth-buttons" id="authButtons">
+            <button type="button" class="auth-btn" id="signInAppleBtn" onclick="signInWithApple()">Sign in with Apple</button>
+            <button type="button" class="auth-btn auth-btn-google" id="signInGoogleBtn" onclick="signInWithGoogle()">Sign in with Google</button>
+          </div>
+        </div>
+        <div id="authSignedIn" style="display:none">
+          <p class="auth-signed-in-label">Signed in as <span id="authUserLabel"></span></p>
+          <button type="button" class="auth-btn auth-btn-outline" onclick="signOutFirebase()">Sign out</button>
+          <p class="settings-hint" id="authCloudNote" style="display:none">Cloud providers use your Parlance account — no API key needed.</p>
+        </div>
+      </div>
       <div class="settings-section">
         <div class="settings-label">Select a provider</div>
         <div class="ai-provider-grid" id="providerGrid"></div>
@@ -163,8 +168,13 @@
   </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-functions-compat.js"></script>
+<script src="firebase-config.js" onerror="void 0"></script>
 <script src="i18n.js"></script>
 <script src="rag-knowledge.js"></script>
-<script src="journal.js"></script>
+<script src="feedback-sanitize.js"></script>
+<script src="journal.js?v=20260604"></script>
 </body>
 </html>

@@ -22,7 +22,7 @@ final class AnthropicAnalyzer: Sendable {
         let systemPrompt = ExternalAnalyzer.shared.buildSystemPromptPublic(
             langName: langName, level: level, ragContext: ragContext
         )
-        let userMessage  = "Analyze this \(langName) sentence at \(level) level: \"\(sentence)\""
+        let userMessage  = "Analyze this \(langName) sentence: \"\(sentence)\""
 
         let payload: [String: Any] = [
             "model":      model,
@@ -58,6 +58,6 @@ final class AnthropicAnalyzer: Sendable {
             throw ExternalError.parseError
         }
 
-        return try ExternalAnalyzer.shared.parseAndNormalize(text)
+        return try ExternalAnalyzer.shared.parseAndNormalize(text, sentence: sentence)
     }
 }

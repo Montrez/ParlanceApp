@@ -39,6 +39,16 @@ Open `android/` in Android Studio and run on a device or emulator.
 
 ---
 
+## Parlance Coach (Spanish & French fine-tuned models)
+
+On-device grammar coaching on **iOS** using Qwen 0.5B fine-tunes (~294 MB MLX 4-bit per language, bundled at archive). See [training/ARCHIVE_SPANISH.md](training/ARCHIVE_SPANISH.md).
+
+1. `./training/prepare_ios_coach_model.sh`
+2. Archive in Xcode (physical device recommended)
+3. In the app: **⚙ AI** → **Parlance Coach**, journal language **Spanish** or **French**
+
+Optional Mac dev server: `python3 training/parlance_slm_server.py`.
+
 ## Adding an API Key
 
 The default provider is **Groq** (free, fast, runs Qwen 3 32B). Get a key at [console.groq.com/keys](https://console.groq.com/keys).
@@ -63,13 +73,48 @@ Supported providers: Groq, OpenAI, Anthropic, Google Gemini, DeepSeek, Kimi, Ope
 
 ---
 
+## Firebase Console setup
+
+Use a Firebase project (default in `firebase/.firebaserc`: `parlance-926ef`) with the **Blaze** plan for Cloud Functions secrets and outbound API calls.
+
+### 1. Authentication
+
+1. [Firebase Console](https://console.firebase.google.com/) → your project → **Build** → **Authentication** → **Sign-in method**
+2. Enable **Apple** and **Google**
+3. For Apple: add your iOS bundle ID `com.parlance.interpreterguide` and configure Sign in with Apple in [Apple Developer](https://developer.apple.com/) (Services ID / key as required by Firebase docs)
+4. For Google: add the iOS client; download config below
+
+### 2. iOS app
+
+1. **Project settings** → **Your apps** → add **iOS** app with bundle ID `com.parlance.interpreterguide`
+2. Download **GoogleService-Info.plist** → copy to `Parlance/GoogleService-Info.plist` (see `Parlance/GoogleService-Info.plist.example`)
+3. In Xcode: add the plist to the Parlance target if not already present
+4. Replace `REPLACE_WITH_REVERSED_CLIENT_ID` in `Parlance/Info.plist` **CFBundleURLSchemes** with the `REVERSED_CLIENT_ID` value from the plist
+5. Enable **Sign in with Apple** capability on the Parlance target
+
+### 3. Web (GitHub Pages)
+
+1. Register a **Web** app in the same Firebase project
+2. Copy `docs/firebase-config.example.js` → `docs/firebase-config.js` and fill in the web config object
+3. Deploy `docs/` as usual; the site loads Firebase compat SDK from the CDN (see `docs/index.html`)
+
+### 4. Cloud Functions
+
+1. Install CLI: `npm install -g firebase-tools`
+2. Set provider API keys as secrets (see [firebase/README.md](firebase/README.md))
+3. Deploy: `cd firebase && firebase deploy --only functions`
+
+Signed-in users call the **`analyzeText`** callable; API keys stay in Secret Manager, not on devices.
+
+---
+
 ## How It Works
 
 1. Write a sentence in your target language
 2. Parlance selects relevant grammar rules, exam context (DELE/DELF), and domain terminology via RAG
 3. An AI model returns structured feedback: corrections, register analysis, higher-level rephrasings, and interpreter tips
 
-Feedback is tailored to your CEFR level (A1–C2) and includes register identification and professional phrasing for medical, legal, and conference interpreting.
+Feedback infers the sentence’s CEFR level (A1–C2) when the model is confident, plus a complexity note when it isn’t. Register identification and professional phrasing for medical, legal, and conference interpreting are included.
 
 ---
 

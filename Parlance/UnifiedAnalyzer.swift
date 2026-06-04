@@ -1,7 +1,7 @@
 import Foundation
 
 /// Routes analysis requests to whichever AI provider the user has configured.
-/// Falls back to Groq if on-device is selected but unavailable.
+/// Signed-in users use Firebase `analyzeText` for cloud providers.
 final class UnifiedAnalyzer: Sendable {
 
     static let shared = UnifiedAnalyzer()
@@ -10,21 +10,50 @@ final class UnifiedAnalyzer: Sendable {
         sentence: String,
         language: String,
         level: String,
-        ragContext: String
+        ragContext: String,
+        isSignedIn: Bool = false,
+        webProviderId: String? = nil,
+        webModel: String? = nil
     ) async throws -> [String: Any] {
         let settings = AIProviderSettings.shared
         var provider = settings.selectedProvider
-        let model    = settings.model(for: provider)
+        var model    = settings.model(for: provider)
         let apiKey   = settings.apiKey(for: provider)
 
-        // On-device fallback: if unavailable, drop to next configured cloud provider
+        if let webProviderId,
+           let mapped = FirebaseCloudAnalyzer.provider(fromWebId: webProviderId) {
+            provider = mapped
+            if let webModel, !webModel.isEmpty {
+                model = webModel
+            } else {
+                model = settings.model(for: provider)
+            }
+        }
+
         if provider == .onDevice && !isOnDeviceAvailable {
-            provider = firstAvailableCloudProvider() ?? .groq
+            provider = firstAvailableCloudProvider(isSignedIn: isSignedIn) ?? .groq
+            model = settings.model(for: provider)
+        }
+
+        if isSignedIn && provider.isCloudProvider {
+            return try await FirebaseCloudAnalyzer.analyze(
+                sentence: sentence,
+                language: language,
+                level: level,
+                ragContext: ragContext,
+                provider: provider,
+                model: model
+            )
         }
 
         switch provider {
         case .onDevice:
             return try await analyzeOnDevice(sentence: sentence, language: language, level: level)
+
+        case .parlanceCoach:
+            return try await ParlanceSLMAnalyzer.analyze(
+                sentence: sentence, language: language, level: level, ragContext: ragContext
+            )
 
         case .groq, .deepSeek, .openRouter, .openAI, .kimi:
             let resolvedKey = (provider == .groq && apiKey.isEmpty) ? Config.groqAPIKey : apiKey
@@ -63,7 +92,7 @@ final class UnifiedAnalyzer: Sendable {
     var activeProviderName: String {
         var provider = AIProviderSettings.shared.selectedProvider
         if provider == .onDevice && !isOnDeviceAvailable {
-            provider = firstAvailableCloudProvider() ?? .groq
+            provider = firstAvailableCloudProvider(isSignedIn: false) ?? .groq
         }
         return provider.displayName
     }
@@ -88,9 +117,10 @@ final class UnifiedAnalyzer: Sendable {
         throw ExternalError.unsupportedProvider("On-Device (requires iOS 26+)")
     }
 
-    // MARK: – Fallback
-
-    private func firstAvailableCloudProvider() -> AIProvider? {
+    private func firstAvailableCloudProvider(isSignedIn: Bool) -> AIProvider? {
+        if isSignedIn {
+            return .groq
+        }
         let cloud: [AIProvider] = [.groq, .deepSeek, .gemini, .openRouter, .openAI, .anthropic, .kimi]
         return cloud.first { !AIProviderSettings.shared.apiKey(for: $0).isEmpty }
     }

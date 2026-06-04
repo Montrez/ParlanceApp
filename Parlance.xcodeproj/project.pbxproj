@@ -26,6 +26,23 @@
 		E7AI0007 /* AnthropicAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7AI0008 /* AnthropicAnalyzer.swift */; };
 		E7AI0009 /* GeminiAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7AI0010 /* GeminiAnalyzer.swift */; };
 		E7AI0011 /* UnifiedAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7AI0012 /* UnifiedAnalyzer.swift */; };
+		E7DE26612FBFEED80066F0F5 /* i18n.js in Resources */ = {isa = PBXBuildFile; fileRef = E7DE26602FBFEED80066F0F5 /* i18n.js */; };
+		E7FB0011 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7FB0001 /* AuthManager.swift */; };
+		E7FB0012 /* FirebaseCloudAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7FB0002 /* FirebaseCloudAnalyzer.swift */; };
+		E7FB0013 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = E7FB0007 /* GoogleService-Info.plist */; };
+		E7FB0101 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = E7FB0201 /* FirebaseCore */; };
+		E7FB0102 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = E7FB0202 /* FirebaseAuth */; };
+		E7FB0103 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = E7FB0203 /* FirebaseFunctions */; };
+		E7FB0104 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = E7FB0204 /* GoogleSignIn */; };
+		E7PKG0101 /* MLXLLM in Frameworks */ = {isa = PBXBuildFile; productRef = E7PKG0201 /* MLXLLM */; };
+		E7PKG0102 /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = E7PKG0202 /* MLXLMCommon */; };
+		E7PKG0103 /* MLXLMTransformers in Frameworks */ = {isa = PBXBuildFile; productRef = E7PKG0203 /* MLXLMTransformers */; };
+		E7SLM0001 /* ParlanceSLMAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7SLM0002 /* ParlanceSLMAnalyzer.swift */; };
+		E7SLM0011 /* ParlanceSLMEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7SLM0021 /* ParlanceSLMEngine.swift */; };
+		E7SLM0012 /* ParlanceSLMModelLocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7SLM0022 /* ParlanceSLMModelLocator.swift */; };
+		E7SLM0013 /* ParlanceSLMFeedbackValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7SLM0023 /* ParlanceSLMFeedbackValidator.swift */; };
+		E7SLM0030 /* parlance-es-mlx in Resources */ = {isa = PBXBuildFile; fileRef = E7SLM0031 /* parlance-es-mlx */; };
+		E7SLM0032 /* parlance-fr-mlx in Resources */ = {isa = PBXBuildFile; fileRef = E7SLM0033 /* parlance-fr-mlx */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -50,6 +67,18 @@
 		E7AI0008 /* AnthropicAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnthropicAnalyzer.swift; sourceTree = "<group>"; };
 		E7AI0010 /* GeminiAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiAnalyzer.swift; sourceTree = "<group>"; };
 		E7AI0012 /* UnifiedAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedAnalyzer.swift; sourceTree = "<group>"; };
+		E7DE26602FBFEED80066F0F5 /* i18n.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = i18n.js; sourceTree = "<group>"; };
+		E7FB0001 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
+		E7FB0002 /* FirebaseCloudAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseCloudAnalyzer.swift; sourceTree = "<group>"; };
+		E7FB0003 /* Parlance.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Parlance.entitlements; sourceTree = "<group>"; };
+		E7FB0004 /* GoogleService-Info.plist.example */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist.example"; sourceTree = "<group>"; };
+		E7FB0007 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		E7SLM0002 /* ParlanceSLMAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParlanceSLMAnalyzer.swift; sourceTree = "<group>"; };
+		E7SLM0021 /* ParlanceSLMEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParlanceSLMEngine.swift; sourceTree = "<group>"; };
+		E7SLM0022 /* ParlanceSLMModelLocator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParlanceSLMModelLocator.swift; sourceTree = "<group>"; };
+		E7SLM0023 /* ParlanceSLMFeedbackValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParlanceSLMFeedbackValidator.swift; sourceTree = "<group>"; };
+		E7SLM0031 /* parlance-es-mlx */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "parlance-es-mlx"; sourceTree = "<group>"; };
+		E7SLM0033 /* parlance-fr-mlx */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "parlance-fr-mlx"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,6 +86,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E7FB0101 /* FirebaseCore in Frameworks */,
+				E7FB0102 /* FirebaseAuth in Frameworks */,
+				E7FB0103 /* FirebaseFunctions in Frameworks */,
+				E7FB0104 /* GoogleSignIn in Frameworks */,
+				E7PKG0101 /* MLXLLM in Frameworks */,
+				E7PKG0102 /* MLXLMCommon in Frameworks */,
+				E7PKG0103 /* MLXLMTransformers in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -75,6 +111,11 @@
 			isa = PBXGroup;
 			children = (
 				A2000001 /* ParlanceApp.swift */,
+				E7FB0001 /* AuthManager.swift */,
+				E7FB0002 /* FirebaseCloudAnalyzer.swift */,
+				E7FB0003 /* Parlance.entitlements */,
+				E7FB0004 /* GoogleService-Info.plist.example */,
+				E7FB0007 /* GoogleService-Info.plist */,
 				A2000002 /* ContentView.swift */,
 				A2000003 /* Config.swift */,
 				A2000006 /* Config.plist */,
@@ -89,6 +130,11 @@
 				E7AI0008 /* AnthropicAnalyzer.swift */,
 				E7AI0010 /* GeminiAnalyzer.swift */,
 				E7AI0012 /* UnifiedAnalyzer.swift */,
+				E7SLM0002 /* ParlanceSLMAnalyzer.swift */,
+				E7SLM0021 /* ParlanceSLMEngine.swift */,
+				E7SLM0022 /* ParlanceSLMModelLocator.swift */,
+				E7SLM0023 /* ParlanceSLMFeedbackValidator.swift */,
+				E7SLM0040 /* Models */,
 			);
 			path = Parlance;
 			sourceTree = "<group>";
@@ -110,8 +156,34 @@
 				E778CF182F9E3AF800296847 /* guide-es.html */,
 				E778CF1A2F9E3AF800296847 /* guide-fr.html */,
 				E7924DC52FA115DE002A93FF /* rag-knowledge.js */,
+				E7DE265F2FBFEEC70066F0F5 /* locales 2 */,
+				E7DE26602FBFEED80066F0F5 /* i18n.js */,
+				E7DE26622FBFF01C0066F0F5 /* locales 2 */,
 			);
 			path = web;
+			sourceTree = "<group>";
+		};
+		E7DE265F2FBFEEC70066F0F5 /* locales 2 */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = "locales 2";
+			sourceTree = "<group>";
+		};
+		E7DE26622FBFF01C0066F0F5 /* locales 2 */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = "locales 2";
+			sourceTree = "<group>";
+		};
+		E7SLM0040 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				E7SLM0031 /* parlance-es-mlx */,
+				E7SLM0033 /* parlance-fr-mlx */,
+			);
+			path = Models;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -130,6 +202,15 @@
 			dependencies = (
 			);
 			name = Parlance;
+			packageProductDependencies = (
+				E7FB0201 /* FirebaseCore */,
+				E7FB0202 /* FirebaseAuth */,
+				E7FB0203 /* FirebaseFunctions */,
+				E7FB0204 /* GoogleSignIn */,
+				E7PKG0201 /* MLXLLM */,
+				E7PKG0202 /* MLXLMCommon */,
+				E7PKG0203 /* MLXLMTransformers */,
+			);
 			productName = Diario;
 			productReference = A3000001 /* Parlance - Interpreter Journal.app */;
 			productType = "com.apple.product-type.application";
@@ -158,6 +239,12 @@
 				Base,
 			);
 			mainGroup = A5000000;
+			packageReferences = (
+				E7FB0005 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				E7FB0006 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				E7PKG0001 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */,
+				E7PKG0002 /* XCRemoteSwiftPackageReference "swift-transformers-mlx" */,
+			);
 			productRefGroup = A5000002 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -172,6 +259,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E7DE26612FBFEED80066F0F5 /* i18n.js in Resources */,
 				E778CF1B2F9E3AF800296847 /* guide-fr.html in Resources */,
 				A1000004 /* Assets.xcassets in Resources */,
 				E7924DC62FA115DE002A93FF /* rag-knowledge.js in Resources */,
@@ -179,7 +267,10 @@
 				E778CF192F9E3AF800296847 /* guide-es.html in Resources */,
 				E778CF1F2F9E3B7000296847 /* index.html in Resources */,
 				A1000006 /* Config.plist in Resources */,
+				E7FB0013 /* GoogleService-Info.plist in Resources */,
 				E778CF1D2F9E3B5300296847 /* journal.js in Resources */,
+				E7SLM0030 /* parlance-es-mlx in Resources */,
+				E7SLM0032 /* parlance-fr-mlx in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -201,6 +292,12 @@
 				E7AI0007 /* AnthropicAnalyzer.swift in Sources */,
 				E7AI0009 /* GeminiAnalyzer.swift in Sources */,
 				E7AI0011 /* UnifiedAnalyzer.swift in Sources */,
+				E7SLM0001 /* ParlanceSLMAnalyzer.swift in Sources */,
+				E7SLM0011 /* ParlanceSLMEngine.swift in Sources */,
+				E7SLM0012 /* ParlanceSLMModelLocator.swift in Sources */,
+				E7SLM0013 /* ParlanceSLMFeedbackValidator.swift in Sources */,
+				E7FB0011 /* AuthManager.swift in Sources */,
+				E7FB0012 /* FirebaseCloudAnalyzer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -328,8 +425,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = Parlance/Parlance.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 9869W49GYJ;
 				ENABLE_PREVIEWS = YES;
@@ -338,11 +437,11 @@
 				INFOPLIST_KEY_CFBundleDisplayName = Parlance;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.parlance.interpreterguide;
 				PRODUCT_NAME = "Parlance - Interpreter Journal";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -352,8 +451,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = Parlance/Parlance.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 9869W49GYJ;
 				ENABLE_PREVIEWS = YES;
@@ -362,11 +463,11 @@
 				INFOPLIST_KEY_CFBundleDisplayName = Parlance;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.parlance.interpreterguide;
 				PRODUCT_NAME = "Parlance - Interpreter Journal";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -393,6 +494,79 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		E7FB0005 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.0.0;
+			};
+		};
+		E7FB0006 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
+		E7PKG0001 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ml-explore/mlx-swift-lm";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.31.3;
+			};
+		};
+		E7PKG0002 /* XCRemoteSwiftPackageReference "swift-transformers-mlx" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/DePasqualeOrg/swift-transformers-mlx";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.2.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		E7FB0201 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E7FB0005 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		E7FB0202 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E7FB0005 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		E7FB0203 /* FirebaseFunctions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E7FB0005 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFunctions;
+		};
+		E7FB0204 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E7FB0006 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		E7PKG0201 /* MLXLLM */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E7PKG0001 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */;
+			productName = MLXLLM;
+		};
+		E7PKG0202 /* MLXLMCommon */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E7PKG0001 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */;
+			productName = MLXLMCommon;
+		};
+		E7PKG0203 /* MLXLMTransformers */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E7PKG0002 /* XCRemoteSwiftPackageReference "swift-transformers-mlx" */;
+			productName = MLXLMTransformers;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A9000001 /* Project object */;
 }

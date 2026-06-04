@@ -1,9 +1,79 @@
 // ── AI PROVIDER CONFIGURATION ────────────────────────────────────
-const ANALYZE_DEBOUNCE_MS = 3000;
+const PARLANCE_SLM_URL = localStorage.getItem('parlance_slm_server_url') || 'http://127.0.0.1:8765';
+
+/** Min trimmed length to analyze on Enter. */
 const MIN_SENTENCE_CHARS = 15;
 const MIN_SENTENCE_WORDS = 3;
 
+/** Parlance Coach on-device first load can take 60–120s+ on iPhone. */
+const TIMEOUT_MS = {
+  parlanceNative: 300000,
+  parlanceServer: 180000,
+  webllm: 180000,
+  cloud: 20000,
+};
+
+const VALID_CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+
+function normalizeAssessedLevel(raw) {
+  if (!raw) return null;
+  const u = String(raw).toUpperCase().trim();
+  return VALID_CEFR_LEVELS.includes(u) ? u : null;
+}
+
+function extractAssessedLevel(obj) {
+  if (!obj) return null;
+  return normalizeAssessedLevel(obj.assessed_level || obj.assessedLevel || obj.sentence_level);
+}
+
+function extractComplexityNote(obj) {
+  if (!obj) return null;
+  const raw = obj.complexity_note || obj.complexityNote;
+  if (!raw || typeof raw !== 'string') return null;
+  const t = raw.trim();
+  return t.length ? t : null;
+}
+
+function altVersionLabels(assessedLevel) {
+  if (!assessedLevel) {
+    return { nextLabel: 'Next Level', targetLabel: 'Higher Level' };
+  }
+  const nextLabels = {
+    C2: 'Native Polish', C1: 'C2 Mastery', B2: 'C1 Professional',
+    B1: 'B2 Version', A2: 'B1 Version', A1: 'A2 Version',
+  };
+  const targetLabels = {
+    B2: 'C2 Mastery', B1: 'C1 Professional', A2: 'B2 Version', A1: 'B1 Version',
+  };
+  return {
+    nextLabel: nextLabels[assessedLevel] || 'Next Level',
+    targetLabel: targetLabels[assessedLevel] || null,
+  };
+}
+
+function analysisCacheHash(sentence, language) {
+  return btoa(unescape(encodeURIComponent(sentence + '|' + language + '|fbv5'))).slice(0, 40);
+}
+
+function sanitizeFeedbackResult(sentence, result, language = 'es') {
+  return ParlanceFeedbackSanitize.sanitizeFeedbackResult(sentence, result, language);
+}
+
 const AI_PROVIDERS = {
+  parlance: {
+    id: 'parlance',
+    name: 'Parlance Coach',
+    subtitle: 'Spanish & French fine-tuned · On-device',
+    icon: '🎓',
+    requiresKey: false,
+    local: true,
+    corsNote: false,
+    models: [
+      { id: 'parlance-es', name: 'Parlance Spanish (Qwen 0.5B)' },
+      { id: 'parlance-fr', name: 'Parlance French (Qwen 0.5B)' },
+    ],
+    defaultModel: 'parlance-es',
+  },
   webllm: {
     id: 'webllm',
     name: 'Browser AI',
@@ -162,6 +232,288 @@ function setSelectedProvider(id) { localStorage.setItem(LS_PROVIDER, id); }
 function setProviderModel(id, m)  { localStorage.setItem(LS_MODEL + id, m); }
 function setProviderKey(id, k)    { localStorage.setItem(LS_KEY + id, k); }
 
+// ── FIREBASE AUTH & CLOUD PROXY ──────────────────────────────────
+let firebaseApp = null;
+let firebaseAuth = null;
+let analyzeTextCallable = null;
+let firebaseAuthUser = null;
+let firebaseInitPromise = null;
+
+const FIREBASE_PLACEHOLDER_API_KEY = 'YOUR_API_KEY';
+
+function hasFirebaseConfig() {
+  return typeof firebaseConfig !== 'undefined'
+    && firebaseConfig?.apiKey
+    && firebaseConfig.apiKey !== FIREBASE_PLACEHOLDER_API_KEY;
+}
+
+function isCloudProvider(providerId) {
+  const p = AI_PROVIDERS[providerId];
+  return !!(p && !p.local);
+}
+
+function isFirebaseSignedIn() {
+  if (isNativeParlanceApp()) {
+    return !!(window.__PARLANCE_AUTH__?.signedIn);
+  }
+  return !!firebaseAuthUser;
+}
+
+function firebaseDisplayName() {
+  if (isNativeParlanceApp()) {
+    const a = window.__PARLANCE_AUTH__ || {};
+    return a.displayName || a.email || 'Signed in';
+  }
+  if (firebaseAuthUser) {
+    return firebaseAuthUser.displayName || firebaseAuthUser.email || 'Signed in';
+  }
+  return '';
+}
+
+function shouldUseFirebaseCloud(providerId) {
+  if (!isCloudProvider(providerId)) return false;
+  return isFirebaseSignedIn();
+}
+
+function canUseFirebaseWebAuth() {
+  return hasFirebaseConfig()
+    && typeof firebase !== 'undefined'
+    && !isNativeParlanceApp();
+}
+
+async function ensureFirebaseReady() {
+  if (!canUseFirebaseWebAuth()) return false;
+  if (firebaseApp && analyzeTextCallable) return true;
+  if (firebaseInitPromise) return firebaseInitPromise;
+
+  firebaseInitPromise = (async () => {
+    try {
+      if (!firebase.apps?.length) {
+        firebaseApp = firebase.initializeApp(firebaseConfig);
+      } else {
+        firebaseApp = firebase.app();
+      }
+      firebaseAuth = firebase.auth();
+      analyzeTextCallable = firebase.functions().httpsCallable('analyzeText');
+      firebaseAuth.onAuthStateChanged((user) => {
+        firebaseAuthUser = user;
+        updateFirebaseAuthUI();
+        updateModalForProvider(modalSelectedProvider);
+        updateWaitingCard();
+      });
+      return true;
+    } catch (e) {
+      console.warn('[Parlance] Firebase init failed:', e);
+      return false;
+    } finally {
+      firebaseInitPromise = null;
+    }
+  })();
+
+  return firebaseInitPromise;
+}
+
+async function signInWithApple() {
+  if (isNativeParlanceApp()) {
+    try {
+      await callNativeAuth('signInApple');
+      showToast('Signed in with Apple. ✓');
+    } catch (e) {
+      const msg = e?.message || '';
+      if (msg && msg !== 'cancelled' && !msg.includes('canceled')) {
+        showToast(msg || 'Apple sign-in failed');
+      }
+    }
+    updateFirebaseAuthUI();
+    updateModalForProvider(modalSelectedProvider);
+    updateWaitingCard();
+    return;
+  }
+  if (!canUseFirebaseWebAuth()) return;
+  await ensureFirebaseReady();
+  const provider = new firebase.auth.OAuthProvider('apple.com');
+  provider.addScope('email');
+  provider.addScope('name');
+  try {
+    await firebaseAuth.signInWithPopup(provider);
+    showToast('Signed in with Apple. ✓');
+  } catch (e) {
+    if (e?.code !== 'auth/popup-closed-by-user') {
+      showToast(e?.message || 'Apple sign-in failed');
+    }
+  }
+  updateFirebaseAuthUI();
+}
+
+async function signInWithGoogle() {
+  if (isNativeParlanceApp()) {
+    try {
+      await callNativeAuth('signInGoogle');
+      showToast('Signed in with Google. ✓');
+    } catch (e) {
+      const msg = e?.message || '';
+      if (msg && msg !== 'cancelled' && !msg.includes('canceled')) {
+        showToast(msg || 'Google sign-in failed');
+      }
+    }
+    updateFirebaseAuthUI();
+    updateModalForProvider(modalSelectedProvider);
+    updateWaitingCard();
+    return;
+  }
+  if (!canUseFirebaseWebAuth()) return;
+  await ensureFirebaseReady();
+  try {
+    await firebaseAuth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+    showToast('Signed in with Google. ✓');
+  } catch (e) {
+    if (e?.code !== 'auth/popup-closed-by-user') {
+      showToast(e?.message || 'Google sign-in failed');
+    }
+  }
+  updateFirebaseAuthUI();
+}
+
+async function signOutFirebase() {
+  if (isNativeParlanceApp()) {
+    try {
+      await callNativeAuth('signOut');
+      showToast('Signed out.');
+    } catch (e) {
+      showToast(e?.message || 'Sign out failed');
+    }
+    updateFirebaseAuthUI();
+    updateModalForProvider(modalSelectedProvider);
+    updateWaitingCard();
+    return;
+  }
+  if (canUseFirebaseWebAuth() && firebaseAuth) {
+    try {
+      await firebaseAuth.signOut();
+    } catch (_) {}
+  }
+  updateFirebaseAuthUI();
+  updateModalForProvider(modalSelectedProvider);
+  updateWaitingCard();
+  showToast('Signed out.');
+}
+
+function updateFirebaseAuthUI() {
+  const section = document.getElementById('authSection');
+  if (!section) return;
+
+  const signedOut = document.getElementById('authSignedOut');
+  const signedInEl = document.getElementById('authSignedIn');
+  const authButtons = document.getElementById('authButtons');
+  const authSetupHint = document.getElementById('authSetupHint');
+  const native = isNativeParlanceApp();
+  const webAuth = canUseFirebaseWebAuth();
+
+  if (!hasFirebaseConfig() && !native) {
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = '';
+
+  if (native) {
+    if (authButtons) authButtons.style.display = '';
+    if (authSetupHint) {
+      authSetupHint.textContent =
+        'Sign in with Apple or Google to use cloud AI without API keys.';
+    }
+  } else if (!webAuth) {
+    section.style.display = 'none';
+    return;
+  } else {
+    if (authButtons) authButtons.style.display = '';
+    if (authSetupHint) {
+      authSetupHint.textContent =
+        'Sign in to use cloud AI without API keys (Groq, Gemini, …).';
+    }
+  }
+
+  const signedIn = isFirebaseSignedIn();
+  if (signedOut) signedOut.style.display = signedIn ? 'none' : '';
+  if (signedInEl) signedInEl.style.display = signedIn ? '' : 'none';
+  const label = document.getElementById('authUserLabel');
+  if (label && signedIn) label.textContent = firebaseDisplayName();
+}
+
+function normalizeFirebaseAnalyzeResult(data, sentence) {
+  if (!data) throw new Error('Empty response from cloud analysis');
+  if (data.status === 'Excellent' || data.status === 'Needs Improvement') {
+    return normalizeResult(data, sentence);
+  }
+  if (data.feedback && typeof data.feedback === 'object') {
+    return normalizeResult(data.feedback, sentence);
+  }
+  const raw = data.rawContent ?? data.raw ?? (typeof data === 'string' ? data : null);
+  if (raw) return normalizeResult(parseAIContent(raw), sentence);
+  return normalizeResult(data, sentence);
+}
+
+function callNativeFirebaseAnalyze(sentence, language, providerId) {
+  return new Promise((resolve, reject) => {
+    if (!isNativeParlanceApp()) {
+      reject(new Error('Native Firebase analysis is only available in the Parlance app.'));
+      return;
+    }
+    const requestId = 'fb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    const timeoutId = setTimeout(() => {
+      reject(new Error('Cloud AI via Parlance account timed out. Try again or switch provider in ⚙ AI.'));
+    }, TIMEOUT_MS.cloud);
+    const ragContext = typeof getRAGContext === 'function'
+      ? getRAGContext(language, null, sentence) : '';
+    window.__parlanceFirebaseResult = (id, result, err) => {
+      if (id !== requestId) return;
+      clearTimeout(timeoutId);
+      delete window.__parlanceFirebaseResult;
+      if (err) {
+        reject(new Error(err));
+        return;
+      }
+      try {
+        if (typeof result === 'string') {
+          resolve(normalizeFirebaseAnalyzeResult(parseAIContent(result), sentence));
+        } else {
+          resolve(normalizeFirebaseAnalyzeResult(result, sentence));
+        }
+      } catch (e) {
+        reject(e);
+      }
+    };
+    window.webkit.messageHandlers.parlance.postMessage({
+      action: 'analyzeFirebase',
+      requestId,
+      sentence,
+      language,
+      ragContext,
+      provider: providerId,
+      model: getProviderModel(providerId),
+    });
+  });
+}
+
+async function callFirebaseCloudAnalyze(sentence, language, providerId) {
+  if (isNativeParlanceApp() && window.__PARLANCE_AUTH__?.signedIn) {
+    return callNativeFirebaseAnalyze(sentence, language, providerId);
+  }
+  const ready = await ensureFirebaseReady();
+  if (!ready || !analyzeTextCallable) {
+    throw new Error('Firebase is not configured.');
+  }
+  const ragContext = typeof getRAGContext === 'function'
+    ? getRAGContext(language, null, sentence) : '';
+  const resp = await analyzeTextCallable({
+    sentence,
+    language,
+    ragContext,
+    provider: providerId,
+    model: getProviderModel(providerId),
+  });
+  return normalizeFirebaseAnalyzeResult(resp.data, sentence);
+}
+
 // ── WEBLLM ENGINE ────────────────────────────────────────────────
 let webLLMEngine = null;
 let webLLMLoadingPromise = null;
@@ -204,70 +556,19 @@ async function ensureWebLLM(modelId, progressCallback) {
 }
 
 // ── SYSTEM PROMPT BUILDER ─────────────────────────────────────────
-function buildSystemPrompt(langName, level, ragContext) {
+function buildSystemPrompt(langName, ragContext) {
   const registerLabel = langName === 'French' ? 'tu/vous' : 'tú/usted';
+  const formalRegister = langName === 'French' ? 'vous' : 'usted';
+  const informalRegister = langName === 'French' ? 'tu' : 'tú';
 
-  let nextLevel, targetLevel, levelGuidance;
+  let prompt = `You are a ${langName} professor training professional interpreters. Do NOT assume the learner picked a CEFR level.
 
-  switch (level.toUpperCase()) {
-    case 'C2':
-      nextLevel = 'native-polish';
-      targetLevel = null;
-      levelGuidance = `Focus on near-native precision, stylistic elegance, idiomatic naturalness, and \
-register mastery for professional interpreting. Flag any residual Anglicisms, calques, or unnatural phrasing. \
-Provide a next_level_alt showing the most polished native-level phrasing. \
-Identify the register used (${registerLabel}, formal/informal) and whether it is appropriate.`;
-      break;
-    case 'C1':
-      nextLevel = 'C2';
-      targetLevel = null;
-      levelGuidance = `Focus on professional register, advanced word precision, and naturalness for interpreting. \
-Flag Anglicisms (English sentence structures used in ${langName}). \
-Provide a next_level_alt showing C2 native-mastery phrasing. \
-Identify the register (${registerLabel}) and whether it matches a professional interpreting context.`;
-      break;
-    case 'B2':
-      nextLevel = 'C1';
-      targetLevel = 'C2';
-      levelGuidance = `Focus on verb tense correctness (especially subjunctive vs indicative), gender/number agreement, \
-and Anglicisms. Identify the register: is the sentence formal or informal? Would an interpreter use this phrasing \
-in a professional setting? Explain ${registerLabel} choice. \
-Provide next_level_alt (C1 professional interpreter phrasing) and target_level_alt (C2 native mastery).`;
-      break;
-    case 'B1':
-      nextLevel = 'B2';
-      targetLevel = 'C1';
-      levelGuidance = `Focus on basic verb tense correctness and gender agreement. Be encouraging and clear. \
-Identify the register: is the learner using ${registerLabel} appropriately? \
-Introduce the concept of formal vs informal register for interpreter training. \
-Provide next_level_alt (B2 with more complex structures) and target_level_alt (C1 professional interpreter phrasing).`;
-      break;
-    case 'A2':
-      nextLevel = 'B1';
-      targetLevel = 'B2';
-      levelGuidance = `Focus on basic present tense conjugation, gender agreement, and simple sentence structure. \
-Be encouraging. Check reflexive verbs, near future constructions, and basic vocabulary. \
-Gently introduce register awareness: note whether the sentence uses ${registerLabel} and explain why it matters \
-for someone training to become an interpreter. \
-Provide next_level_alt (B1 with past tenses) and target_level_alt (B2 complexity).`;
-      break;
-    default: // A1
-      nextLevel = 'A2';
-      targetLevel = 'B1';
-      levelGuidance = `Focus on basic present tense, fundamental verb usage, and simple vocabulary. \
-Be very encouraging — this is an absolute beginner training to become an interpreter. \
-Check subject-verb agreement and basic word order. Gently note register: is the learner using ${registerLabel}? \
-Explain the difference simply and why interpreters must know both forms. \
-Provide next_level_alt (A2 with slightly more complex structures) and target_level_alt (B1 phrasing).`;
-  }
+Evaluate verb tense and mood, gender/number agreement, register (${registerLabel}), Anglicisms, and naturalness for professional interpreting.
 
-  const targetLine = targetLevel
-    ? `"target_level_alt": "COMPLETE SENTENCE in ${langName}: rewrite the learner's exact idea using ${targetLevel}-level grammar and vocabulary"`
-    : '"target_level_alt": null';
-
-  let prompt = `You are a ${langName} professor training professional interpreters. The learner is at CEFR level ${level}.
-
-${levelGuidance}
+CEFR & COMPLEXITY:
+- assessed_level: A1–C2 ONLY if highly confident from specific structures in this sentence. When uncertain, omit and use complexity_note without a CEFR label. Never guess from word count.
+- complexity_note: 1–2 English sentences on vocabulary, syntax, subordination, and register — what makes this sentence simple or advanced. Always include when possible, even without assessed_level.
+- next_level_alt / target_level_alt: stronger rewrites; CEFR labels only when assessed_level is set.
 
 `;
 
@@ -280,21 +581,27 @@ ${ragContext}
 
   prompt += `CRITICAL ACCURACY RULES:
 - Do NOT invent grammatical errors. Only flag real, clear mistakes.
-- A simple, grammatically correct sentence is "Excellent" even if it could be more sophisticated.
+- Grammatically correct sentences are "Excellent" — but explanation must cite specific structures in the learner's words (not generic praise).
 - Only mark "Needs Improvement" when there is an actual grammar error — not just a style preference.
+- Do NOT set assessed_level unless highly confident from specific structures in the sentence. When uncertain, omit and describe complexity in complexity_note.
+- ALWAYS include complexity_note describing THIS sentence's structures.
+- next_level_alt MUST rewrite the sentence at a higher level — never copy the input verbatim.
+- tip MUST include at least one complete example sentence in ${langName} showing a stronger phrasing.
 - ALL example sentences (correction, next_level_alt, target_level_alt) MUST be COMPLETE SENTENCES written in ${langName}, NEVER in English. Do NOT return short labels or descriptions — return full, natural sentences.
 - next_level_alt and target_level_alt must express the SAME idea as the original sentence rephrased with grammar and vocabulary appropriate for that CEFR level. Do NOT add new information or embellish.
 - grammar_rule, explanation, register, and tip must be in English.
 
 Respond with ONLY a valid JSON object. No markdown fences, no text outside the JSON, no <think> tags:
 {
+  "assessed_level": "A1" | "A2" | "B1" | "B2" | "C1" | "C2" | null,
+  "complexity_note": "1–2 English sentences on sentence complexity (vocabulary, syntax, subordination, register)",
   "status": "Excellent" or "Needs Improvement",
   "grammar_rule": "The specific grammar rule tested or applied — always explain, even when correct",
-  "explanation": "WHY the sentence is correct or incorrect at the ${level} level — be specific and actionable",
+  "explanation": "WHY the sentence is correct or incorrect — be specific and actionable",
   "correction": null or "Corrected sentence in ${langName} (only if Needs Improvement)",
-  "register": "Identify the register: formal (${langName === 'French' ? 'vous' : 'usted'}) or informal (${langName === 'French' ? 'tu' : 'tú'}), and whether appropriate for a professional interpreter",
-  "next_level_alt": "COMPLETE SENTENCE in ${langName}: rewrite the learner's exact idea using ${nextLevel}-level grammar and vocabulary",
-  ${targetLine},
+  "register": "Identify the register: formal (${formalRegister}) or informal (${informalRegister}), and whether appropriate for a professional interpreter",
+  "next_level_alt": "COMPLETE SENTENCE in ${langName}: same idea one CEFR level above assessed_level, or null if no assessed_level",
+  "target_level_alt": "COMPLETE SENTENCE in ${langName}: two levels above assessed_level, or null",
   "tip": "A practical tip about register, Anglicisms, or word precision for interpreter training"
 }`;
 
@@ -384,6 +691,145 @@ async function callGemini(model, apiKey, systemPrompt, userMessage) {
   return data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
 }
 
+// ── API CALL: Parlance fine-tuned SLM (local server) ─────────────
+async function callParlanceSLM(sentence, language, ragContext = '') {
+  const base = PARLANCE_SLM_URL.replace(/\/$/, '');
+  const resp = await fetch(`${base}/analyze`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sentence, language, ragContext }),
+  });
+  const data = await resp.json().catch(() => ({}));
+  if (!resp.ok) {
+    throw new Error(data.error || `Parlance SLM server error (${resp.status})`);
+  }
+  if (!data.feedback) throw new Error('No feedback from Parlance SLM server');
+  return JSON.stringify(data.feedback);
+}
+
+function isNativeParlanceApp() {
+  return !!(window.__PARLANCE_CONFIG__ && window.webkit?.messageHandlers?.parlance);
+}
+
+function parlanceAuthSignedIn() {
+  return isFirebaseSignedIn();
+}
+
+function effectiveRequiresKey(providerId) {
+  if (isFirebaseSignedIn() && isCloudProvider(providerId)) return false;
+  return AI_PROVIDERS[providerId]?.requiresKey ?? false;
+}
+
+function parlanceCoachAvailableForLanguage(language) {
+  const cfg = window.__PARLANCE_CONFIG__ || {};
+  const langs = cfg.parlanceCoachLanguages || (cfg.parlanceCoachAvailable ? ['es', 'fr'] : []);
+  return langs.includes(language);
+}
+
+/** SLM storage id for journal language (es → parlance-es, fr → parlance-fr). */
+function parlanceModelIdForLanguage(lang) {
+  return lang === 'fr' ? 'parlance-fr' : 'parlance-es';
+}
+
+/** On iOS with bundled coach, model follows journal language — not a manual dual picker. */
+function parlanceCoachModelFollowsJournal() {
+  const cfg = window.__PARLANCE_CONFIG__ || {};
+  return cfg.parlanceCoachAvailable && isNativeParlanceApp();
+}
+
+function parlanceCoachDisplayName(lang) {
+  return 'Parlance Coach';
+}
+
+/** Keep localStorage parlance model aligned with state.currentLanguage on native iOS. */
+function syncParlanceModelToJournalLanguage() {
+  if (!parlanceCoachModelFollowsJournal()) return null;
+  const modelId = parlanceModelIdForLanguage(state.currentLanguage);
+  if (getProviderModel('parlance') !== modelId) {
+    setProviderModel('parlance', modelId);
+  }
+  return modelId;
+}
+
+function unloadNativeParlanceSLM() {
+  if (!isNativeParlanceApp()) return;
+  try {
+    window.webkit?.messageHandlers?.parlance?.postMessage({ action: 'unloadParlanceSLM' });
+  } catch (_) {}
+}
+
+function buildRAGMeta(language, level, sentence, condensed = false) {
+  if (typeof getRAGContextWithMeta === 'function') {
+    return getRAGContextWithMeta(language, level, sentence, { condensed });
+  }
+  const context = typeof getRAGContext === 'function'
+    ? getRAGContext(language, level, sentence, { condensed }) : '';
+  return { context, topics: [] };
+}
+
+function attachRAGMeta(result, topics) {
+  if (topics?.length) result._rag_topics = topics;
+  return result;
+}
+
+function callNativeParlanceSLM(sentence, language, ragContext = '') {
+  return new Promise((resolve, reject) => {
+    const requestId = 'slm_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    const timeoutId = setTimeout(() => {
+      reject(new Error(parlanceTimeoutMessage(true)));
+    }, TIMEOUT_MS.parlanceNative);
+    window.__parlanceSLMResult = (id, result, err) => {
+      if (id !== requestId) return;
+      clearTimeout(timeoutId);
+      delete window.__parlanceSLMResult;
+      if (err) reject(new Error(err));
+      else resolve(JSON.stringify(result));
+    };
+    window.webkit.messageHandlers.parlance.postMessage({
+      action: 'analyzeParlanceSLM',
+      requestId,
+      sentence,
+      language,
+      ragContext,
+    });
+  });
+}
+
+function parlanceTimeoutMessage(nativeOnDevice) {
+  if (nativeOnDevice) {
+    return 'Parlance Coach is still working. The first on-device run can take 1–2 minutes while the model loads — keep the app open and wait, or try a shorter sentence.';
+  }
+  return 'Parlance Coach timed out. Check that the dev server is running, or switch provider in ⚙ AI.';
+}
+
+function analysisTimeoutMs(providerId) {
+  if (providerId === 'parlance') {
+    return isNativeParlanceApp() ? TIMEOUT_MS.parlanceNative : TIMEOUT_MS.parlanceServer;
+  }
+  if (providerId === 'webllm') return TIMEOUT_MS.webllm;
+  return TIMEOUT_MS.cloud;
+}
+
+function analysisTimeoutMessage(providerId) {
+  if (providerId === 'parlance') {
+    return parlanceTimeoutMessage(isNativeParlanceApp());
+  }
+  const provider = AI_PROVIDERS[providerId];
+  return `${provider?.name || 'AI'} timed out. Check your connection or try another provider in ⚙ AI.`;
+}
+
+async function checkParlanceSLMServer() {
+  try {
+    const base = PARLANCE_SLM_URL.replace(/\/$/, '');
+    const resp = await fetch(`${base}/health`, { signal: AbortSignal.timeout(2000) });
+    if (!resp.ok) return false;
+    const data = await resp.json().catch(() => ({}));
+    return data.spanish_ready === true || data.french_ready === true;
+  } catch (_) {
+    return false;
+  }
+}
+
 // ── API CALL: WebLLM (local) ─────────────────────────────────────
 async function callWebLLM(engine, systemPrompt, userMessage) {
   const reply = await engine.chat.completions.create({
@@ -410,12 +856,18 @@ function parseAIContent(raw) {
   const end = cleaned.lastIndexOf('}');
   if (start === -1 || end === -1) throw new Error('No JSON object found in response');
 
-  const jsonStr = cleaned.slice(start, end + 1);
+  const jsonStr = cleaned.slice(start, end + 1)
+    .replace(/,\s*}/g, '}')
+    .replace(/,\s*]/g, ']');
   return JSON.parse(jsonStr);
 }
 
-function normalizeResult(raw) {
+function normalizeResult(raw, sentence = '', language = 'es') {
   const result = {};
+  const assessed = extractAssessedLevel(raw);
+  if (assessed) result.assessed_level = assessed;
+  const complexity = extractComplexityNote(raw);
+  if (complexity) result.complexity_note = complexity;
   result.status      = (raw.status === 'Excellent' || raw.status === 'Needs Improvement')
     ? raw.status : 'Excellent';
   result.grammar_rule = raw.grammar_rule || raw.grammarRule || 'Grammar rule not identified';
@@ -425,21 +877,25 @@ function normalizeResult(raw) {
   if (raw.next_level_alt)   result.next_level_alt  = raw.next_level_alt;
   if (raw.target_level_alt) result.target_level_alt = raw.target_level_alt;
   if (raw.tip)              result.tip             = raw.tip;
-  return result;
+  if (raw._coach_warning)   result._coach_warning  = raw._coach_warning;
+  if (raw._coach_repaired)  result._coach_repaired = raw._coach_repaired;
+  if (raw._rag_topics)      result._rag_topics     = raw._rag_topics;
+  return sentence ? sanitizeFeedbackResult(sentence, result, language) : result;
 }
 
 // ── UNIFIED ANALYSIS ─────────────────────────────────────────────
 // Called by analyzeSentence() — routes to the selected provider
-async function analyzeWithAI(sentence, language, level, progressCallback) {
+async function analyzeWithAI(sentence, language, progressCallback) {
   // Check offline cache first
   try {
     const cacheKey = 'parlance_analysis_cache';
     const cache = JSON.parse(localStorage.getItem(cacheKey) || '{}');
-    const hash = btoa(unescape(encodeURIComponent(
-      sentence + '|' + language + '|' + level
-    ))).slice(0, 40);
+    const hash = analysisCacheHash(sentence, language);
     if (cache[hash]) {
-      return { ...cache[hash].feedback, _cachedSource: (cache[hash].source || 'cached') + ' (cached)' };
+      return {
+        ...sanitizeFeedbackResult(sentence, cache[hash].feedback, language),
+        _cachedSource: (cache[hash].source || 'cached') + ' (cached)',
+      };
     }
   } catch (_) {}
 
@@ -447,22 +903,60 @@ async function analyzeWithAI(sentence, language, level, progressCallback) {
   const provider   = AI_PROVIDERS[providerId];
   if (!provider) throw new Error('Unknown AI provider');
 
-  const ragContext  = typeof getRAGContext === 'function'
-    ? getRAGContext(language, level, sentence) : '';
-  const langName    = language === 'fr' ? 'French' : 'Spanish';
-  const systemPrompt = buildSystemPrompt(langName, level, ragContext);
-  const userMessage  = `Analyze this ${langName} sentence at ${level} level: "${sentence}"`;
+  if (shouldUseFirebaseCloud(providerId)) {
+    const ragMeta = buildRAGMeta(language, null, sentence, false);
+    const timeoutMs = analysisTimeoutMs(providerId);
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(analysisTimeoutMessage(providerId))), timeoutMs)
+    );
+    let result = await Promise.race([
+      callFirebaseCloudAnalyze(sentence, language, providerId),
+      timeoutPromise,
+    ]);
+    if (ragMeta.topics.length) attachRAGMeta(result, ragMeta.topics);
+    result = sanitizeFeedbackResult(sentence, result, language);
+    try {
+      const cacheKey = 'parlance_analysis_cache';
+      const cache = JSON.parse(localStorage.getItem(cacheKey) || '{}');
+      const hash = analysisCacheHash(sentence, language);
+      cache[hash] = { feedback: result, source: `${provider.name} (account)`, ts: Date.now() };
+      const keys = Object.keys(cache);
+      if (keys.length > 200) {
+        const sorted = keys.sort((a, b) => cache[a].ts - cache[b].ts);
+        sorted.slice(0, keys.length - 200).forEach(k => delete cache[k]);
+      }
+      localStorage.setItem(cacheKey, JSON.stringify(cache));
+    } catch (_) {}
+    return result;
+  }
 
-  // Wrap in a 20-second timeout for cloud providers
-  const timeoutMs = providerId === 'webllm' ? 120000 : 20000;
+  const ragMeta     = buildRAGMeta(language, null, sentence, providerId === 'parlance');
+  const ragContext  = ragMeta.context;
+  const langName    = language === 'fr' ? 'French' : 'Spanish';
+  const systemPrompt = buildSystemPrompt(langName, ragContext);
+  const userMessage  = `Analyze this ${langName} sentence: "${sentence}"`;
+
+  const timeoutMs = analysisTimeoutMs(providerId);
   const timeoutPromise = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error(`${provider.name} timed out. Check your connection or try another provider in ⚙ AI.`)), timeoutMs)
+    setTimeout(() => reject(new Error(analysisTimeoutMessage(providerId))), timeoutMs)
   );
 
   const analysisPromise = (async () => {
     let rawContent;
 
-    if (providerId === 'webllm') {
+    if (providerId === 'parlance') {
+      if (isNativeParlanceApp() && !parlanceCoachAvailableForLanguage(language)) {
+        throw new Error(`Parlance Coach model is not bundled in this build. Run ./training/prepare_ios_coach_model.sh and re-archive, or use another provider in ⚙ AI.`);
+      }
+      if (isNativeParlanceApp()) {
+        const nativeRaw = await callNativeParlanceSLM(sentence, language, ragContext);
+        // Native bridge returns pre-validated JSON from ParlanceSLMFeedbackValidator.
+        const nativeParsed = typeof nativeRaw === 'string' ? JSON.parse(nativeRaw) : nativeRaw;
+        return attachRAGMeta(normalizeResult(nativeParsed, sentence, language), ragMeta.topics);
+      }
+      rawContent = await callParlanceSLM(sentence, language, ragContext);
+
+    } else if (providerId === 'webllm') {
       if (!navigator.gpu) {
         throw new Error('Your browser does not support WebGPU (needed for Browser AI). Switch to a cloud provider like Groq (free) in ⚙ AI settings.');
       }
@@ -472,18 +966,24 @@ async function analyzeWithAI(sentence, language, level, progressCallback) {
 
     } else if (providerId === 'anthropic') {
       const key   = getProviderKey('anthropic');
-      if (!key) throw new Error('No Anthropic API key. Add one in ⚙ AI settings.');
+      if (effectiveRequiresKey('anthropic') && !key) {
+        throw new Error('No Anthropic API key. Add one in ⚙ AI settings.');
+      }
       rawContent  = await callAnthropic(getProviderModel('anthropic'), key, systemPrompt, userMessage);
 
     } else if (providerId === 'gemini') {
       const key   = getProviderKey('gemini');
-      if (!key) throw new Error('No Gemini API key. Add one in ⚙ AI settings.');
+      if (effectiveRequiresKey('gemini') && !key) {
+        throw new Error('No Gemini API key. Add one in ⚙ AI settings.');
+      }
       rawContent  = await callGemini(getProviderModel('gemini'), key, systemPrompt, userMessage);
 
     } else {
-      // OpenAI-compatible: groq, openai, kimi
+      // OpenAI-compatible: groq, openai, kimi, deepseek, openrouter
       const key   = getProviderKey(providerId);
-      if (!key) throw new Error(`No ${provider.name} API key. Add one in ⚙ AI settings.`);
+      if (effectiveRequiresKey(providerId) && !key) {
+        throw new Error(`No ${provider.name} API key. Add one in ⚙ AI settings.`);
+      }
       rawContent  = await callOpenAIFormat(
         provider.endpoint, getProviderModel(providerId), key, systemPrompt, userMessage
       );
@@ -492,17 +992,19 @@ async function analyzeWithAI(sentence, language, level, progressCallback) {
     return rawContent;
   })();
 
-  const rawContent = await Promise.race([analysisPromise, timeoutPromise]);
-  const parsed = parseAIContent(rawContent);
-  const result = normalizeResult(parsed);
+  const analysisResult = await Promise.race([analysisPromise, timeoutPromise]);
+  let result = (typeof analysisResult === 'object' && analysisResult?.status)
+    ? sanitizeFeedbackResult(sentence, analysisResult, language)
+    : normalizeResult(parseAIContent(analysisResult), sentence, language);
+  if (ragMeta.topics.length && !result._rag_topics) {
+    attachRAGMeta(result, ragMeta.topics);
+  }
 
   // Cache the analysis result in localStorage
   try {
     const cacheKey = 'parlance_analysis_cache';
     const cache = JSON.parse(localStorage.getItem(cacheKey) || '{}');
-    const hash = btoa(unescape(encodeURIComponent(
-      sentence + '|' + language + '|' + level
-    ))).slice(0, 40);
+    const hash = analysisCacheHash(sentence, language);
     cache[hash] = { feedback: result, source: AI_PROVIDERS[providerId]?.name || providerId, ts: Date.now() };
     // Keep cache to 200 entries max
     const keys = Object.keys(cache);
@@ -582,7 +1084,6 @@ const languages = {
 const state = {
   sentences: [],
   activeSentenceId: null,
-  debounceTimers: {},
   analyzingSentenceIds: new Set(),
   savedEntries: [],
   isOnline: navigator.onLine,
@@ -593,10 +1094,48 @@ const state = {
 let modalSelectedProvider = 'webllm';
 
 function openAISettings() {
+  if (isNativeParlanceApp() && window.webkit?.messageHandlers?.parlance) {
+    window.webkit.messageHandlers.parlance.postMessage('showAISettings');
+    return;
+  }
+  syncParlanceModelToJournalLanguage();
   modalSelectedProvider = getSelectedProvider();
   renderProviderGrid();
+  updateFirebaseAuthUI();
   updateModalForProvider(modalSelectedProvider);
   document.getElementById('aiSettingsOverlay').style.display = 'flex';
+}
+
+/** Called from iOS after native AI Settings sheet closes. */
+function applyNativeAISettings(providerId, model) {
+  if (providerId && AI_PROVIDERS[providerId]) {
+    setSelectedProvider(providerId);
+    if (model) setProviderModel(providerId, model);
+  }
+  updateFirebaseAuthUI();
+  updateWaitingCard();
+}
+
+function callNativeAuth(action) {
+  return new Promise((resolve, reject) => {
+    if (!isNativeParlanceApp()) {
+      reject(new Error('Not in native app'));
+      return;
+    }
+    const requestId = 'auth_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    const timeoutId = setTimeout(() => {
+      delete window.__parlanceAuthResult;
+      reject(new Error('Sign-in timed out'));
+    }, 120000);
+    window.__parlanceAuthResult = (id, err) => {
+      if (id !== requestId) return;
+      clearTimeout(timeoutId);
+      delete window.__parlanceAuthResult;
+      if (err) reject(new Error(err));
+      else resolve();
+    };
+    window.webkit.messageHandlers.parlance.postMessage({ action, requestId });
+  });
 }
 
 function closeAISettings() {
@@ -619,6 +1158,7 @@ function renderProviderGrid() {
       modalSelectedProvider = p.id;
       grid.querySelectorAll('.ai-provider-card').forEach(c => c.classList.remove('selected'));
       card.classList.add('selected');
+      if (p.id === 'parlance') syncParlanceModelToJournalLanguage();
       updateModalForProvider(p.id);
     });
     grid.appendChild(card);
@@ -628,11 +1168,16 @@ function renderProviderGrid() {
 function updateModalForProvider(id) {
   const provider = AI_PROVIDERS[id];
 
+  const cloudNote = document.getElementById('authCloudNote');
+  if (cloudNote) {
+    cloudNote.style.display = (isFirebaseSignedIn() && isCloudProvider(id)) ? '' : 'none';
+  }
+
   // API key section
   const keySection  = document.getElementById('apiKeySection');
   const apiKeyInput = document.getElementById('apiKeyInput');
   const apiKeyHint  = document.getElementById('apiKeyHint');
-  if (provider.requiresKey) {
+  if (effectiveRequiresKey(id)) {
     keySection.style.display = '';
     apiKeyInput.value = getProviderKey(id);
     apiKeyHint.innerHTML = provider.keyUrl
@@ -644,17 +1189,29 @@ function updateModalForProvider(id) {
     apiKeyHint.innerHTML = '';
   }
 
-  // Model dropdown
+  // Model dropdown (native iOS Parlance Coach: single model tied to journal language)
+  const modelSection = document.getElementById('modelSection');
   const modelSel = document.getElementById('modalModelSelect');
   modelSel.innerHTML = '';
-  const savedModel = getProviderModel(id);
-  provider.models.forEach(m => {
+  if (id === 'parlance' && parlanceCoachModelFollowsJournal()) {
+    const modelId = syncParlanceModelToJournalLanguage();
+    modelSection.style.display = 'none';
     const opt = document.createElement('option');
-    opt.value = m.id;
-    opt.textContent = m.name;
-    opt.selected = m.id === savedModel;
+    opt.value = modelId;
+    opt.textContent = parlanceCoachDisplayName(state.currentLanguage);
+    opt.selected = true;
     modelSel.appendChild(opt);
-  });
+  } else {
+    modelSection.style.display = '';
+    const savedModel = getProviderModel(id);
+    provider.models.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m.id;
+      opt.textContent = m.name;
+      opt.selected = m.id === savedModel;
+      modelSel.appendChild(opt);
+    });
+  }
 
   // CORS warning
   document.getElementById('corsWarning').style.display = provider.corsNote ? '' : 'none';
@@ -662,12 +1219,16 @@ function updateModalForProvider(id) {
 
 function saveAISettingsFromModal() {
   const id    = modalSelectedProvider;
-  const model = document.getElementById('modalModelSelect').value;
+  let model   = document.getElementById('modalModelSelect').value;
   const key   = document.getElementById('apiKeyInput').value.trim();
+
+  if (id === 'parlance' && parlanceCoachModelFollowsJournal()) {
+    model = syncParlanceModelToJournalLanguage();
+  }
 
   setSelectedProvider(id);
   setProviderModel(id, model);
-  if (AI_PROVIDERS[id]?.requiresKey && key) setProviderKey(id, key);
+  if (effectiveRequiresKey(id) && key) setProviderKey(id, key);
 
   // Reset engine if WebLLM model changed
   if (id === 'webllm' && webLLMCurrentModelId !== model) {
@@ -690,6 +1251,8 @@ const canUseWebLLM = hasWebGPU && !isCapacitor;
 async function init() {
   initTheme();
   await i18n.init();
+  await ensureFirebaseReady().catch(() => {});
+  updateFirebaseAuthUI();
   document.getElementById('uiLangSelect').value = i18n.getLocale();
 
   document.getElementById('dateBadge').textContent = new Date()
@@ -698,6 +1261,9 @@ async function init() {
   const savedLang = localStorage.getItem('parlance_language') || 'es';
   state.currentLanguage = savedLang;
   document.getElementById('langSelect').value = savedLang;
+  if (getSelectedProvider() === 'parlance') {
+    syncParlanceModelToJournalLanguage();
+  }
 
   // Auto-switch from WebLLM if it can't run (Android WebView, no WebGPU)
   const currentProvider = getSelectedProvider();
@@ -716,6 +1282,18 @@ async function init() {
   initNetworkMonitor();
   updatePlaceholders();
 
+  // iOS app with bundled MLX coach: default to Parlance Coach
+  const cfg = window.__PARLANCE_CONFIG__ || {};
+  if (cfg.parlanceCoachAvailable && isNativeParlanceApp()) {
+    setSelectedProvider('parlance');
+    syncParlanceModelToJournalLanguage();
+    updateWaitingCard();
+  } else if (await checkParlanceSLMServer()) {
+    // Web / dev: Mac Python server
+    setSelectedProvider('parlance');
+    updateWaitingCard();
+  }
+
   // On Android/Capacitor with no cloud provider configured, prompt AI settings
   if (!canUseWebLLM && getSelectedProvider() === 'webllm') {
     setTimeout(() => openAISettings(), 500);
@@ -729,29 +1307,54 @@ function updateWaitingCard() {
   const text = document.getElementById('waitingText');
   if (!hint || !p) return;
 
-  if (id === 'webllm') {
+  if (id === 'parlance') {
+    const cfg = window.__PARLANCE_CONFIG__ || {};
+    const lang = state.currentLanguage;
+    if (cfg.parlanceCoachAvailable && isNativeParlanceApp()) {
+      if (parlanceCoachAvailableForLanguage(lang)) {
+        hint.innerHTML = `${p.icon} <strong>Parlance Coach</strong> — fine-tuned model runs on this device. First analysis may take 1–2 minutes while the model loads.`;
+      } else {
+        hint.innerHTML = `${p.icon} <strong>Parlance Coach</strong> — model not in this build. Re-archive after <code style="font-size:0.85em">./training/prepare_ios_coach_model.sh</code>, or switch provider in ⚙ AI.`;
+      }
+    } else {
+      hint.innerHTML = `${p.icon} <strong>Parlance Coach</strong> — on your Mac run <code style="font-size:0.85em">python3 training/parlance_slm_server.py</code>, or use the iOS app build with bundled models.`;
+    }
+  } else if (id === 'webllm') {
     if (canUseWebLLM) {
       hint.innerHTML = `${p.icon} <strong>Browser AI</strong> — first use downloads ~380 MB (cached after). Or <button onclick="openAISettings()" style="background:none;border:none;color:var(--accent);font-family:inherit;font-size:inherit;cursor:pointer;padding:0;text-decoration:underline">switch to a cloud API</button> for instant feedback.`;
     } else {
       hint.innerHTML = `⚙ <button onclick="openAISettings()" style="background:none;border:none;color:var(--accent);font-family:inherit;font-size:inherit;cursor:pointer;padding:0;text-decoration:underline">Set up an AI provider</button> to get feedback. Groq is free — get a key at <a href="https://console.groq.com/keys" target="_blank" style="color:var(--accent)">console.groq.com</a>.`;
     }
   } else {
-    const hasKey = !!getProviderKey(id);
-    if (hasKey) {
-      hint.textContent = `${p.icon} ${p.name} — write a sentence to get feedback.`;
+    if (isFirebaseSignedIn() && isCloudProvider(id)) {
+      hint.textContent = `${p.icon} ${p.name} — cloud AI via your Parlance account. Write a sentence to get feedback.`;
     } else {
-      hint.innerHTML = `⚙ <button onclick="openAISettings()" style="background:none;border:none;color:var(--accent);font-family:inherit;font-size:inherit;cursor:pointer;padding:0;text-decoration:underline">Add your ${p.name} API key</button> to enable feedback.`;
+      const hasKey = !!getProviderKey(id);
+      if (hasKey) {
+        hint.textContent = `${p.icon} ${p.name} — write a sentence to get feedback.`;
+      } else {
+        hint.innerHTML = `⚙ <button onclick="openAISettings()" style="background:none;border:none;color:var(--accent);font-family:inherit;font-size:inherit;cursor:pointer;padding:0;text-decoration:underline">Add your ${p.name} API key</button> to enable feedback.`;
+      }
     }
   }
 }
 
 // ── LANGUAGE SWITCHING ────────────────────────────────────────────
 function onLanguageChange() {
+  const prevModel = getProviderModel('parlance');
   state.currentLanguage = document.getElementById('langSelect').value;
   localStorage.setItem('parlance_language', state.currentLanguage);
   updatePlaceholders();
   renderPrompts();
   loadGuide();
+
+  if (getSelectedProvider() === 'parlance') {
+    syncParlanceModelToJournalLanguage();
+    if (parlanceCoachModelFollowsJournal() && prevModel !== getProviderModel('parlance')) {
+      unloadNativeParlanceSLM();
+    }
+    updateWaitingCard();
+  }
 }
 
 function currentLang() {
@@ -891,7 +1494,8 @@ function addSentence(prefill = '') {
 function sentenceReadyToAnalyze(text) {
   const trimmed = text.trim();
   if (trimmed.length < MIN_SENTENCE_CHARS) return false;
-  return trimmed.split(/\s+/).filter(Boolean).length >= MIN_SENTENCE_WORDS;
+  const words = trimmed.split(/\s+/).filter(Boolean);
+  return words.length >= MIN_SENTENCE_WORDS;
 }
 
 function onSentenceInput(id) {
@@ -903,18 +1507,6 @@ function onSentenceInput(id) {
   sentence.status   = 'dirty';
   sentence.feedback = null;
   updateCounts();
-
-  clearTimeout(state.debounceTimers[id]);
-  if (state.analyzingSentenceIds.has(id)) return;
-
-  const snapshot = text.trim();
-  if (!sentenceReadyToAnalyze(snapshot)) return;
-
-  state.debounceTimers[id] = setTimeout(() => {
-    if (sentence.text.trim() !== snapshot) return;
-    if (!sentenceReadyToAnalyze(sentence.text)) return;
-    analyzeSentence(id);
-  }, ANALYZE_DEBOUNCE_MS);
 }
 
 function onSentenceKeydown(e, id) {
@@ -923,8 +1515,7 @@ function onSentenceKeydown(e, id) {
     const ta   = document.getElementById('ta-' + id);
     const text = ta.value.trim();
     if (sentenceReadyToAnalyze(text)) {
-      clearTimeout(state.debounceTimers[id]);
-      state.activeSentenceId = id;   // ensure panel updates for this sentence
+      state.activeSentenceId = id;
       analyzeSentence(id);
     }
   }
@@ -952,8 +1543,6 @@ async function analyzeSentence(id) {
   if (!sentence || !sentenceReadyToAnalyze(sentence.text)) return;
   if (state.analyzingSentenceIds.has(id)) return;
 
-  clearTimeout(state.debounceTimers[id]);
-  delete state.debounceTimers[id];
   state.analyzingSentenceIds.add(id);
 
   const ta       = document.getElementById('ta-' + id);
@@ -961,8 +1550,6 @@ async function analyzeSentence(id) {
   ta.classList.add('analyzing');
   ta.classList.remove('has-error', 'is-great');
   statusEl.textContent = '⏳';
-
-  const level = document.getElementById('levelSelect').value;
 
   showAnalyzingState(id);
 
@@ -972,7 +1559,6 @@ async function analyzeSentence(id) {
     const result = await analyzeWithAI(
       sentence.text,
       state.currentLanguage,
-      level,
       (report) => showWebLLMProgress(report)
     );
 
@@ -1030,9 +1616,14 @@ function showAnalyzingState(id) {
   const card  = document.createElement('div');
   card.className = 'analyzing-card';
   card.id = 'analyzing-card';
+  const providerId = getSelectedProvider();
+  let analyzingKey = 'analyzing';
+  if (providerId === 'parlance') {
+    analyzingKey = isNativeParlanceApp() ? 'analyzingParlanceOnDevice' : 'analyzingParlanceServer';
+  }
   card.innerHTML = `
     <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-    <div class="analyzing-text">${i18n.t('analyzing')}</div>
+    <div class="analyzing-text">${i18n.t(analyzingKey)}</div>
   `;
   inner.appendChild(card);
 }
@@ -1096,14 +1687,17 @@ function showFeedback(id) {
   const isExcellent = fb.status === 'Excellent';
   const statusLabel = isExcellent ? 'Excellent' : 'Needs Work';
   const statusClass = isExcellent ? 'score-excellent' : 'score-needs-work';
-
-  const level       = document.getElementById('levelSelect').value;
-  const nextLabels   = { C2: 'Native Polish', C1: 'C2 Mastery', B2: 'C1 Professional', B1: 'B2 Version', A2: 'B1 Version', A1: 'A2 Version' };
-  const targetLabels = { B2: 'C2 Mastery', B1: 'C1 Professional', A2: 'B2 Version', A1: 'B1 Version' };
-  const nextLabel    = nextLabels[level]   || 'Next Level';
-  const targetLabel  = targetLabels[level] || null;
+  const assessedLevel = extractAssessedLevel(fb);
+  const complexityNote = extractComplexityNote(fb);
+  const { nextLabel, targetLabel } = altVersionLabels(assessedLevel);
 
   let body = '';
+  if (assessedLevel) {
+    body += feedbackItem('label-level', i18n.t('assessedLevelLabel'), i18n.t('assessedLevelRichText', { level: assessedLevel }));
+  }
+  if (complexityNote) {
+    body += feedbackItem('label-complexity', i18n.t('complexityNoteLabel'), complexityNote);
+  }
   body += feedbackItem('label-rule',         '📐 Grammar Rule',  fb.grammar_rule);
   body += feedbackItem(
     'label-explanation',
@@ -1116,6 +1710,15 @@ function showFeedback(id) {
   if (fb.target_level_alt && targetLabel)
                            body += feedbackItem('label-target',     `🎯 ${targetLabel} Version`, fb.target_level_alt);
   if (fb.tip)              body += feedbackItem('label-tip',        '💡 Tip',                    fb.tip);
+  if (fb._coach_warning) {
+    body += `<div class="feedback-coach-warning">${escapeHTML(fb._coach_warning)}</div>`;
+  }
+  if (fb._rag_topics?.length) {
+    const chips = fb._rag_topics.map(t =>
+      `<span class="feedback-rag-chip">${escapeHTML(t)}</span>`
+    ).join('');
+    body += `<div class="feedback-rag-topics"><span class="feedback-rag-label">Reference</span>${chips}</div>`;
+  }
 
   const sourceLabel = sentence.analysisSource || 'AI';
   const idx         = state.sentences.findIndex(s => s.id === id) + 1;
@@ -1125,8 +1728,11 @@ function showFeedback(id) {
   card.innerHTML = `
     <div class="feedback-card-header">
       <div class="feedback-sentence-ref">Sentence ${idx}</div>
-      <div class="feedback-score ${statusClass}">${statusLabel}</div>
-      <div class="feedback-source">${escapeHTML(sourceLabel)}</div>
+      <div class="feedback-header-badges">
+        ${assessedLevel ? `<div class="feedback-level-badge" title="${escapeHTML(i18n.t('assessedLevelHint'))}">~${assessedLevel}</div>` : ''}
+        <div class="feedback-score ${statusClass}">${statusLabel}</div>
+        <div class="feedback-source">${escapeHTML(sourceLabel)}</div>
+      </div>
     </div>
     <div class="feedback-original">"${escapeHTML(sentence.text)}"</div>
     <div class="feedback-body">${body}</div>
@@ -1187,7 +1793,6 @@ function saveEntry() {
     id:       Date.now(),
     title,
     language: state.currentLanguage,
-    level:    document.getElementById('levelSelect').value,
     date:     new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
     sentences: sentences.map(s => ({
       text: s.text,
@@ -1230,9 +1835,8 @@ function renderPastEntries() {
 function viewEntry(entry) {
   document.getElementById('entryViewerTitle').textContent = entry.title || 'Untitled Entry';
   const langName = entry.language === 'fr' ? 'Français' : 'Español';
-  const levelLabel = entry.level ? ` · ${entry.level}` : '';
   document.getElementById('entryViewerMeta').textContent =
-    `${entry.date} · ${langName}${levelLabel}`;
+    `${entry.date} · ${langName}`;
 
   const body = document.getElementById('entryViewerBody');
   body.innerHTML = '';
@@ -1261,9 +1865,11 @@ function viewEntry(entry) {
       const isExcellent = feedback.status === 'Excellent';
       const badgeClass = isExcellent ? 'excellent' : 'needs-work';
       const badgeLabel = isExcellent ? 'Excellent' : 'Needs Work';
+      const assessed = extractAssessedLevel(feedback);
       feedbackHTML = `
         <div class="entry-sentence-actions">
           <span class="entry-feedback-badge ${badgeClass}">${badgeLabel}</span>
+          ${assessed ? `<span class="entry-feedback-badge" style="background:var(--blue-bg);color:var(--blue);">~${assessed}</span>` : ''}
           ${analysisSource ? `<span class="entry-feedback-badge" style="background:rgba(11,156,208,0.06);color:#0b9cd0;">${escapeHTML(analysisSource)}</span>` : ''}
         </div>
         ${feedback.grammar_rule ? `<div class="entry-feedback-rule">${escapeHTML(feedback.grammar_rule)}</div>` : ''}
@@ -1284,7 +1890,7 @@ function viewEntry(entry) {
 
     // Attach re-analyze click handler
     row.querySelector('.entry-load-btn[data-index]').addEventListener('click', () => {
-      loadSentenceToEditor(text, entry.language, entry.level);
+      loadSentenceToEditor(text, entry.language);
     });
 
     body.appendChild(row);
@@ -1297,17 +1903,13 @@ function viewEntry(entry) {
   overlay.onclick = (e) => { if (e.target === overlay) closeEntryViewer(); };
 }
 
-function loadSentenceToEditor(text, language, level) {
-  // Set language and level if provided
+function loadSentenceToEditor(text, language) {
   if (language) {
     state.currentLanguage = language;
     document.getElementById('langSelect').value = language;
     localStorage.setItem('parlance_language', language);
     updatePlaceholders();
     renderPrompts();
-  }
-  if (level) {
-    document.getElementById('levelSelect').value = level;
   }
 
   // Find an empty sentence slot or add a new one
@@ -1324,16 +1926,12 @@ function loadSentenceToEditor(text, language, level) {
 }
 
 function loadEntryToEditor(entry) {
-  // Set language and level
   if (entry.language) {
     state.currentLanguage = entry.language;
     document.getElementById('langSelect').value = entry.language;
     localStorage.setItem('parlance_language', entry.language);
     updatePlaceholders();
     renderPrompts();
-  }
-  if (entry.level) {
-    document.getElementById('levelSelect').value = entry.level;
   }
 
   // Set title

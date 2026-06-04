@@ -291,26 +291,14 @@ def generate_batch(backend_fn, api_key: str, model: str, lang: str, level: str, 
 
 def to_training_format(example: dict) -> dict:
     """Convert to instruction-tuning format for Qwen 2.5 fine-tuning."""
-    lang_name = "Spanish" if example.get("language") == "es" else "French"
+    from coach_training_format import build_training_messages, migrate_feedback_payload
+
+    lang = example.get("language", "es")
+    sentence = example["input_sentence"]
     level = example.get("cefr_level", "B1")
-
-    system_msg = (
-        f"You are a {lang_name} grammar coach for interpreter training. "
-        f"Analyze the learner's sentence at CEFR level {level}. "
-        f"Respond with a JSON object containing: status, grammar_rule, explanation, "
-        f"correction, next_level_alt, target_level_alt, and tip. "
-        f"All example sentences must be in {lang_name}. Always include a register tip."
-    )
-
-    user_msg = f'Analyze this {lang_name} sentence at {level} level: "{example["input_sentence"]}"'
-
-    return {
-        "messages": [
-            {"role": "system", "content": system_msg},
-            {"role": "user", "content": user_msg},
-            {"role": "assistant", "content": json.dumps(example["expected_output"], ensure_ascii=False)},
-        ]
-    }
+    expected = dict(example["expected_output"])
+    feedback = migrate_feedback_payload(expected, sentence, level, lang)
+    return build_training_messages(lang, sentence, feedback)
 
 
 def main():
