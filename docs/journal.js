@@ -52,7 +52,7 @@ function altVersionLabels(assessedLevel) {
 }
 
 function analysisCacheHash(sentence, language) {
-  return btoa(unescape(encodeURIComponent(sentence + '|' + language + '|fbv6'))).slice(0, 40);
+  return btoa(unescape(encodeURIComponent(sentence + '|' + language + '|fbv8'))).slice(0, 40);
 }
 
 function sanitizeFeedbackResult(sentence, result, language = 'es') {
@@ -590,6 +590,13 @@ ${ragContext}
 - ALL example sentences (correction, next_level_alt, target_level_alt) MUST be COMPLETE SENTENCES written in ${langName}, NEVER in English. Do NOT return short labels or descriptions — return full, natural sentences.
 - next_level_alt and target_level_alt must express the SAME idea as the original sentence rephrased with grammar and vocabulary appropriate for that CEFR level. Do NOT add new information or embellish.
 - grammar_rule, explanation, register, and tip must be in English.
+
+MULTIPLE ERRORS (very important for Browser AI):
+- If the sentence has more than one mistake, list EVERY error in explanation as separate bullet points (•), quoting the learner's exact words.
+- Each bullet must name the rule AND the fix (e.g. "«muchos cosas» → «muchas cosas» (gender agreement)").
+- Do NOT bury fixes only inside next_level_alt — when status is "Needs Improvement", correction is REQUIRED: one full corrected sentence at the learner's level.
+- Do NOT replace explanation with a single rewritten sentence — explain each error clearly in English first.
+- next_level_alt and target_level_alt MUST be plain JSON strings (never nested objects).
 
 Respond with ONLY a valid JSON object. No markdown fences, no text outside the JSON, no <think> tags:
 {
@@ -1699,12 +1706,17 @@ function showFeedback(id) {
     body += feedbackItem('label-complexity', i18n.t('complexityNoteLabel'), complexityNote);
   }
   body += feedbackItem('label-rule',         '📐 Grammar Rule',  fb.grammar_rule);
+  if (fb.correction && !isExcellent) {
+    body += feedbackItem('label-correction', '✍ Corrected Sentence', fb.correction);
+  }
   body += feedbackItem(
     'label-explanation',
     isExcellent ? '✨ Why This Works' : '⚠ What Needs Work',
     fb.explanation
   );
-  if (fb.correction)       body += feedbackItem('label-correction', '✍ Correction',             fb.correction);
+  if (fb.correction && isExcellent) {
+    body += feedbackItem('label-correction', '✍ Corrected Sentence', fb.correction);
+  }
   if (fb.register)         body += feedbackItem('label-register',   '🎭 Register',               fb.register);
   if (fb.next_level_alt)   body += feedbackItem('label-next',       `🔼 ${nextLabel} Version`,   fb.next_level_alt);
   if (fb.target_level_alt && targetLabel)

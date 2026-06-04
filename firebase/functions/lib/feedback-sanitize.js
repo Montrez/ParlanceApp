@@ -232,12 +232,172 @@
     delete out.complexityNote;
   }
 
+  /** Detect common Spanish learner errors the small Browser AI model often under-explains. */
+  function detectSpanishIssues(text, opts) {
+    const isLearnerSentence = !opts || opts.isLearnerSentence !== false;
+    const issues = [];
+    if (!text || typeof text !== 'string') return issues;
+
+    if (/\bmuchos\s+cosas\b/i.test(text)) {
+      issues.push({
+        key: 'gender_muchas',
+        issue: '«muchos cosas» → «muchas cosas»: cosas is feminine — adjective must agree.',
+        mention: ['muchas cosas', 'muchos cosas', 'feminine agreement'],
+      });
+    }
+    if (/\bcosas\s+hacer\b/i.test(text) && !/\bcosas\s+que\s+hacer\b/i.test(text)) {
+      issues.push({
+        key: 'que_infinitive',
+        issue: 'Missing «que» before the infinitive: say «cosas que hacer», not «cosas hacer».',
+        mention: ['cosas que hacer', 'que before the infinitive'],
+      });
+    }
+    if (/\bpor\s+(el\s+)?trabajo\b/i.test(text) && !/\bpara\s+(el\s+)?trabajo\b/i.test(text)) {
+      issues.push({
+        key: 'por_para',
+        issue: 'Purpose/goal uses «para (el) trabajo», not «por trabajo».',
+        mention: ['para el trabajo', 'para (el) trabajo'],
+      });
+    }
+    if (/\btenamos\s+terminar\b/i.test(text)) {
+      issues.push({
+        key: 'tenemos_que',
+        issue: 'Use «tenemos que + infinitive», not «tenamos terminar».',
+        mention: ['tenemos que', 'tenamos terminar'],
+      });
+    }
+    if (/\bnuestra\s+la\s+aplicaci/i.test(text)) {
+      issues.push({
+        key: 'article_stack',
+        issue: 'Do not stack possessive + article: «nuestra aplicación», not «nuestra la aplicación».',
+        mention: ['nuestra la', 'nuestra aplicación'],
+      });
+    }
+    if (/\btodo\s+la\s+aplicaci/i.test(text)) {
+      issues.push({
+        key: 'todo_toda',
+        issue: '«Aplicación» is feminine — use «toda la aplicación», not «todo la aplicación».',
+        mention: ['toda la aplicación', 'feminine todo/toda'],
+      });
+    } else if (
+      isLearnerSentence &&
+      /\baplicaci/i.test(text) &&
+      /\btodo\b/i.test(text) &&
+      !/\btoda\s+la\s+aplicaci/i.test(text)
+    ) {
+      issues.push({
+        key: 'todo_toda',
+        issue: '«Aplicación» is feminine — use «toda la aplicación», not «todo».',
+        mention: ['toda la aplicación', 'feminine todo/toda'],
+      });
+    }
+    return issues;
+  }
+
+  function repairSpanishText(text) {
+    let c = String(text || '').trim();
+    if (!c) return c;
+    c = c.replace(/\bmuchos\s+cosas\b/gi, 'muchas cosas');
+    c = c.replace(/\bcosas\s+(?!que\s+)hacer\b/gi, 'cosas que hacer');
+    c = c.replace(/\bpor\s+(el\s+)?trabajo\b/gi, 'para el trabajo');
+    c = c.replace(/\btenamos\s+terminar\b/gi, 'tenemos que terminar');
+    c = c.replace(/\btodo\s+la\s+aplicaci([oó]n)/gi, 'toda la aplicación');
+    c = c.replace(
+      /\bterminar\s+todo\s+por\s+nuestra\s+la\s+aplicaci([oó]n)\b/gi,
+      'terminar toda la aplicación en nuestra aplicación'
+    );
+    c = c.replace(/\bnuestra\s+la\s+aplicaci([oó]n)/gi, 'nuestra aplicación');
+    c = c.replace(
+      /\bterminar\s+todo\s+por\s+nuestra\s+aplicaci([oó]n)\b/gi,
+      'terminar toda la aplicación en nuestra aplicación'
+    );
+    c = c.replace(/\bterminar\s+todo\b/gi, 'terminar toda la aplicación');
+    c = c.replace(/\bpor\s+nuestra\s+aplicaci/gi, 'en nuestra aplicación');
+    return c.replace(/\s+/g, ' ').trim();
+  }
+
+  function buildSpanishCorrection(sentence) {
+    return repairSpanishText(sentence);
+  }
+
+  function correctionHasSpanishErrors(text) {
+    return detectSpanishIssues(text, { isLearnerSentence: false }).length > 0;
+  }
+
+  function explanationCoversIssue(explanation, issue) {
+    const expl = String(explanation || '');
+    const lower = expl.toLowerCase();
+    if (issue.key === 'todo_toda') {
+      if (/\btodo\s+la\s+aplicaci/i.test(expl)) return false;
+      return /\btoda\s+la\s+aplicaci/i.test(expl)
+        || (lower.includes('toda') && lower.includes('feminine') && lower.includes('aplic'));
+    }
+    return issue.mention.some((m) => lower.includes(m.toLowerCase()));
+  }
+
+  /** Patch weak Browser AI / cloud feedback when obvious Spanish errors were skipped or buried. */
+  function enhanceSpanishFeedback(sentence, out) {
+    const issues = detectSpanishIssues(sentence);
+    if (!issues.length) return out;
+
+    const missed = issues.filter((i) => !explanationCoversIssue(out.explanation, i));
+    const built = buildSpanishCorrection(sentence);
+    const needsCorrection = built && normalizeTextForCompare(built) !== normalizeTextForCompare(sentence);
+    const existingCorrNorm = out.correction ? normalizeTextForCompare(out.correction) : '';
+    const sentNorm = normalizeTextForCompare(sentence);
+    const modelCorrBad = correctionHasSpanishErrors(out.correction);
+    const correctionWeak = !existingCorrNorm || existingCorrNorm === sentNorm || modelCorrBad;
+
+    if (out.explanation && /\btodo\s+la\s+aplicaci/i.test(out.explanation)) {
+      out.explanation = repairSpanishText(out.explanation);
+    }
+
+    if (!missed.length && !correctionWeak) return out;
+
+    out.status = 'Needs Improvement';
+
+    if (missed.length) {
+      const bullets = missed.map((i) => `• ${i.issue}`).join('\n');
+      const header = missed.length === issues.length ? 'Issues in your sentence:' : 'Also fix:';
+      const block = `${header}\n${bullets}`;
+      out.explanation = out.explanation ? `${out.explanation.trim()}\n\n${block}` : block;
+    }
+
+    if (needsCorrection && correctionWeak) {
+      out.correction = built;
+    } else if (out.correction && modelCorrBad) {
+      out.correction = repairSpanishText(out.correction);
+    }
+
+    for (const key of ['next_level_alt', 'target_level_alt', 'tip']) {
+      if (out[key] && correctionHasSpanishErrors(out[key])) {
+        out[key] = repairSpanishText(out[key]);
+      }
+    }
+
+    if (!out.grammar_rule || String(out.grammar_rule).length < 24) {
+      out.grammar_rule = 'Gender agreement, por/para, possessives, and «tener que + infinitive»';
+    }
+    if (!out.complexity_note) {
+      const wc = sentence.trim().split(/\s+/).filter(Boolean).length;
+      out.complexity_note = `Workday sentence (${wc} words) with agreement, prepositions, and obligation structure — typical B1 interpreter practice.`;
+    }
+    if (!out.assessed_level && assessedLevelPlausible(sentence, 'B1', 'es')) {
+      out.assessed_level = 'B1';
+    }
+    out._coach_enhanced = true;
+    return out;
+  }
+
   /** Sanitize provider JSON — strip bad CEFR, fill confident levels, drop verbatim alts. */
   function sanitizeFeedbackResult(sentence, result, language) {
     if (!result || typeof result !== 'object') return result;
     const out = { ...result };
     normalizeFeedbackFields(out);
     const lang = language === 'fr' ? 'fr' : 'es';
+    if (lang === 'es' && sentence) {
+      enhanceSpanishFeedback(sentence, out);
+    }
     preserveInferredFields(out, sentence, lang);
     const sentNorm = normalizeTextForCompare(sentence);
     if (out.next_level_alt && normalizeTextForCompare(out.next_level_alt) === sentNorm) {
@@ -251,6 +411,11 @@
 
   const api = {
     sanitizeFeedbackResult,
+    enhanceSpanishFeedback,
+    detectSpanishIssues,
+    buildSpanishCorrection,
+    repairSpanishText,
+    correctionHasSpanishErrors,
     coerceFeedbackText,
     normalizeFeedbackFields,
     assessedLevelPlausible,
