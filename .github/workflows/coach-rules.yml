@@ -1,0 +1,30 @@
+name: Coach rules
+
+on:
+  push:
+    paths:
+      - 'shared/coach-rules/**'
+      - 'training/coach_rules.py'
+      - 'training/validate_coach_rules.py'
+      - 'training/run_coach_rules_regression.py'
+      - 'Parlance/web/coach-rules-engine.js'
+  pull_request:
+    paths:
+      - 'shared/coach-rules/**'
+      - 'training/coach_rules.py'
+      - 'training/validate_coach_rules.py'
+      - 'training/run_coach_rules_regression.py'
+      - 'Parlance/web/coach-rules-engine.js'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate rule schema and sources
+        run: python3 training/validate_coach_rules.py
+      - name: Run deterministic rules regression
+        run: python3 training/run_coach_rules_regression.py --lang es

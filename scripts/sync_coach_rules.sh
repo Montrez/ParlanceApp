@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
-# Regenerate embedded coach-rules-es.js from shared/coach-rules/es.json
+# Validate, regression-test, and sync shared/coach-rules/es.json → embedded JS
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+python3 training/validate_coach_rules.py
+python3 training/run_coach_rules_regression.py --lang es
 node -e "
 const fs = require('fs');
 const path = require('path');

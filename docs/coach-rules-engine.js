@@ -26,6 +26,11 @@
         if (new RegExp(detect.unless_pattern, flags).test(text)) return false;
       } catch (_) { /* ignore */ }
     }
+    if (detect.require_pattern) {
+      try {
+        if (!new RegExp(detect.require_pattern, flags).test(text)) return false;
+      } catch (_) { /* ignore */ }
+    }
     if (detect.pattern) {
       try {
         return new RegExp(detect.pattern, flags).test(text);
@@ -167,12 +172,11 @@
   function analyzeSentence(sentence, lang) {
     const issues = detectIssues(sentence, lang);
     const correction = applyRepairs(sentence, lang);
-    const sentNorm = normalizeTextForCompare(sentence);
-    const corrNorm = normalizeTextForCompare(correction);
+    const changed = correction.trim() !== String(sentence || '').trim();
     return {
       issues,
-      correction: corrNorm !== sentNorm ? correction : null,
-      hasErrors: issues.length > 0 || corrNorm !== sentNorm,
+      correction: changed ? correction : null,
+      hasErrors: issues.length > 0 || changed,
     };
   }
 
@@ -181,6 +185,7 @@
    * AI may add nuance; rules enforce non-negotiable Spanish patterns.
    */
   function mergeWithAI(sentence, aiFeedback, lang) {
+    if (aiFeedback && aiFeedback._coach_repaired) return aiFeedback;
     const out = aiFeedback && typeof aiFeedback === 'object' ? { ...aiFeedback } : {};
     if (lang !== 'es' && lang !== 'fr') return out;
 

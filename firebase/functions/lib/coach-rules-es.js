@@ -1,7 +1,7 @@
 /** Auto-synced from shared/coach-rules/es.json — run scripts/sync_coach_rules.sh */
 (function (root) {
   root.ParlanceCoachRulesES = {
-  "version": 1,
+  "version": 2,
   "lang": "es",
   "grammar_rule_default": "Spanish agreement, prepositions, and clause structure",
   "feminine_nouns": [
@@ -11,15 +11,141 @@
     "cosas",
     "casa",
     "mesa",
-    "programa",
     "tarea",
     "tareas"
   ],
   "rules": [
     {
+      "id": "si_clause_conditional_protasis",
+      "category": "verb_mood",
+      "priority": 8,
+      "detect": {
+        "pattern": "\\bsi\\b[^.!?]*\\b(tendr[ií]a|har[ií]a|ser[ií]a|podr[ií]a|querr[ií]a|dir[ií]a|vendr[ií]a)\\b",
+        "flags": "i"
+      },
+      "issue": "After «si» (hypothetical), use imperfect subjunctive in the protasis (e.g. «tuviera»), not conditional («tendría»).",
+      "mention": [
+        "tuviera",
+        "imperfect subjunctive",
+        "si clause"
+      ],
+      "repair": [
+        {
+          "pattern": "\\btendr[ií]a\\b",
+          "replace": "tuviera",
+          "flags": "gi"
+        },
+        {
+          "pattern": "\\bhar[ií]a\\b",
+          "replace": "hiciera",
+          "flags": "gi"
+        },
+        {
+          "pattern": "\\bser[ií]a\\b",
+          "replace": "fuera",
+          "flags": "gi"
+        },
+        {
+          "pattern": "\\bpodr[ií]a\\b",
+          "replace": "pudiera",
+          "flags": "gi"
+        }
+      ],
+      "grammar_rule": "Si clauses: imperfect subjunctive in protasis, conditional in main clause",
+      "source": {
+        "authority": "RAE-DPD",
+        "topic": "Oraciones condicionales",
+        "url": "https://www.rae.es/dpd/oracion%20condicional"
+      },
+      "cefr": {
+        "teach_from": "B2",
+        "band": "B2"
+      },
+      "regression": [
+        "si_clause_tendria"
+      ]
+    },
+    {
+      "id": "leismo_echar_de_menos_feminine",
+      "category": "pronouns",
+      "priority": 9,
+      "detect": {
+        "pattern": "\\b(le|les)\\s+echo\\s+de\\s+menos\\b",
+        "flags": "i",
+        "require_pattern": "\\b(novia|novia|madre|hermana|esposa|mujer|amiga|hija|abuela|ella)\\b"
+      },
+      "issue": "«Echar de menos» takes a direct object: «la echo de menos», not leísmo «le echo de menos».",
+      "mention": [
+        "la echo de menos",
+        "direct object",
+        "leísmo"
+      ],
+      "repair": [
+        {
+          "pattern": "\\bles\\s+echo\\s+de\\s+menos\\b",
+          "replace": "las echo de menos",
+          "flags": "gi"
+        },
+        {
+          "pattern": "\\ble\\s+echo\\s+de\\s+menos\\b",
+          "replace": "la echo de menos",
+          "flags": "gi"
+        }
+      ],
+      "grammar_rule": "«Echar de menos» + direct object pronoun (lo/la)",
+      "source": {
+        "authority": "RAE-DPD",
+        "topic": "Pronombres átonos / leísmo",
+        "url": "https://www.rae.es/dpd/le%C3%ADsmo"
+      },
+      "cefr": {
+        "teach_from": "B1",
+        "band": "B1-B2"
+      },
+      "regression": [
+        "leismo_novia"
+      ]
+    },
+    {
+      "id": "accent_comi",
+      "category": "orthography",
+      "priority": 12,
+      "detect": {
+        "pattern": "\\bcomi\\b",
+        "flags": "i",
+        "unless_pattern": "\\bcomí\\b"
+      },
+      "issue": "Preterite «comí» requires a written accent on the final syllable.",
+      "mention": [
+        "comí",
+        "accent",
+        "tilde"
+      ],
+      "repair": [
+        {
+          "pattern": "\\bcomi\\b",
+          "replace": "comí",
+          "flags": "gi"
+        }
+      ],
+      "grammar_rule": "Written accent marks (tildes) on past-tense verb forms",
+      "source": {
+        "authority": "RAE",
+        "topic": "Ortografía / acentuación",
+        "url": "https://www.rae.es/dpd/tilde%20diacr%C3%ADtica"
+      },
+      "cefr": {
+        "teach_from": "A2",
+        "band": "A2"
+      },
+      "regression": [
+        "accent_comi_ayer"
+      ]
+    },
+    {
       "id": "punctuation_question",
       "category": "punctuation",
-      "priority": 5,
+      "priority": 15,
       "detect": {
         "pattern": "\\?",
         "unless": "¿"
@@ -37,7 +163,17 @@
           "once": true
         }
       ],
-      "grammar_rule": "Inverted question marks (¿…?)"
+      "grammar_rule": "Inverted question marks (¿…?)",
+      "source": {
+        "authority": "RAE",
+        "topic": "Signos de interrogación",
+        "url": "https://www.rae.es/dpd/signos%20de%20interrogaci%C3%B3n"
+      },
+      "cefr": {
+        "teach_from": "A1",
+        "band": "A1-A2"
+      },
+      "regression": []
     },
     {
       "id": "gender_muchas_cosas",
@@ -59,7 +195,19 @@
           "flags": "gi"
         }
       ],
-      "grammar_rule": "Gender agreement (adjective + noun)"
+      "grammar_rule": "Gender agreement (adjective + noun)",
+      "source": {
+        "authority": "RAE-DPD",
+        "topic": "Concordancia de género",
+        "url": "https://www.rae.es/dpd/concordancia"
+      },
+      "cefr": {
+        "teach_from": "A1",
+        "band": "A1-A2"
+      },
+      "regression": [
+        "gender_muchas"
+      ]
     },
     {
       "id": "que_before_infinitive",
@@ -82,7 +230,19 @@
           "flags": "gi"
         }
       ],
-      "grammar_rule": "Complementizer «que» before infinitive clauses"
+      "grammar_rule": "Complementizer «que» before infinitive clauses",
+      "source": {
+        "authority": "RAE",
+        "topic": "Oraciones subordinadas",
+        "url": "https://www.rae.es/dpd/que"
+      },
+      "cefr": {
+        "teach_from": "A2",
+        "band": "A2-B1"
+      },
+      "regression": [
+        "que_infinitive"
+      ]
     },
     {
       "id": "por_para_trabajo",
@@ -105,7 +265,19 @@
           "flags": "gi"
         }
       ],
-      "grammar_rule": "Por vs para (purpose/destination)"
+      "grammar_rule": "Por vs para (purpose/destination)",
+      "source": {
+        "authority": "RAE-DPD",
+        "topic": "Por / para",
+        "url": "https://www.rae.es/dpd/por"
+      },
+      "cefr": {
+        "teach_from": "B1",
+        "band": "A2-B1"
+      },
+      "regression": [
+        "por_para_trabajo"
+      ]
     },
     {
       "id": "para_el_trabajo",
@@ -127,7 +299,19 @@
           "flags": "gi"
         }
       ],
-      "grammar_rule": "Definite article with abstract/work nouns"
+      "grammar_rule": "Definite article with abstract/work nouns",
+      "source": {
+        "authority": "RAE",
+        "topic": "Artículo definido",
+        "url": "https://www.rae.es/dpd/articulo%20definido"
+      },
+      "cefr": {
+        "teach_from": "A2",
+        "band": "A2-B1"
+      },
+      "regression": [
+        "workday_app"
+      ]
     },
     {
       "id": "tenemos_que_tenamos_todo_app",
@@ -149,7 +333,19 @@
           "flags": "gi"
         }
       ],
-      "grammar_rule": "«Tener que + infinitive» and gender agreement"
+      "grammar_rule": "«Tener que + infinitive» and gender agreement",
+      "source": {
+        "authority": "RAE",
+        "topic": "Perífrasis «tener que + infinitivo»",
+        "url": "https://www.rae.es/dpd/tener%20que"
+      },
+      "cefr": {
+        "teach_from": "B1",
+        "band": "B1"
+      },
+      "regression": [
+        "workday_app"
+      ]
     },
     {
       "id": "tenemos_que_tenamos_terminar",
@@ -171,7 +367,17 @@
           "flags": "gi"
         }
       ],
-      "grammar_rule": "«Tener que + infinitive» (obligation)"
+      "grammar_rule": "«Tener que + infinitive» (obligation)",
+      "source": {
+        "authority": "RAE",
+        "topic": "Perífrasis «tener que + infinitivo»",
+        "url": "https://www.rae.es/dpd/tener%20que"
+      },
+      "cefr": {
+        "teach_from": "B1",
+        "band": "B1"
+      },
+      "regression": []
     },
     {
       "id": "tenemos_que_tenamos",
@@ -193,7 +399,17 @@
           "flags": "gi"
         }
       ],
-      "grammar_rule": "Indicative vs subjunctive with obligation"
+      "grammar_rule": "Indicative vs subjunctive with obligation",
+      "source": {
+        "authority": "RAE",
+        "topic": "Modo subjuntivo vs indicativo",
+        "url": "https://www.rae.es/dpd/subjuntivo"
+      },
+      "cefr": {
+        "teach_from": "B1",
+        "band": "B1"
+      },
+      "regression": []
     },
     {
       "id": "todo_por_la_aplicacion",
@@ -215,7 +431,19 @@
           "flags": "gi"
         }
       ],
-      "grammar_rule": "Gender agreement (todo/toda + feminine noun)"
+      "grammar_rule": "Gender agreement (todo/toda + feminine noun)",
+      "source": {
+        "authority": "RAE-DPD",
+        "topic": "Concordancia de género",
+        "url": "https://www.rae.es/dpd/concordancia"
+      },
+      "cefr": {
+        "teach_from": "A2",
+        "band": "A2-B1"
+      },
+      "regression": [
+        "workday_app"
+      ]
     },
     {
       "id": "todo_la_aplicacion",
@@ -237,29 +465,17 @@
           "flags": "gi"
         }
       ],
-      "grammar_rule": "Gender agreement (todo/toda + feminine noun)"
-    },
-    {
-      "id": "terminar_todo_app",
-      "category": "agreement",
-      "priority": 52,
-      "detect": {
-        "pattern": "\\bterminar\\s+todo\\s+por\\s+nuestra\\s+la\\s+aplicaci",
-        "flags": "i"
+      "grammar_rule": "Gender agreement (todo/toda + feminine noun)",
+      "source": {
+        "authority": "RAE-DPD",
+        "topic": "Concordancia de género",
+        "url": "https://www.rae.es/dpd/concordancia"
       },
-      "issue": "Use «terminar toda la aplicación en nuestra aplicación» — fix gender and article stacking.",
-      "mention": [
-        "toda la aplicación",
-        "nuestra aplicación"
-      ],
-      "repair": [
-        {
-          "pattern": "\\bterminar\\s+todo\\s+por\\s+nuestra\\s+la\\s+aplicaci([oó]n)",
-          "replace": "terminar toda la aplicación en nuestra aplicación",
-          "flags": "gi"
-        }
-      ],
-      "grammar_rule": "Gender agreement and possessive + noun"
+      "cefr": {
+        "teach_from": "A2",
+        "band": "A2-B1"
+      },
+      "regression": []
     },
     {
       "id": "nuestra_la_aplicacion",
@@ -281,74 +497,17 @@
           "flags": "gi"
         }
       ],
-      "grammar_rule": "Possessive + noun (no extra article)"
-    },
-    {
-      "id": "terminar_todo",
-      "category": "agreement",
-      "priority": 54,
-      "detect": {
-        "pattern": "\\bterminar\\s+todo\\b",
-        "flags": "i",
-        "unless_pattern": "\\bterminar\\s+toda\\b"
+      "grammar_rule": "Possessive + noun (no extra article)",
+      "source": {
+        "authority": "RAE",
+        "topic": "Posesivos",
+        "url": "https://www.rae.es/dpd/posesivo"
       },
-      "issue": "When the object is feminine (e.g. la aplicación), use «terminar toda la aplicación».",
-      "mention": [
-        "toda la aplicación",
-        "terminar toda"
-      ],
-      "repair": [
-        {
-          "pattern": "\\bterminar\\s+todo\\b",
-          "replace": "terminar toda la aplicación",
-          "flags": "gi"
-        }
-      ],
-      "grammar_rule": "Gender agreement with direct objects"
-    },
-    {
-      "id": "tenemos_todo_no_toda",
-      "category": "agreement",
-      "priority": 55,
-      "detect": {
-        "pattern": "\\btenemos\\s+todo\\b",
-        "flags": "i",
-        "unless_pattern": "\\btoda\\b"
+      "cefr": {
+        "teach_from": "A2",
+        "band": "A2-B1"
       },
-      "issue": "With a feminine noun like «aplicación», use «tenemos que terminar toda la aplicación».",
-      "mention": [
-        "toda la aplicación",
-        "tenemos que"
-      ],
-      "repair": [
-        {
-          "pattern": "\\btenemos\\s+todo\\b",
-          "replace": "tenemos que terminar toda la aplicación",
-          "flags": "gi"
-        }
-      ],
-      "grammar_rule": "Gender agreement and «tener que + infinitive»"
-    },
-    {
-      "id": "por_nuestra_aplicacion",
-      "category": "prepositions",
-      "priority": 60,
-      "detect": {
-        "pattern": "\\bpor\\s+nuestra\\s+aplicaci",
-        "flags": "i"
-      },
-      "issue": "Location/context on an app is usually «en nuestra aplicación», not «por nuestra aplicación».",
-      "mention": [
-        "en nuestra aplicación"
-      ],
-      "repair": [
-        {
-          "pattern": "\\bpor\\s+nuestra\\s+aplicaci",
-          "replace": "en nuestra aplicación",
-          "flags": "gi"
-        }
-      ],
-      "grammar_rule": "Por vs en (location/context)"
+      "regression": []
     },
     {
       "id": "double_que",
@@ -369,7 +528,17 @@
           "flags": "gi"
         }
       ],
-      "grammar_rule": "«Tener que + infinitive»"
+      "grammar_rule": "«Tener que + infinitive»",
+      "source": {
+        "authority": "RAE",
+        "topic": "Perífrasis «tener que + infinitivo»",
+        "url": "https://www.rae.es/dpd/tener%20que"
+      },
+      "cefr": {
+        "teach_from": "B1",
+        "band": "B1"
+      },
+      "regression": []
     }
   ]
 };

@@ -631,37 +631,15 @@ def _heuristic_improvement_tip(sentence: str, level: str, issues: list[str]) -> 
 
 
 def known_spanish_error_feedback(sentence: str, level: str) -> dict[str, Any] | None:
-    if ECHAR_DE_MENOS_LEISMO.search(sentence):
-        return _echar_de_menos_leismo_feedback(sentence, level)
-    if not SI_CLAUSE_CONDITIONAL.search(sentence):
-        return None
-    correction = sentence
-    for pattern, repl in SI_CORRECTIONS:
-        correction = pattern.sub(repl, correction)
-    out: dict[str, Any] = {
-        "status": "Needs Improvement",
-        "grammar_rule": "Si clauses: imperfect subjunctive in the protasis, not conditional",
-        "explanation": (
-            "After «si» introducing a hypothetical condition, Spanish uses the imperfect subjunctive "
-            "(e.g. «tuviera»), not the conditional («tendría»). The conditional belongs in the main clause."
-        ),
-        "correction": correction,
-        "register": "Neutral; focus on standard written Spanish for interpreting exams.",
-        "next_level_alt": correction,
-        "tip": (
-            "Mnemonic: «Si yo fuera…, haría…» — subjunctive in the si-clause, conditional in the result."
-        ),
-        "complexity_note": (
-            "Hypothetical «si» clause with conditional in the protasis instead of imperfect subjunctive — "
-            "upper-intermediate structure band even when the form is wrong."
-        ),
-        "assessed_level": "B2",
-        "_coach_repaired": True,
-        "_keep_assessed_level": True,
-    }
-    if level.upper() not in ("C1", "C2"):
-        out["target_level_alt"] = correction
-    return out
+    from coach_rules import feedback_from_rules
+
+    if fb := feedback_from_rules(sentence, "es"):
+        out = dict(fb)
+        if level.upper() not in ("C1", "C2") and out.get("correction"):
+            out["next_level_alt"] = out["correction"]
+            out["target_level_alt"] = out["correction"]
+        return _preserve_inferred_fields(out, sentence)
+    return None
 
 
 def known_french_error_feedback(sentence: str, level: str) -> dict[str, Any] | None:
@@ -1363,6 +1341,9 @@ def _sanitize_spanish_feedback(sentence: str, feedback: dict[str, Any], level: s
         if "accent" not in str(out.get("grammar_rule") or "").lower():
             out["grammar_rule"] = "Written accent marks on past-tense verb forms"
 
+    from coach_rules import merge_with_ai
+
+    out = merge_with_ai(sentence, out, "es")
     return _preserve_inferred_fields(out, sentence)
 
 

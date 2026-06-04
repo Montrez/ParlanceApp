@@ -10,6 +10,10 @@ from typing import Any
 _RULES_DIR = Path(__file__).resolve().parent.parent / "shared" / "coach-rules"
 _CACHE: dict[str, dict[str, Any]] = {}
 
+_PLACEHOLDER_CORRECTIONS = frozenset(
+    {"corrected sentence", "correction", "n/a", "null", "none"}
+)
+
 
 def load_rules(lang: str = "es") -> dict[str, Any]:
     key = "fr" if lang == "fr" else "es"
@@ -42,6 +46,9 @@ def _rule_matches(text: str, rule: dict[str, Any]) -> bool:
     unless_pat = detect.get("unless_pattern")
     if unless_pat and re.search(unless_pat, text, flags):
         return False
+    require_pat = detect.get("require_pattern")
+    if require_pat and not re.search(require_pat, text, flags):
+        return False
     pattern = detect.get("pattern")
     if pattern:
         return bool(re.search(pattern, text, flags))
@@ -69,19 +76,21 @@ def detect_issues(text: str, lang: str = "es") -> list[dict[str, Any]]:
             )
             seen.add(rid)
     norm = _normalize(text)
-    if re.search(r"\btodo\b", norm) and re.search(r"\baplicaci", norm) and not re.search(
-        r"\btoda\b", norm
+    if (
+        re.search(r"\btodo\b", norm)
+        and re.search(r"\baplicaci", norm)
+        and not re.search(r"\btoda\b", norm)
+        and "todo_before_feminine_noun" not in seen
     ):
-        if "todo_before_feminine_noun" not in seen:
-            matched.append(
-                {
-                    "id": "todo_before_feminine_noun",
-                    "category": "agreement",
-                    "issue": "«Aplicación» is feminine — use «toda la aplicación», not «todo».",
-                    "mention": ["toda la aplicación", "feminine todo/toda"],
-                    "grammar_rule": "Gender agreement (todo/toda + feminine noun)",
-                }
-            )
+        matched.append(
+            {
+                "id": "todo_before_feminine_noun",
+                "category": "agreement",
+                "issue": "«Aplicación» is feminine — use «toda la aplicación», not «todo».",
+                "mention": ["toda la aplicación", "feminine todo/toda"],
+                "grammar_rule": "Gender agreement (todo/toda + feminine noun)",
+            }
+        )
     return matched
 
 
@@ -108,37 +117,114 @@ def apply_repairs(text: str, lang: str = "es") -> str:
 def analyze_sentence(sentence: str, lang: str = "es") -> dict[str, Any]:
     issues = detect_issues(sentence, lang)
     correction = apply_repairs(sentence, lang)
-    sent_norm = _normalize(sentence)
-    corr_norm = _normalize(correction)
+    changed = correction.strip() != sentence.strip()
     return {
         "issues": issues,
-        "correction": correction if corr_norm != sent_norm else None,
-        "has_errors": bool(issues) or corr_norm != sent_norm,
+        "correction": correction if changed else None,
+        "has_errors": bool(issues) or changed,
+    }
+
+
+def _is_placeholder_correction(text: str | None) -> bool:
+    if not text or not str(text).strip():
+        return True
+    t = str(text).strip()
+    if len(t) < 15:
+        return True
+    lower = t.lower().rstrip(".:")
+    if lower in _PLACEHOLDER_CORRECTIONS:
+        return True
+    return not re.search(
+        r"[áéíóúñü]|\b(el|la|que|por|para|tengo|tenemos|aplicaci)\b", t, re.I
+    )
+
+
+def _explanation_covers(issue: dict[str, Any], explanation: str) -> bool:
+    expl = explanation or ""
+    lower = expl.lower()
+    iid = issue.get("id", "")
+    if iid in (
+        "todo_toda",
+        "todo_before_feminine_noun",
+        "todo_por_la_aplicacion",
+        "todo_la_aplicacion",
+    ):
+        if re.search(r"\btodo\s+la\s+aplicaci", expl, re.I):
+            return False
+        if re.search(r"\btodo\s+por\s+la\s+aplicaci", expl, re.I):
+            return False
+        return bool(re.search(r"\btoda\s+la\s+aplicaci", expl, re.I)) or (
+            "toda" in lower and "feminine" in lower
+        )
+    if iid.startswith("tenemos_que"):
+        if re.search(r"\btenamos\b", expl, re.I):
+            return False
+        return "tenemos que" in lower
+    return any(str(m).lower() in lower for m in issue.get("mention") or [])
+
+
+def feedback_from_rules(sentence: str, lang: str = "es") -> dict[str, Any] | None:
+    """Full rule-based feedback when the model fails or is bypassed."""
+    ground = analyze_sentence(sentence, lang)
+    if not ground["has_errors"]:
+        return None
+    issues = ground["issues"]
+    grammar_parts = list(dict.fromkeys(i["grammar_rule"] for i in issues if i.get("grammar_rule")))
+    pack = load_rules(lang)
+    bullets = "\n".join(f"• {i['issue']}" for i in issues)
+    return {
+        "status": "Needs Improvement",
+        "grammar_rule": "; ".join(grammar_parts) or pack.get("grammar_rule_default", ""),
+        "explanation": f"Issues in your sentence:\n{bullets}",
+        "correction": ground["correction"],
+        "register": "Neutral; standard written Spanish for interpreter training.",
+        "tip": "Fix each bullet in order — agreement and prepositions before stylistic upgrades.",
+        "_coach_repaired": True,
+        "_coach_rules": [i["id"] for i in issues],
     }
 
 
 def merge_with_ai(sentence: str, feedback: dict[str, Any], lang: str = "es") -> dict[str, Any]:
-    """Apply shared rules on top of any provider JSON (mirrors web coach-rules-engine.js)."""
+    """Apply shared rules on top of any provider JSON."""
+    if feedback.get("_coach_repaired"):
+        return feedback
+
     out = dict(feedback)
     ground = analyze_sentence(sentence, lang)
     if not ground["has_errors"]:
         return out
 
+    missed = [i for i in ground["issues"] if not _explanation_covers(i, str(out.get("explanation") or ""))]
+    corr = str(out.get("correction") or "").strip()
+    corr_bad = (
+        _is_placeholder_correction(corr)
+        or detect_issues(corr, lang)
+        or (
+            re.search(r"\btodo\b", corr, re.I)
+            and re.search(r"\baplicaci", corr, re.I)
+            and not re.search(r"\btoda\b", corr, re.I)
+        )
+    )
+
+    if str(out.get("explanation") or ""):
+        out["explanation"] = apply_repairs(str(out["explanation"]), lang)
+    if _is_placeholder_correction(corr):
+        out.pop("correction", None)
+
     out["status"] = "Needs Improvement"
-    missed = [i for i in ground["issues"] if i["issue"] not in str(out.get("explanation") or "")]
+
     if missed:
         bullets = "\n".join(f"• {i['issue']}" for i in missed)
         header = "Issues in your sentence:" if len(missed) == len(ground["issues"]) else "Also fix:"
         expl = str(out.get("explanation") or "").strip()
         out["explanation"] = f"{expl}\n\n{header}\n{bullets}".strip() if expl else f"{header}\n{bullets}"
 
-    corr = str(out.get("correction") or "").strip()
-    if ground["correction"] and (len(corr) < 15 or "corrected sentence" in corr.lower()):
+    if ground["correction"] and (corr_bad or not out.get("correction")):
         out["correction"] = ground["correction"]
-    elif ground["correction"] and re.search(r"\btodo\b", corr, re.I) and re.search(
-        r"\baplicaci", corr, re.I
-    ) and not re.search(r"\btoda\b", corr, re.I):
-        out["correction"] = ground["correction"]
+
+    grammar_parts = list(dict.fromkeys(i["grammar_rule"] for i in ground["issues"] if i.get("grammar_rule")))
+    if not str(out.get("grammar_rule") or "").strip() or len(str(out.get("grammar_rule"))) < 20:
+        out["grammar_rule"] = "; ".join(grammar_parts) or load_rules(lang).get("grammar_rule_default", "")
 
     out["_coach_rules"] = [i["id"] for i in ground["issues"]]
     out["_coach_enhanced"] = True
