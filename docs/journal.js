@@ -52,7 +52,7 @@ function altVersionLabels(assessedLevel) {
 }
 
 function analysisCacheHash(sentence, language) {
-  return btoa(unescape(encodeURIComponent(sentence + '|' + language + '|fbv5'))).slice(0, 40);
+  return btoa(unescape(encodeURIComponent(sentence + '|' + language + '|fbv6'))).slice(0, 40);
 }
 
 function sanitizeFeedbackResult(sentence, result, language = 'es') {
@@ -439,17 +439,17 @@ function updateFirebaseAuthUI() {
   if (label && signedIn) label.textContent = firebaseDisplayName();
 }
 
-function normalizeFirebaseAnalyzeResult(data, sentence) {
+function normalizeFirebaseAnalyzeResult(data, sentence, language = 'es') {
   if (!data) throw new Error('Empty response from cloud analysis');
   if (data.status === 'Excellent' || data.status === 'Needs Improvement') {
-    return normalizeResult(data, sentence);
+    return normalizeResult(data, sentence, language);
   }
   if (data.feedback && typeof data.feedback === 'object') {
-    return normalizeResult(data.feedback, sentence);
+    return normalizeResult(data.feedback, sentence, language);
   }
   const raw = data.rawContent ?? data.raw ?? (typeof data === 'string' ? data : null);
-  if (raw) return normalizeResult(parseAIContent(raw), sentence);
-  return normalizeResult(data, sentence);
+  if (raw) return normalizeResult(parseAIContent(raw), sentence, language);
+  return normalizeResult(data, sentence, language);
 }
 
 function callNativeFirebaseAnalyze(sentence, language, providerId) {
@@ -474,9 +474,9 @@ function callNativeFirebaseAnalyze(sentence, language, providerId) {
       }
       try {
         if (typeof result === 'string') {
-          resolve(normalizeFirebaseAnalyzeResult(parseAIContent(result), sentence));
+          resolve(normalizeFirebaseAnalyzeResult(parseAIContent(result), sentence, language));
         } else {
-          resolve(normalizeFirebaseAnalyzeResult(result, sentence));
+          resolve(normalizeFirebaseAnalyzeResult(result, sentence, language));
         }
       } catch (e) {
         reject(e);
@@ -511,7 +511,7 @@ async function callFirebaseCloudAnalyze(sentence, language, providerId) {
     provider: providerId,
     model: getProviderModel(providerId),
   });
-  return normalizeFirebaseAnalyzeResult(resp.data, sentence);
+  return normalizeFirebaseAnalyzeResult(resp.data, sentence, language);
 }
 
 // ── WEBLLM ENGINE ────────────────────────────────────────────────
@@ -1742,10 +1742,13 @@ function showFeedback(id) {
 }
 
 function feedbackItem(labelClass, label, text) {
+  const display = (typeof ParlanceFeedbackSanitize !== 'undefined' && ParlanceFeedbackSanitize.coerceFeedbackText)
+    ? (ParlanceFeedbackSanitize.coerceFeedbackText(text) || '')
+    : String(text || '');
   return `
     <div class="feedback-item">
       <div class="feedback-item-label ${labelClass}">${label}</div>
-      <div class="feedback-item-text">${escapeHTML(String(text || ''))}</div>
+      <div class="feedback-item-text">${escapeHTML(display)}</div>
     </div>
   `;
 }

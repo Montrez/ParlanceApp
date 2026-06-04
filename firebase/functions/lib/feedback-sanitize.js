@@ -143,6 +143,67 @@
     return null;
   }
 
+  function coerceFeedbackText(value) {
+    if (value == null) return null;
+    if (typeof value === 'string') {
+      const t = value.trim();
+      if (!t || t === '[object Object]') return null;
+      return t;
+    }
+    if (typeof value === 'number' || typeof value === 'boolean') {
+      return String(value);
+    }
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        const coerced = coerceFeedbackText(item);
+        if (coerced) return coerced;
+      }
+      return null;
+    }
+    if (typeof value === 'object') {
+      const keys = [
+        'sentence', 'text', 'spanish', 'french', 'content', 'alt',
+        'rewrite', 'example', 'correction', 'next_level_alt', 'target_level_alt',
+      ];
+      for (const k of keys) {
+        if (Object.prototype.hasOwnProperty.call(value, k)) {
+          const coerced = coerceFeedbackText(value[k]);
+          if (coerced) return coerced;
+        }
+      }
+      for (const v of Object.values(value)) {
+        const coerced = coerceFeedbackText(v);
+        if (coerced) return coerced;
+      }
+      return null;
+    }
+    return null;
+  }
+
+  function normalizeFeedbackFields(out) {
+    const textFields = [
+      'grammar_rule', 'explanation', 'correction', 'register',
+      'next_level_alt', 'target_level_alt', 'tip', 'complexity_note',
+    ];
+    for (const key of textFields) {
+      if (out[key] !== undefined && out[key] !== null) {
+        const coerced = coerceFeedbackText(out[key]);
+        if (coerced) out[key] = coerced;
+        else delete out[key];
+      }
+    }
+    if (out.complexityNote != null) {
+      const note = coerceFeedbackText(out.complexityNote);
+      if (note) out.complexity_note = note;
+      delete out.complexityNote;
+    }
+    if (out.grammarRule != null && !out.grammar_rule) {
+      const rule = coerceFeedbackText(out.grammarRule);
+      if (rule) out.grammar_rule = rule;
+      delete out.grammarRule;
+    }
+  }
+
   function preserveInferredFields(out, sentence, lang) {
     const keepLevel = out._keep_assessed_level === true;
     let assessed = null;
@@ -175,6 +236,7 @@
   function sanitizeFeedbackResult(sentence, result, language) {
     if (!result || typeof result !== 'object') return result;
     const out = { ...result };
+    normalizeFeedbackFields(out);
     const lang = language === 'fr' ? 'fr' : 'es';
     preserveInferredFields(out, sentence, lang);
     const sentNorm = normalizeTextForCompare(sentence);
@@ -189,6 +251,8 @@
 
   const api = {
     sanitizeFeedbackResult,
+    coerceFeedbackText,
+    normalizeFeedbackFields,
     assessedLevelPlausible,
     normalizeAssessedLevel,
     normalizeTextForCompare,
