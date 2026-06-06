@@ -43,6 +43,11 @@
 		E7SLM0013 /* ParlanceSLMFeedbackValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7SLM0023 /* ParlanceSLMFeedbackValidator.swift */; };
 		E7SLM0030 /* parlance-es-mlx in Resources */ = {isa = PBXBuildFile; fileRef = E7SLM0031 /* parlance-es-mlx */; };
 		E7SLM0032 /* parlance-fr-mlx in Resources */ = {isa = PBXBuildFile; fileRef = E7SLM0033 /* parlance-fr-mlx */; };
+		E7WEB0011 /* feedback-sanitize.js in Resources */ = {isa = PBXBuildFile; fileRef = E7WEB0010 /* feedback-sanitize.js */; };
+		E7WEB0013 /* coach-rules-es.js in Resources */ = {isa = PBXBuildFile; fileRef = E7WEB0012 /* coach-rules-es.js */; };
+		E7WEB0015 /* coach-rules-engine.js in Resources */ = {isa = PBXBuildFile; fileRef = E7WEB0014 /* coach-rules-engine.js */; };
+		E7WEB0017 /* coach-standard-es.js in Resources */ = {isa = PBXBuildFile; fileRef = E7WEB0016 /* coach-standard-es.js */; };
+		E7WEB0019 /* coach-standard.js in Resources */ = {isa = PBXBuildFile; fileRef = E7WEB0018 /* coach-standard.js */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -79,6 +84,11 @@
 		E7SLM0023 /* ParlanceSLMFeedbackValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParlanceSLMFeedbackValidator.swift; sourceTree = "<group>"; };
 		E7SLM0031 /* parlance-es-mlx */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "parlance-es-mlx"; sourceTree = "<group>"; };
 		E7SLM0033 /* parlance-fr-mlx */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "parlance-fr-mlx"; sourceTree = "<group>"; };
+		E7WEB0010 /* feedback-sanitize.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "feedback-sanitize.js"; sourceTree = "<group>"; };
+		E7WEB0012 /* coach-rules-es.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "coach-rules-es.js"; sourceTree = "<group>"; };
+		E7WEB0014 /* coach-rules-engine.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "coach-rules-engine.js"; sourceTree = "<group>"; };
+		E7WEB0016 /* coach-standard-es.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "coach-standard-es.js"; sourceTree = "<group>"; };
+		E7WEB0018 /* coach-standard.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "coach-standard.js"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -158,6 +168,11 @@
 				E7924DC52FA115DE002A93FF /* rag-knowledge.js */,
 				E7DE265F2FBFEEC70066F0F5 /* locales 2 */,
 				E7DE26602FBFEED80066F0F5 /* i18n.js */,
+				E7WEB0010 /* feedback-sanitize.js */,
+				E7WEB0012 /* coach-rules-es.js */,
+				E7WEB0014 /* coach-rules-engine.js */,
+				E7WEB0016 /* coach-standard-es.js */,
+				E7WEB0018 /* coach-standard.js */,
 				E7DE26622FBFF01C0066F0F5 /* locales 2 */,
 			);
 			path = web;
@@ -269,6 +284,11 @@
 				A1000006 /* Config.plist in Resources */,
 				E7FB0013 /* GoogleService-Info.plist in Resources */,
 				E778CF1D2F9E3B5300296847 /* journal.js in Resources */,
+				E7WEB0011 /* feedback-sanitize.js in Resources */,
+				E7WEB0013 /* coach-rules-es.js in Resources */,
+				E7WEB0015 /* coach-rules-engine.js in Resources */,
+				E7WEB0017 /* coach-standard-es.js in Resources */,
+				E7WEB0019 /* coach-standard.js in Resources */,
 				E7SLM0030 /* parlance-es-mlx in Resources */,
 				E7SLM0032 /* parlance-fr-mlx in Resources */,
 			);

@@ -52,11 +52,14 @@ function altVersionLabels(assessedLevel) {
 }
 
 function analysisCacheHash(sentence, language) {
-  return btoa(unescape(encodeURIComponent(sentence + '|' + language + '|fbv12'))).slice(0, 40);
+  return btoa(unescape(encodeURIComponent(sentence + '|' + language + '|fbv13'))).slice(0, 40);
 }
 
 function sanitizeFeedbackResult(sentence, result, language = 'es') {
-  return ParlanceFeedbackSanitize.sanitizeFeedbackResult(sentence, result, language);
+  if (typeof ParlanceFeedbackSanitize !== 'undefined' && ParlanceFeedbackSanitize.sanitizeFeedbackResult) {
+    return ParlanceFeedbackSanitize.sanitizeFeedbackResult(sentence, result, language);
+  }
+  return result;
 }
 
 const AI_PROVIDERS = {

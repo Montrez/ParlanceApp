@@ -135,19 +135,19 @@ enum ParlanceSLMFeedbackValidator {
                     ?? out["assessedLevel"] as? String
                     ?? out["sentence_level"] as? String
             )
-            if let assessed, let sentence {
-                assessed = coachSalvageAssessedLevel(sentence: sentence, assessed: assessed)
+            if let current = assessed, let sentence {
+                assessed = coachSalvageAssessedLevel(sentence: sentence, assessed: current)
             }
         }
-        if let assessed, let sentence,
-           !assessedLevelPlausible(sentence: sentence, level: assessed, language: language) {
+        if let current = assessed, let sentence,
+           !assessedLevelPlausible(sentence: sentence, level: current, language: language) {
             assessed = nil
         }
         if assessed == nil, let sentence {
             assessed = confidentAssessedLevel(sentence: sentence, language: language)
         }
-        if let assessed, let sentence {
-            assessed = coachSalvageAssessedLevel(sentence: sentence, assessed: assessed)
+        if let current = assessed, let sentence {
+            assessed = coachSalvageAssessedLevel(sentence: sentence, assessed: current)
         }
         if let assessed, let sentence {
             if assessedLevelPlausible(sentence: sentence, level: assessed, language: language) {
@@ -437,8 +437,24 @@ enum ParlanceSLMFeedbackValidator {
                 && (out["explanation"] as? String ?? "").lowercased().contains("imperfect")) {
             return pastNarrativeAccentFeedback(sentence: sentence)
         }
+        ensureContextualTip(sentence: sentence, feedback: &out)
         preserveInferredFields(&out, sentence: sentence)
         return out
+    }
+
+    private static func ensureContextualTip(sentence: String, feedback: inout [String: Any]) {
+        guard tipIsGeneric(feedback["tip"] as? String) else { return }
+        let status = feedback["status"] as? String ?? ""
+        if status == "Needs Improvement", let structural = coachRulesStructuralFeedback(sentence: sentence, level: "") {
+            feedback["tip"] = structural["tip"]
+            return
+        }
+        if status == "Excellent" {
+            let yCoord = sentence.range(of: #"\s+y\s+"#, options: [.regularExpression, .caseInsensitive]) != nil
+                && !hasSubordinator(sentence)
+            let nextAlt = feedback["next_level_alt"] as? String
+            feedback["tip"] = tipForExcellent(sentence: sentence, nextAlt: nextAlt, yCoordinated: yCoord)
+        }
     }
 
     /// Reject CEFR labels that clearly mismatch sentence structure (never invent levels — only filter obvious errors).
@@ -605,10 +621,10 @@ enum ParlanceSLMFeedbackValidator {
             "register": "Neutral; focus on standard French for interpreting exams.",
             "next_level_alt": correction,
             "tip": "Mnemonic: « Si j'avais…, je ferais… » — imparfait in the si-clause, conditionnel in the result.",
-            "complexity_note": (
-                "Hypothetical « si » clause with conditionnel in the protasis instead of imparfait — "
-                "upper-intermediate structure band even when the form is wrong."
-            ),
+            "complexity_note": """
+            Hypothetical « si » clause with conditionnel in the protasis instead of imparfait — \
+            upper-intermediate structure band even when the form is wrong.
+            """,
             "assessed_level": "B2",
             "_coach_repaired": true,
             "_keep_assessed_level": true,
@@ -806,7 +822,9 @@ enum ParlanceSLMFeedbackValidator {
         let complexity = (feedback["complexity_note"] as? String ?? feedback["complexityNote"] as? String ?? "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
         let next = feedback["next_level_alt"] as? String ?? ""
+        if grammarRuleIsGeneric(grammar) { return true }
         if grammar.contains("general spanish grammar") { return true }
+        if explanation.localizedCaseInsensitiveContains("no grammar error stands out") { return true }
         if explanation.localizedCaseInsensitiveContains("no clear errors detected") { return true }
         if explanation.localizedCaseInsensitiveContains("no confirmed grammar error") { return true }
         if explanation.trimmingCharacters(in: .whitespacesAndNewlines).count < 48 { return true }
@@ -815,9 +833,175 @@ enum ParlanceSLMFeedbackValidator {
         return false
     }
 
+    private static func grammarRuleIsGeneric(_ rule: String) -> Bool {
+        let lower = rule.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        if lower == "sentence structure and register" || lower == "sentence structure" { return true }
+        if lower.hasPrefix("sentence structure") { return true }
+        if lower.contains(" and register") && lower.count < 48 { return true }
+        return false
+    }
+
+    // MARK: - Contextual tips (mirror training/coach_tips.py)
+
+    private static func tipIsGeneric(_ tip: String?) -> Bool {
+        guard let tip, tip.trimmingCharacters(in: .whitespacesAndNewlines).count >= 12 else { return true }
+        let lower = tip.lowercased()
+        let phrases = [
+            "add «porque»", "add porque", "subordinate clause", "lo cual",
+            "link ideas in one flowing", "fix each bullet in order",
+            "tighten vocabulary and connectors", "prefer precise verbs and connectors",
+        ]
+        return phrases.contains { lower.contains($0) }
+    }
+
+    private static func snippet(from sentence: String, pattern: String, pad: Int = 18) -> String? {
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else { return nil }
+        let ns = sentence as NSString
+        let range = NSRange(location: 0, length: ns.length)
+        guard let match = regex.firstMatch(in: sentence, range: range) else { return nil }
+        let start = max(0, match.range.location - pad)
+        let end = min(ns.length, match.range.location + match.range.length + pad)
+        var chunk = ns.substring(with: NSRange(location: start, length: end - start))
+            .trimmingCharacters(in: CharacterSet(charactersIn: " .,;"))
+        if start > 0 { chunk = "…" + chunk }
+        if end < ns.length { chunk += "…" }
+        return chunk
+    }
+
+    private static func tipForImprovement(
+        sentence: String,
+        ruleIds: [String],
+        correction: String?
+    ) -> String {
+        var parts: [String] = []
+        let ids = Set(ruleIds)
+
+        if ids.contains("que_clause_infinitive_subjunctive")
+            || ruleIds.contains(where: { $0.contains("Subjunctive after") }) {
+            let snip = snippet(from: sentence, pattern: #"\b(espero|quiero|deseo|necesito|ojal[aá])\s+que[^.!?]{0,45}"#)
+            if let snip {
+                parts.append("In «\(snip)», the verb after **que** needs subjunctive (**vayan**, not bare **ir**).")
+            } else {
+                parts.append("After «espero que» / «quiero que», use subjunctive — not an infinitive in the subordinate clause.")
+            }
+        }
+
+        if ids.contains("para_purpose_infinitive")
+            || ruleIds.contains(where: { $0.contains("Por vs para") }) {
+            let snip = snippet(from: sentence, pattern: #"\b\w+\s+a\s+(ver|hacer|comprar|ir)\b"#)
+                ?? snippet(from: sentence, pattern: #"\ba\s+(ver|hacer|comprar|ir)\b"#)
+            let corrSnip = correction.flatMap {
+                snippet(from: $0, pattern: #"\bpara\s+(ver|hacer|comprar|ir)\b"#)
+            }
+            if let snip, let corrSnip {
+                parts.append("In «\(snip)», use **para** before the infinitive — e.g. «\(corrSnip)».")
+            } else if let snip {
+                parts.append("In «\(snip)», purpose before an infinitive needs **para**, not **a**.")
+            } else {
+                parts.append("Before an infinitive of purpose, use **para**, not bare **a**.")
+            }
+        }
+
+        if ids.contains("greeting_vocative_order") || ids.contains("como_es_wellbeing")
+            || ruleIds.contains(where: { $0.contains("Ser vs estar") }) {
+            let snip = snippet(from: sentence, pattern: #"[Cc][óo]mo\s+es[^.!?]{0,40}"#)
+                ?? snippet(from: sentence, pattern: #"usted\s+d[ií]a\s+se[nñ]or"#)
+            if let snip {
+                parts.append(
+                    "Your opening «\(snip)» should be **¿Cómo está usted hoy, señor?** — "
+                    + "**estar** for wellbeing, natural vocative order."
+                )
+            } else {
+                parts.append("Use **¿Cómo está usted hoy, señor?** — not **Cómo es** + scrambled word order.")
+            }
+        }
+
+        if !parts.isEmpty {
+            return parts.prefix(2).joined(separator: " ")
+        }
+        if let correction, !correction.isEmpty, normalize(correction) != normalize(sentence) {
+            let delta = correction.count <= 120 ? correction : String(correction.prefix(117)) + "…"
+            return "Revise to keep your meaning: «\(delta)»"
+        }
+        return "Apply each grammar fix while keeping your original meaning."
+    }
+
+    private static func tipForExcellent(
+        sentence: String,
+        nextAlt: String? = nil,
+        yCoordinated: Bool = false
+    ) -> String {
+        let text = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
+        let norm = normalize(text)
+
+        if yCoordinated, let nextAlt, normalize(nextAlt) != norm {
+            let parts = text.components(separatedBy: " y ")
+            if let left = parts.first?.trimmingCharacters(in: CharacterSet(charactersIn: " .")) {
+                return """
+                You link ideas with «\(left)… y …» — for formal interpreting, \
+                try your own words in: «\(nextAlt)»
+                """
+            }
+        }
+
+        if let regex = try? NSRegularExpression(pattern: #"(?i)\b(quiero\s+[^.!?]{3,50})"#),
+           let match = regex.firstMatch(in: text, range: NSRange(location: 0, length: (text as NSString).length)) {
+            let snip = (text as NSString).substring(with: match.range(at: 1)).trimmingCharacters(in: .whitespaces)
+            if snip.range(of: #"\bpara\s+\w"#, options: .regularExpression) != nil {
+                return """
+                «\(snip)» already states purpose — add a time frame («esta tarde», «mañana») \
+                if the interpreter note needs when.
+                """
+            }
+            return "«\(snip)» is clear — if this is a goal, add **para** + infinitive or a time phrase for the session."
+        }
+
+        if let regex = try? NSRegularExpression(pattern: #"(?i)\b(me gusta|te gusta|le gusta|gusta)\s+[^.!?]{3,40}"#),
+           let match = regex.firstMatch(in: text, range: NSRange(location: 0, length: (text as NSString).length)) {
+            let snip = (text as NSString).substring(with: match.range).trimmingCharacters(in: .whitespaces)
+            return "Solid «\(snip)» — specify when or how often if the context is scheduling."
+        }
+
+        if norm.range(of: #"\b(senor|senora)\b"#, options: .regularExpression) != nil,
+           norm.range(of: #"\besta\b"#, options: .regularExpression) != nil {
+            if let snip = snippet(from: text, pattern: #"[Hh]ola[^.!?]{0,35}"#)
+                ?? snippet(from: text, pattern: #"[Cc][óo]mo\s+est[aá][^.!?]{0,20}"#) {
+                return "Formal «\(snip)» — set off the vocative with commas: «Buenos días, señora, ¿cómo está?»"
+            }
+            return "Formal usted + «está» fits polite address — use commas around the vocative."
+        }
+
+        if hasSubordinator(text) {
+            let words = text.components(separatedBy: .whitespacesAndNewlines)
+                .filter { $0.count >= 5 }
+                .prefix(2)
+            if words.count >= 2 {
+                return """
+                Subordination is already working — sharpen domain terms \
+                (e.g. «\(words[0])», «\(words[1])») for interpreter precision.
+                """
+            }
+        }
+
+        let contentWords = text.components(separatedBy: .whitespacesAndNewlines).filter { $0.count >= 4 }
+        if contentWords.count >= 2 {
+            return """
+            Your line with «\(contentWords[0])» and «\(contentWords[1])» reads cleanly — \
+            adjust one verb or noun only if the register must be more formal.
+            """
+        }
+        return "Keep your meaning; change only the word or form flagged above, if any."
+    }
+
     // MARK: - Known Spanish error patterns
 
     private static func knownSpanishErrorFeedback(sentence: String, level: String) -> [String: Any]? {
+        if let structural = coachRulesStructuralFeedback(sentence: sentence, level: level) {
+            return structural
+        }
+        if let que = queClauseInfinitiveFeedback(sentence: sentence, level: level) {
+            return que
+        }
         if let si = siClauseConditionalFeedback(sentence: sentence, level: level) {
             return si
         }
@@ -825,6 +1009,174 @@ enum ParlanceSLMFeedbackValidator {
             return leismo
         }
         return nil
+    }
+
+    /// Shared coach-rules patterns (keep in sync with shared/coach-rules/es.json).
+    private static func coachRulesStructuralFeedback(sentence: String, level: String) -> [String: Any]? {
+        struct Issue {
+            let id: String
+            let grammarRule: String
+            let issue: String
+        }
+        var issues: [Issue] = []
+        var ruleIds: [String] = []
+        var correction = sentence
+        let norm = normalize(sentence)
+
+        if sentence.range(
+            of: #"(?i)[Cc][óo]mo\s+es\s+usted\s+d[ií]a\s+(se[nñ]or|se[nñ]ora)\b"#,
+            options: .regularExpression
+        ) != nil {
+            issues.append(Issue(
+                id: "greeting_vocative_order",
+                grammarRule: "Ser vs estar + word order in formal greetings",
+                issue: "Use «¿Cómo está usted hoy, señor?» — estar (not ser) for wellbeing, with natural vocative order."
+            ))
+            ruleIds.append("greeting_vocative_order")
+            correction = correction.replacingOccurrences(
+                of: #"(?i)[Cc][óo]mo\s+es\s+usted\s+d[ií]a\s+(se[nñ]or|se[nñ]ora)\b"#,
+                with: "¿Cómo está usted hoy, $1",
+                options: .regularExpression
+            )
+        } else if sentence.range(
+            of: #"(?i)[Cc][óo]mo\s+es\b"#,
+            options: .regularExpression
+        ) != nil,
+                  norm.range(of: #"\b(usted|tu|senor|senora|dia)\b"#, options: .regularExpression) != nil,
+                  norm.range(of: #"usted\s+dia\s+senor"#, options: .regularExpression) == nil {
+            issues.append(Issue(
+                id: "como_es_wellbeing",
+                grammarRule: "Ser vs estar — «¿Cómo está?» for wellbeing",
+                issue: "Asking after someone's state uses «¿Cómo está …?» (estar), not «Cómo es …» (ser)."
+            ))
+            ruleIds.append("como_es_wellbeing")
+            correction = correction.replacingOccurrences(
+                of: #"(?i)[Cc][óo]mo\s+es\b"#,
+                with: "¿Cómo está",
+                options: .regularExpression
+            )
+        }
+
+        if sentence.range(
+            of: #"(?i)\b(a)\s+(ver|hacer|comprar|ir|llegar|terminar)\s+(un|una|el|la|al|a la)\b"#,
+            options: .regularExpression
+        ) != nil,
+           sentence.range(
+               of: #"(?i)\bpara\s+(ver|hacer|comprar|ir|llegar|terminar)\b"#,
+               options: .regularExpression
+           ) == nil {
+            issues.append(Issue(
+                id: "para_purpose_infinitive",
+                grammarRule: "Por vs para — purpose before infinitive",
+                issue: "Purpose before an infinitive uses «para» (e.g. «dinero para ver»), not bare «a»."
+            ))
+            ruleIds.append("para_purpose_infinitive")
+            correction = correction.replacingOccurrences(
+                of: #"(?i)\b(a)\s+(ver|hacer|comprar|ir|llegar|terminar)\s+(un|una|el|la|al|a la)\b"#,
+                with: "para $2 $3",
+                options: .regularExpression
+            )
+        }
+
+        guard !issues.isEmpty else { return nil }
+
+        let grammar = issues.map(\.grammarRule).joined(separator: "; ")
+        let bullets = issues.map { "• \($0.issue)" }.joined(separator: "\n")
+        let register: String
+        if norm.range(of: #"\b(senor|senora|usted)\b"#, options: .regularExpression) != nil {
+            register = """
+            Formal usted with vocative «señor/señora» — keep third-person verb forms («está», not «estás») \
+            in professional settings.
+            """
+        } else {
+            register = "Match tú/usted and formality to the setting (clinical, legal, or casual)."
+        }
+        let tip = tipForImprovement(sentence: sentence, ruleIds: ruleIds, correction: correction)
+
+        var result: [String: Any] = [
+            "status": "Needs Improvement",
+            "grammar_rule": grammar,
+            "explanation": "Issues in your sentence:\n\(bullets)",
+            "correction": correction,
+            "register": register,
+            "tip": tip,
+            "_coach_repaired": true,
+        ]
+        if !["C1", "C2"].contains(level.uppercased()) {
+            result["next_level_alt"] = correction
+            result["target_level_alt"] = correction
+        }
+        var mutable = result
+        preserveInferredFields(&mutable, sentence: sentence)
+        return mutable
+    }
+
+    private static func queClauseInfinitiveFeedback(sentence: String, level: String) -> [String: Any]? {
+        guard let trigger = try? NSRegularExpression(
+            pattern: #"(?i)\b(espero|quiero|deseo|necesito|ojal[aá])\s+que\b"#
+        ) else { return nil }
+        let ns = sentence as NSString
+        let fullRange = NSRange(location: 0, length: ns.length)
+        guard trigger.firstMatch(in: sentence, range: fullRange) != nil else { return nil }
+
+        guard let infinitive = try? NSRegularExpression(
+            pattern: #"(?i)\b(todos|todo|t[uú]|ell[oa]|nosotros|usted|ustedes)\s+(ir|ser|estar|tener|hacer|poder|venir|decir)\b"#
+        ) else { return nil }
+        guard infinitive.firstMatch(in: sentence, range: fullRange) != nil else { return nil }
+
+        let norm = normalize(sentence)
+        if norm.range(
+            of: #"\b(vaya|vayan|sea|sean|este|esten|tenga|tengan|haga|hagan|pueda|puedan|venga|vengan|diga|digan)\b"#,
+            options: .regularExpression
+        ) != nil {
+            return nil
+        }
+
+        var correction = sentence
+        let pairs: [(String, String)] = [
+            (#"(?i)\btodos\s+ir\b"#, "todos vayan"),
+            (#"(?i)\btodo\s+ir\b"#, "todo vaya"),
+            (#"(?i)\btodos\s+ser\b"#, "todos sean"),
+            (#"(?i)\btodo\s+ser\b"#, "todo sea"),
+            (#"(?i)\btodos\s+estar\b"#, "todos estén"),
+            (#"(?i)\btodo\s+estar\b"#, "todo esté"),
+            (#"(?i)\btodos\s+tener\b"#, "todos tengan"),
+            (#"(?i)\btodo\s+tener\b"#, "todo tenga"),
+            (#"(?i)\btodos\s+hacer\b"#, "todos hagan"),
+            (#"(?i)\btodo\s+hacer\b"#, "todo haga"),
+        ]
+        for (pattern, sub) in pairs {
+            correction = correction.replacingOccurrences(
+                of: pattern, with: sub, options: .regularExpression
+            )
+        }
+
+        let tip = tipForImprovement(
+            sentence: sentence,
+            ruleIds: ["que_clause_infinitive_subjunctive"],
+            correction: correction
+        )
+
+        var result: [String: Any] = [
+            "status": "Needs Improvement",
+            "grammar_rule": "Subjunctive after «espero que» / «quiero que» — not infinitive in the subordinate clause",
+            "explanation": """
+            After «espero que» (and similar triggers), Spanish requires the subjunctive in the subordinate \
+            clause — e.g. «todos **vayan** bien», not «todos **ir** bien».
+            """,
+            "correction": correction,
+            "register": "Neutral; focus on standard written Spanish for interpreting exams.",
+            "tip": tip,
+            "_coach_repaired": true,
+            "_coach_rules": ["que_clause_infinitive_subjunctive"],
+        ]
+        if !["C1", "C2"].contains(level.uppercased()) {
+            result["next_level_alt"] = correction
+            result["target_level_alt"] = correction
+        }
+        var mutable = result
+        preserveInferredFields(&mutable, sentence: sentence)
+        return mutable
     }
 
     private static func echarDeMenosLeismoFeedback(sentence: String, level: String) -> [String: Any]? {
@@ -947,9 +1299,10 @@ enum ParlanceSLMFeedbackValidator {
             && norm.contains("extran")
             && norm.range(of: #"\bte\b"#, options: .regularExpression) != nil
         let hasFormalGreetingCue = (
-            ((norm.contains("como esta") || text.localizedCaseInsensitiveContains("cómo está"))
-                && !norm.contains("estas"))
-            || norm.range(of: #"\b(usted|senor|senora)\b"#, options: .regularExpression) != nil
+            (norm.contains("como esta") || text.localizedCaseInsensitiveContains("cómo está"))
+                && !norm.contains("estas")
+                && !norm.contains("como es")
+                && norm.range(of: #"\b(senor|senora)\b"#, options: .regularExpression) != nil
         ) && !hasInformalGreetingCue
         let register: String
         if hasInformalGreetingCue {
@@ -996,7 +1349,7 @@ enum ParlanceSLMFeedbackValidator {
             grammar = "Informal greeting and familiar address"
             explanation = "«\(text)» uses informal, familiar language. Keep that register when the relationship is personal, and use commas to set off a vocative where appropriate."
         } else if issues.isEmpty, hasFormalGreetingCue {
-            grammar = "Formal greeting and usted register"
+            grammar = "Formal greeting — «¿Cómo está?» with usted"
             explanation = "Polite greeting with appropriate formal verb form; only minor punctuation may apply."
         } else if issues.isEmpty {
             grammar = "Greeting and context-appropriate register"
@@ -1103,10 +1456,7 @@ enum ParlanceSLMFeedbackValidator {
             register = "Informal first person (tú implied); appropriate for personal or clinical rapport if the context is intimate."
             nextAlt = "Me siento incómoda porque no dejo de pensar en ello."
             targetAlt = "Me encuentro incómoda, sobre todo porque no consigo dejar de darle vueltas al asunto."
-            tip = """
-            Replace «y» with cause: «Me siento incómoda **porque** no dejo de pensar en ello.» Or use richer \
-            vocabulary: «…**pues** no puedo dejar de **darle vueltas** al asunto.»
-            """
+            tip = tipForExcellent(sentence: text, nextAlt: nextAlt, yCoordinated: true)
         } else if yCoordinated && !hasSubordinator(text) {
             grammarRule = "Coordination with «y» vs subordination (porque, pues, lo cual)"
             explanation = """
@@ -1122,9 +1472,7 @@ enum ParlanceSLMFeedbackValidator {
             let upgraded = upgradeYCoordination(text)
             nextAlt = upgraded.next
             targetAlt = upgraded.target
-            tip = """
-            Upgrade: «\(nextAlt)» — swap «y» for **porque** or **pues** to show how the two ideas relate.
-            """
+            tip = tipForExcellent(sentence: text, nextAlt: nextAlt, yCoordinated: true)
         } else if norm.contains("estoy ") || norm.contains("estoy,") {
             grammarRule = "Ser vs estar — temporary states with estar"
             explanation = """
@@ -1143,18 +1491,21 @@ enum ParlanceSLMFeedbackValidator {
             } else {
                 targetAlt = nil
             }
-            tip = "Add precision: instead of a bare adjective, try «Me siento…» or «Me encuentro…» for a slightly more formal register."
+            tip = tipForExcellent(
+                sentence: text,
+                nextAlt: yCoordinated ? nextAlt : nil,
+                yCoordinated: yCoordinated
+            )
         } else {
-            grammarRule = "Sentence structure and register"
-            explanation = """
-            No grammar error stands out in this sentence. The structures you used are acceptable — the next step is \
-            tightening vocabulary and connectors so the line fits a professional interpreting context.
-            """
+            let dynamic = dynamicExcellentGrammar(sentence: text)
+            grammarRule = dynamic.grammar
+            explanation = dynamic.explanation
             complexityNote = """
-            \(wordCount)-word sentence\(hasSubordinator(text) ? " with subordination" : ", mainly main-clause structure"). \
-            Describe syntax and vocabulary in context rather than assigning a single CEFR band.
+            \(wordCount)-word sentence\(hasSubordinator(text) ? " with subordination" : ", main-clause structure").
             """
-            register = "Confirm tú/usted and formality match the scenario (clinical, legal, or casual)."
+            register = norm.range(of: #"\b(senor|senora|usted)\b"#, options: .regularExpression) != nil
+                ? "Formal usted with «señor/señora» — keep third-person verb forms in professional settings."
+                : "Match tú/usted and formality to the scenario (clinical, legal, or casual)."
             if yCoordinated && !hasSubordinator(text) {
                 nextAlt = upgradeYCoordination(text).next
                 targetAlt = upgradeYCoordination(text).target
@@ -1162,7 +1513,7 @@ enum ParlanceSLMFeedbackValidator {
                 nextAlt = text
                 targetAlt = nil
             }
-            tip = "Try adding a subordinate clause: «…, **porque** …» or «…, **lo cual** …» to link ideas in one flowing sentence."
+            tip = tipForExcellent(sentence: text, nextAlt: nextAlt, yCoordinated: yCoordinated)
         }
 
         var out: [String: Any] = [
@@ -1180,18 +1531,48 @@ enum ParlanceSLMFeedbackValidator {
         return out
     }
 
-    private static func heuristicImprovementTip(sentence: String, level: String, issues: [String]) -> String {
+    private static func dynamicExcellentGrammar(sentence: String) -> (grammar: String, explanation: String) {
         let norm = normalize(sentence)
-        if norm.contains("echo de menos") {
-            return "«Echar de menos» takes lo/la: «la echo de menos» (her), «lo echo de menos» (him) — not «le»."
+        var rules: [String] = []
+        var cites: [String] = []
+        if norm.range(of: #"\bquiero\b"#, options: .regularExpression) != nil {
+            rules.append("Present tense «querer» + infinitive complement")
+            cites.append("«quiero» + infinitive")
         }
-        if norm.range(of: #"\b(le|les|lo|la|los|las)\s+\w"#, options: .regularExpression) != nil {
-            return "Check clitic pronouns: direct objects are lo/la/los/las; «le/les» mark indirect objects unless regional leísmo applies."
+        if norm.range(of: #"\b(fui|fue|hice|hizo|comi|trabaje)\b"#, options: .regularExpression) != nil {
+            rules.append("Preterite (pretérito indefinido) for completed past actions")
+            cites.append("preterite verb form(s)")
         }
+        if norm.range(of: #"\b(estoy|esta|estamos)\b"#, options: .regularExpression) != nil {
+            rules.append("Present tense «estar» + complement (state or location)")
+            cites.append("«estar» + complement")
+        }
+        if norm.range(of: #"\bgust"#, options: .regularExpression) != nil {
+            rules.append("«Gustar» + indirect object + noun")
+            cites.append("«gustar» construction")
+        }
+        if hasSubordinator(sentence) {
+            rules.append("Subordination (clause linked with «que», «porque», «si», etc.)")
+            cites.append("subordinate clause")
+        }
+        let grammar = rules.isEmpty ? "Main-clause syntax" : rules.prefix(3).joined(separator: "; ")
+        let citeText = cites.isEmpty ? "the structures you used" : cites.prefix(3).joined(separator: ", ")
+        let explanation = """
+        No grammar error stands out. You used \(citeText) correctly — next, tighten connectors or vocabulary \
+        if the line must sound more formal for interpreting.
+        """
+        return (grammar, explanation)
+    }
+
+    private static func heuristicImprovementTip(sentence: String, level: String, issues: [String]) -> String {
         if !issues.isEmpty {
-            return "Fix punctuation first, then confirm tú/usted matches your interpreting scenario."
+            return tipForImprovement(
+                sentence: sentence,
+                ruleIds: ["punctuation_question"],
+                correction: nil
+            )
         }
-        return "Prefer precise verbs and connectors over repeated «y» clauses where a subordinate fits."
+        return tipForExcellent(sentence: sentence)
     }
 
     // MARK: - Token checks
@@ -1203,6 +1584,7 @@ enum ParlanceSLMFeedbackValidator {
     ]
 
     private static func grammarRuleLooksLikeMetaCommentary(_ rule: String) -> Bool {
+        if grammarRuleIsGeneric(rule) { return true }
         let lower = rule.lowercased()
         return lower.contains("the learner") || lower.contains("the sentence")
             || lower.contains("needs to") || lower.contains("should have")

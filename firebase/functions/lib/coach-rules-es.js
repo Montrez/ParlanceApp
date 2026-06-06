@@ -3,6 +3,8 @@
   root.ParlanceCoachRulesES = {
   "version": 2,
   "lang": "es",
+  "standard_version": 1,
+  "standard_path": "shared/standards/es-coach-standard.json",
   "grammar_rule_default": "Spanish agreement, prepositions, and clause structure",
   "feminine_nouns": [
     "aplicación",
@@ -63,6 +65,88 @@
       },
       "regression": [
         "si_clause_tendria"
+      ]
+    },
+    {
+      "id": "que_clause_infinitive_subjunctive",
+      "category": "verb_mood",
+      "priority": 6,
+      "detect": {
+        "pattern": "\\b(espero|quiero|deseo|necesito|ojal[aá])\\s+que\\s+[^.!?]*\\b(todos|todo|t[uú]|ell[oa]|nosotros|usted|ustedes)\\s+(ir|ser|estar|tener|hacer|poder|venir|decir)\\b",
+        "flags": "i",
+        "unless_pattern": "\\b(vaya|vayan|sea|sean|est[eé]|est[eé]n|tenga|tengan|haga|hagan|pueda|puedan|venga|vengan|diga|digan)\\b"
+      },
+      "issue": "After a subjunctive trigger («espero que», «quiero que»…), use subjunctive in the subordinate clause — not a bare infinitive («todos ir» → «todos vayan»).",
+      "mention": [
+        "subjunctive",
+        "espero que",
+        "vayan",
+        "present subjunctive"
+      ],
+      "repair": [
+        {
+          "pattern": "\\btodos\\s+ir\\b",
+          "replace": "todos vayan",
+          "flags": "gi"
+        },
+        {
+          "pattern": "\\btodo\\s+ir\\b",
+          "replace": "todo vaya",
+          "flags": "gi"
+        },
+        {
+          "pattern": "\\btodos\\s+ser\\b",
+          "replace": "todos sean",
+          "flags": "gi"
+        },
+        {
+          "pattern": "\\btodo\\s+ser\\b",
+          "replace": "todo sea",
+          "flags": "gi"
+        },
+        {
+          "pattern": "\\btodos\\s+estar\\b",
+          "replace": "todos estén",
+          "flags": "gi"
+        },
+        {
+          "pattern": "\\btodo\\s+estar\\b",
+          "replace": "todo esté",
+          "flags": "gi"
+        },
+        {
+          "pattern": "\\btodos\\s+tener\\b",
+          "replace": "todos tengan",
+          "flags": "gi"
+        },
+        {
+          "pattern": "\\btodo\\s+tener\\b",
+          "replace": "todo tenga",
+          "flags": "gi"
+        },
+        {
+          "pattern": "\\btodos\\s+hacer\\b",
+          "replace": "todos hagan",
+          "flags": "gi"
+        },
+        {
+          "pattern": "\\btodo\\s+hacer\\b",
+          "replace": "todo haga",
+          "flags": "gi"
+        }
+      ],
+      "grammar_rule": "Subjunctive after «espero que» / «quiero que» — not infinitive in the subordinate clause",
+      "source": {
+        "authority": "RAE-DPD",
+        "topic": "Modo subjuntivo / oraciones subordinadas",
+        "url": "https://www.rae.es/dpd/modo%20subjuntivo"
+      },
+      "cefr": {
+        "teach_from": "B2",
+        "band": "B2"
+      },
+      "regression": [
+        "espero_que_subjunctive"
       ]
     },
     {
@@ -174,6 +258,121 @@
         "band": "A1-A2"
       },
       "regression": []
+    },
+    {
+      "id": "como_es_wellbeing",
+      "category": "verb_mood",
+      "priority": 14,
+      "detect": {
+        "pattern": "[Cc][óo]mo\\s+es\\b",
+        "flags": "i",
+        "require_pattern": "(?i)\\b(usted|t[uú]|se[nñ]or|se[nñ]ora|d[ií]a)\\b",
+        "unless_pattern": "(?i)usted\\s+d[ií]a\\s+se[nñ]"
+      },
+      "issue": "Asking after someone's state uses «¿Cómo está …?» (estar), not «Cómo es …» (ser).",
+      "mention": [
+        "cómo está",
+        "ser vs estar",
+        "wellbeing"
+      ],
+      "repair": [
+        {
+          "pattern": "\\b[Cc][óo]mo\\s+es\\b",
+          "replace": "¿Cómo está",
+          "flags": "g"
+        }
+      ],
+      "grammar_rule": "Ser vs estar — «¿Cómo está?» for wellbeing",
+      "source": {
+        "authority": "RAE-DPD",
+        "topic": "Ser / estar",
+        "url": "https://www.rae.es/dpd/ser"
+      },
+      "cefr": {
+        "teach_from": "A1",
+        "band": "A1-A2"
+      },
+      "regression": [
+        "como_es_greeting"
+      ]
+    },
+    {
+      "id": "greeting_vocative_order",
+      "category": "syntax",
+      "priority": 16,
+      "detect": {
+        "pattern": "(?i)\\b(usted|t[uú])\\s+(d[ií]a)\\b",
+        "unless_pattern": "(?i)\\b(su|t[uú])\\s+d[ií]a\\b|\\bhoy\\b"
+      },
+      "issue": "Use «¿Cómo está usted hoy, señor?» — estar (not ser) for wellbeing, with natural vocative order.",
+      "mention": [
+        "cómo está",
+        "ser vs estar",
+        "word order",
+        "vocative",
+        "hoy"
+      ],
+      "repair": [
+        {
+          "pattern": "(?i)[Cc][óo]mo\\s+es\\s+usted\\s+d[ií]a\\s+(se[nñ]or|se[nñ]ora)\\b",
+          "replace": "¿Cómo está usted hoy, \\1",
+          "flags": "g"
+        },
+        {
+          "pattern": "(?i)¿Cómo está\\s+usted\\s+d[ií]a\\s+(se[nñ]or|se[nñ]ora)\\b",
+          "replace": "¿Cómo está usted hoy, \\1",
+          "flags": "g"
+        }
+      ],
+      "grammar_rule": "Ser vs estar + word order in formal greetings",
+      "source": {
+        "authority": "RAE",
+        "topic": "Orden de palabras / vocativo",
+        "url": "https://www.rae.es/dpd/vocativo"
+      },
+      "cefr": {
+        "teach_from": "A2",
+        "band": "A2-B1"
+      },
+      "regression": [
+        "como_es_greeting"
+      ]
+    },
+    {
+      "id": "para_purpose_infinitive",
+      "category": "prepositions",
+      "priority": 27,
+      "detect": {
+        "pattern": "\\b(a)\\s+(ver|hacer|comprar|ir|llegar|terminar)\\s+(un|una|el|la|al|a la)\\b",
+        "flags": "i",
+        "unless_pattern": "\\bpara\\s+(ver|hacer|comprar|ir|llegar|terminar)\\b"
+      },
+      "issue": "Purpose before an infinitive uses «para» (e.g. «dinero para ver»), not bare «a».",
+      "mention": [
+        "para ver",
+        "por vs para",
+        "purpose"
+      ],
+      "repair": [
+        {
+          "pattern": "\\b(a)\\s+(ver|hacer|comprar|ir|llegar|terminar)\\s+(un|una|el|la|al|a la)\\b",
+          "replace": "para \\2 \\3",
+          "flags": "gi"
+        }
+      ],
+      "grammar_rule": "Por vs para — purpose before infinitive",
+      "source": {
+        "authority": "RAE-DPD",
+        "topic": "Por / para",
+        "url": "https://www.rae.es/dpd/por"
+      },
+      "cefr": {
+        "teach_from": "A2",
+        "band": "A2-B1"
+      },
+      "regression": [
+        "para_purpose_ver"
+      ]
     },
     {
       "id": "gender_muchas_cosas",
