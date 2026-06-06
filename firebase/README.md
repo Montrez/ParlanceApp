@@ -14,7 +14,9 @@ See the main [README.md](../README.md#firebase-console-setup) for:
 
 - Enable **Authentication** (Apple + Google)
 - Create iOS app with bundle ID `com.parlance.interpreterguide`
-- Download `GoogleService-Info.plist` into `Parlance/`
+- Download `GoogleService-Info.plist` into `Parlance/` (gitignored — do not commit)
+
+**Xcode Cloud:** Archive builds use `ci_scripts/ci_pre_xcodebuild.sh` to copy `GoogleService-Info.plist.example` when the real plist is absent. CI archives compile with placeholder Firebase config; use a local plist for device builds with working Google Sign-In.
 - Enable **Cloud Functions**
 
 ## Set API secrets
