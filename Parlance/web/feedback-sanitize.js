@@ -179,23 +179,59 @@
     return null;
   }
 
+  /** Return true when a register string is vague meta-advice rather than a concrete label. */
+  function registerIsVague(register) {
+    if (!register || register.trim().length < 6) return true;
+    const low = register.toLowerCase();
+    // Meta-advice patterns are always vague — check these first regardless of label words
+    if (/^note\b/.test(low) || /\bwhether\b/.test(low) || /^consider\b/.test(low)
+        || /^check\b/.test(low) || /^identify\b/.test(low) || /^state\b/.test(low)) return true;
+    // Must assert at least one concrete register label
+    if (/\b(informal|formal|voseo|usted|vous)\b/.test(low) || /\bt[uú]\b/.test(low)) return false;
+    return true;
+  }
+
+  /** Build a concrete register string from sentence inference + interpreter context note. */
+  function buildRegisterNote(inferred, lang) {
+    if (lang === 'fr') {
+      if (inferred && inferred.includes('informal'))
+        return 'informal (tu) — casual; use vous in clinical, legal, or formal interpreter settings.';
+      if (inferred && inferred.includes('formal'))
+        return 'formal (vous) — appropriate for professional interpreting contexts.';
+      return 'Register not determined from this sentence — default to vous in clinical/legal settings.';
+    }
+    if (inferred && inferred.startsWith('voseo'))
+      return inferred + '; use usted in formal/professional interpreter settings.';
+    if (inferred && inferred.includes('informal'))
+      return 'informal (tú) — casual; shift to usted in clinical, legal, or court interpreting.';
+    if (inferred && inferred.includes('formal'))
+      return 'formal (usted) — appropriate for professional interpreting contexts.';
+    return 'Register not determined from this sentence — use usted in clinical/legal settings, tú for casual conversation.';
+  }
+
   /**
-   * Correct an AI-reported register string when sentence evidence clearly contradicts it.
-   * Returns the original string if evidence is inconclusive.
+   * Correct an AI-reported register string when:
+   *   (a) sentence evidence contradicts it, OR
+   *   (b) it is vague meta-advice rather than a concrete label.
    */
   function sanitizeRegister(sentence, aiRegister, lang) {
     if (!sentence || !aiRegister) return aiRegister;
     const inferred = inferRegisterFromSentence(sentence, lang);
-    if (!inferred) return aiRegister; // can't tell from the sentence — trust the AI
 
+    // Case A: register is vague meta-advice — replace with concrete note
+    if (registerIsVague(aiRegister)) {
+      return buildRegisterNote(inferred, lang);
+    }
+
+    // Case B: register is concrete but contradicts sentence evidence
+    if (!inferred) return aiRegister;
     const regNorm = aiRegister.toLowerCase();
 
     if (lang === 'fr') {
-      // Use word-boundary regex — "informal" contains "formal" as substring
       const aiSaysFormal   = /\bvous\b/.test(regNorm) || /\bformal\b/.test(regNorm);
       const aiSaysInformal = /\binformal\b/.test(regNorm) || /\btu\b/.test(regNorm);
-      if (inferred === 'informal (tu)' && aiSaysFormal && !aiSaysInformal) return inferred;
-      if (inferred === 'formal (vous)' && aiSaysInformal && !aiSaysFormal) return inferred;
+      if (inferred === 'informal (tu)' && aiSaysFormal && !aiSaysInformal) return buildRegisterNote(inferred, lang);
+      if (inferred === 'formal (vous)' && aiSaysInformal && !aiSaysFormal) return buildRegisterNote(inferred, lang);
       return aiRegister;
     }
 
@@ -203,10 +239,101 @@
     const aiSaysInformal = /\binformal\b/.test(regNorm) || /\bt[uú]\b/.test(regNorm);
     const aiSaysVoseo    = /\bvos\b/.test(regNorm);
 
-    if (inferred.startsWith('informal') && aiSaysFormal && !aiSaysInformal) return inferred;
-    if (inferred.startsWith('formal')   && aiSaysInformal && !aiSaysFormal) return inferred;
-    if (inferred.startsWith('voseo')    && !aiSaysVoseo)                    return inferred;
+    if (inferred.startsWith('informal') && aiSaysFormal  && !aiSaysInformal) return buildRegisterNote(inferred, lang);
+    if (inferred.startsWith('formal')   && aiSaysInformal && !aiSaysFormal)  return buildRegisterNote(inferred, lang);
+    if (inferred.startsWith('voseo')    && !aiSaysVoseo)                     return buildRegisterNote(inferred, lang);
     return aiRegister;
+  }
+
+  // ── Tip sanitizer ─────────────────────────────────────────────────────────
+
+  const _GENERIC_TIP_PHRASES = [
+    'apply each grammar fix',
+    'apply each fix',
+    'keeping your original meaning',
+    'keep your original meaning',
+    'note whether',
+    'consider whether',
+    'check if',
+    'fix each bullet',
+    'tighten vocabulary',
+    'prefer precise verbs',
+    'apply the fixes above',
+    'change only the word',
+    'adjust one verb or noun only',
+  ];
+
+  function tipIsGeneric(tip) {
+    if (!tip || tip.trim().length < 15) return true;
+    const low = tip.toLowerCase();
+    if (_GENERIC_TIP_PHRASES.some((p) => low.includes(p))) return true;
+    // Tips under 60 chars with no target-language example (no «» or "e.g.") are too thin
+    if (tip.trim().length < 60 && !/[«»]/.test(tip) && !/e\.g\./i.test(tip)) return true;
+    return false;
+  }
+
+  /**
+   * Synthesize a concrete tip with a target-language example sentence,
+   * based on the grammar_rule text and detected register.
+   */
+  function synthesizeTip(sentence, grammarRule, lang, register) {
+    const rule = (grammarRule || '').toLowerCase();
+    const isInformal = register && /informal/.test(register);
+
+    if (lang === 'fr') {
+      if (/subjun|subjonctif/.test(rule))
+        return 'After verbs of wish, doubt, or emotion, use the subjunctive. E.g. «Je veux que tu **viennes** demain.»';
+      if (/question|ponctuation|inversion/.test(rule))
+        return 'French questions need a space before «?» in formal writing. E.g. «Comment allez-vous ?» or «Est-ce que vous allez bien ?»';
+      if (/si.claus|conditionnel/.test(rule))
+        return 'Si-clauses take the imperfect, not the conditional: «Si j\'**avais** le temps, je viendrais.»';
+      if (/negat|ne.*pas/.test(rule))
+        return 'Written French requires «ne … pas». E.g. «Je **ne** sais **pas**» — never drop «ne» in formal corrections.';
+      if (/accord|participe|agreement/.test(rule))
+        return 'Past participle agrees with the subject when using être: «Elle est **allée**» not «elle est allé».';
+      if (/accent/.test(rule))
+        return 'Accents change meaning: «où» (where) vs «ou» (or); «à» (at) vs «a» (has). Always include them.';
+      if (/registre|register|vous|tu\b/.test(rule))
+        return 'Formal settings (medical, legal) require vous. E.g. «Comment vous sentez-vous aujourd\'hui, madame ?»';
+      return 'Match tu/vous to the setting. E.g. «Comment **allez-vous** ?» (formal) or «Comment **vas-tu** ?» (informal).';
+    }
+
+    // Spanish
+    if (/question|inverted|¿|punctuation/.test(rule))
+      return isInformal
+        ? 'Add «¿» at the start of every question. E.g. «**¿**Cómo estás, amigo?» (informal) or «**¿**Cómo está usted?» (formal).'
+        : 'Add «¿» at the start of every question. E.g. «**¿**Cómo está usted hoy, señor?» — especially in formal interpreter settings.';
+    if (/leísmo|direct object|acusativo/.test(rule))
+      return 'Use lo/la for direct objects, not le. E.g. «**lo** echo de menos» (him) or «**la** echo de menos» (her).';
+    if (/por.*para|para.*por/.test(rule))
+      return 'Por = cause/duration; para = purpose/recipient. E.g. «Trabajo **para** el hospital» vs «Lo hago **por** necesidad».';
+    if (/subjunctive|subjuntivo|que.*verb|espero que|quiero que/.test(rule))
+      return 'After querer/esperar/necesitar que, use the subjunctive. E.g. «Quiero que el paciente **venga** mañana.»';
+    if (/si.claus|conditional protasis|imperfect subjunctive/.test(rule))
+      return 'Si-clauses: use imperfect subjunctive in the condition. E.g. «Si **tuviera** tiempo, iría.» — never conditional after si.';
+    if (/ser.*estar|estar.*ser/.test(rule))
+      return 'Ser = identity/scheduled events; estar = state/location. E.g. «La cita **es** a las 3» vs «El paciente **está** nervioso».';
+    if (/accent|tilde|acento/.test(rule))
+      return 'Accent marks are required and change meaning. E.g. «comí» (I ate) vs «comi» (incorrect); «él» (he) vs «el» (the).';
+    if (/gender|agreement|concordancia|género/.test(rule))
+      return 'Adjectives and articles must match the noun in gender and number. E.g. «muchas cosas», «los documentos importantes».';
+    if (/preterite|imperfect|pretérito|imperfecto/.test(rule))
+      return 'Preterite = completed action; imperfect = ongoing/habitual. E.g. «Trabajé ocho horas» vs «Trabajaba de noche».';
+    if (/register|formal|usted|tú/.test(rule))
+      return isInformal
+        ? 'This sentence uses tú (informal). In clinical/legal interpreting, shift to usted: «¿**Cómo está usted** hoy?»'
+        : 'Formal usted fits here. In casual contexts you may use tú: «¿Cómo **estás** hoy, amigo?»';
+    if (grammarRule && grammarRule.length > 12)
+      return `${grammarRule.charAt(0).toUpperCase() + grammarRule.slice(1)}. Apply this consistently when interpreting for precision.`;
+    return isInformal
+      ? 'In professional interpreting, shift to usted. E.g. «¿**Cómo está usted** hoy?»'
+      : 'Verify question marks (¿…?) and accent marks — both are required in professional written Spanish.';
+  }
+
+  /** Replace a vague tip with a synthesized concrete one. */
+  function sanitizeTip(sentence, tip, grammarRule, lang, register) {
+    if (!tipIsGeneric(tip)) return tip;
+    return synthesizeTip(sentence, grammarRule, lang, register);
   }
 
   function coerceFeedbackText(value) {
@@ -328,9 +455,13 @@
       applyCoachRules(sentence, out, lang);
     }
     preserveInferredFields(out, sentence, lang);
-    // Correct register when sentence evidence contradicts the AI's report
-    if (sentence && out.register) {
-      out.register = sanitizeRegister(sentence, out.register, lang);
+    // Correct register when vague or sentence evidence contradicts the AI's report
+    if (sentence) {
+      out.register = sanitizeRegister(sentence, out.register || '', lang);
+    }
+    // Replace generic tip with a concrete grammar-rule-based tip
+    if (sentence) {
+      out.tip = sanitizeTip(sentence, out.tip, out.grammar_rule, lang, out.register);
     }
     const sentNorm = normalizeTextForCompare(sentence);
     if (out.next_level_alt && normalizeTextForCompare(out.next_level_alt) === sentNorm) {
@@ -354,6 +485,10 @@
     confidentAssessedLevel,
     inferRegisterFromSentence,
     sanitizeRegister,
+    registerIsVague,
+    tipIsGeneric,
+    sanitizeTip,
+    synthesizeTip,
   };
 
   if (typeof module !== 'undefined' && module.exports) {

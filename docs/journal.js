@@ -654,10 +654,10 @@ Respond with ONLY a valid JSON object. No markdown fences, no text outside the J
   "grammar_rule": "The specific grammar rule tested or applied — always explain, even when correct",
   "explanation": "WHY the sentence is correct or incorrect — be specific and actionable",
   "correction": null or "Corrected sentence in ${langName} (only if Needs Improvement)",
-  "register": "Read the pronouns and verb endings ACTUALLY IN THIS SENTENCE to detect its register. Look for: subject/possessive pronouns (${informalRegister} = informal, ${formalRegister} = formal), possessive determiners, and 2nd-person verb conjugations. Report what the learner WROTE — do NOT default to formal just because the context is professional.",
+  "register": "State the register as one declarative phrase — e.g. 'informal (${informalRegister}) — casual; shift to ${formalRegister} in clinical/legal settings' OR 'formal (${formalRegister}) — appropriate for professional interpreting'. Read the pronouns/verb endings IN THIS SENTENCE; do NOT default to formal just because the context is professional. Do NOT write meta-instructions like 'Note whether…'.",
   "next_level_alt": "COMPLETE SENTENCE in ${langName}: same idea one CEFR level above assessed_level, or null if no assessed_level",
   "target_level_alt": "COMPLETE SENTENCE in ${langName}: two levels above assessed_level, or null",
-  "tip": "A practical tip about register, Anglicisms, or word precision for interpreter training"
+  "tip": "One concrete tip for an interpreter trainee. REQUIRED: include one complete ${langName} example sentence. Format: tip sentence. E.g. «complete ${langName} example here». Never write 'Apply each fix' or other generic advice."
 }`;
 
   return prompt;
