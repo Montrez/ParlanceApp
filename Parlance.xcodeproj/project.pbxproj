@@ -48,6 +48,7 @@
 		E7WEB0015 /* coach-rules-engine.js in Resources */ = {isa = PBXBuildFile; fileRef = E7WEB0014 /* coach-rules-engine.js */; };
 		E7WEB0017 /* coach-standard-es.js in Resources */ = {isa = PBXBuildFile; fileRef = E7WEB0016 /* coach-standard-es.js */; };
 		E7WEB0019 /* coach-standard.js in Resources */ = {isa = PBXBuildFile; fileRef = E7WEB0018 /* coach-standard.js */; };
+		E7WEB0021 /* coach-standard-fr.js in Resources */ = {isa = PBXBuildFile; fileRef = E7WEB0020 /* coach-standard-fr.js */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -89,6 +90,7 @@
 		E7WEB0014 /* coach-rules-engine.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "coach-rules-engine.js"; sourceTree = "<group>"; };
 		E7WEB0016 /* coach-standard-es.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "coach-standard-es.js"; sourceTree = "<group>"; };
 		E7WEB0018 /* coach-standard.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "coach-standard.js"; sourceTree = "<group>"; };
+		E7WEB0020 /* coach-standard-fr.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "coach-standard-fr.js"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -173,6 +175,7 @@
 				E7WEB0014 /* coach-rules-engine.js */,
 				E7WEB0016 /* coach-standard-es.js */,
 				E7WEB0018 /* coach-standard.js */,
+				E7WEB0020 /* coach-standard-fr.js */,
 				E7DE26622FBFF01C0066F0F5 /* locales 2 */,
 			);
 			path = web;
@@ -289,6 +292,7 @@
 				E7WEB0015 /* coach-rules-engine.js in Resources */,
 				E7WEB0017 /* coach-standard-es.js in Resources */,
 				E7WEB0019 /* coach-standard.js in Resources */,
+				E7WEB0021 /* coach-standard-fr.js in Resources */,
 				E7SLM0030 /* parlance-es-mlx in Resources */,
 				E7SLM0032 /* parlance-fr-mlx in Resources */,
 			);

@@ -150,17 +150,17 @@
       ]
     },
     {
-      "id": "leismo_echar_de_menos_feminine",
+      "id": "leismo_echar_de_menos",
       "category": "pronouns",
       "priority": 9,
       "detect": {
         "pattern": "\\b(le|les)\\s+echo\\s+de\\s+menos\\b",
-        "flags": "i",
-        "require_pattern": "\\b(novia|novia|madre|hermana|esposa|mujer|amiga|hija|abuela|ella)\\b"
+        "flags": "i"
       },
-      "issue": "«Echar de menos» takes a direct object: «la echo de menos», not leísmo «le echo de menos».",
+      "issue": "«Echar de menos» takes a direct object pronoun (lo/la/los/las), not leísmo «le/les».",
       "mention": [
         "la echo de menos",
+        "lo echo de menos",
         "direct object",
         "leísmo"
       ],
@@ -176,7 +176,7 @@
           "flags": "gi"
         }
       ],
-      "grammar_rule": "«Echar de menos» + direct object pronoun (lo/la)",
+      "grammar_rule": "«Echar de menos» + direct object pronoun (lo/la/los/las)",
       "source": {
         "authority": "RAE-DPD",
         "topic": "Pronombres átonos / leísmo",
@@ -448,19 +448,30 @@
       "category": "prepositions",
       "priority": 30,
       "detect": {
-        "pattern": "\\bpor\\s+(el\\s+)?trabajo\\b",
+        "pattern": "\\bvoy\\s+por\\s+(el\\s+)?trabajo\\b|\\bsalgo\\s+por\\s+(el\\s+)?trabajo\\b|\\bpor\\s+trabajo\\s+ma[nñ]ana\\b",
         "flags": "i",
-        "unless_pattern": "\\bpara\\s+(el\\s+)?trabajo\\b"
+        "unless_pattern": "\\bpara\\s+(el\\s+)?trabajo\\b|\\bgracias\\s+por\\b|\\bpago\\s+por\\b|\\btrabajo\\s+por\\b"
       },
-      "issue": "Purpose or goal uses «para (el) trabajo», not «por trabajo».",
+      "issue": "When stating purpose or destination (going somewhere for work), use «para (el) trabajo», not «por trabajo».",
       "mention": [
         "para el trabajo",
-        "por vs para"
+        "por vs para",
+        "purpose"
       ],
       "repair": [
         {
-          "pattern": "\\bpor\\s+(el\\s+)?trabajo\\b",
-          "replace": "para el trabajo",
+          "pattern": "\\bvoy\\s+por\\s+(el\\s+)?trabajo\\b",
+          "replace": "voy para el trabajo",
+          "flags": "gi"
+        },
+        {
+          "pattern": "\\bsalgo\\s+por\\s+(el\\s+)?trabajo\\b",
+          "replace": "salgo para el trabajo",
+          "flags": "gi"
+        },
+        {
+          "pattern": "\\bpor\\s+trabajo\\s+(ma[nñ]ana)\\b",
+          "replace": "para el trabajo $1",
           "flags": "gi"
         }
       ],

@@ -239,10 +239,15 @@
     }
     if (out._coach_enhanced && !out.complexity_note) {
       const wc = sentence.trim().split(/\s+/).filter(Boolean).length;
-      out.complexity_note = `Sentence (${wc} words) with agreement, prepositions, and clause structure — typical B1 interpreter practice.`;
+      const inferredLevel = confidentAssessedLevel(sentence, lang);
+      const levelLabel = inferredLevel || 'intermediate';
+      out.complexity_note = `Sentence (${wc} words) — ${levelLabel} interpreter practice: agreement, prepositions, and clause structure.`;
     }
-    if (out._coach_enhanced && !out.assessed_level && assessedLevelPlausible(sentence, 'B1', lang)) {
-      out.assessed_level = 'B1';
+    if (out._coach_enhanced && !out.assessed_level) {
+      const confident = confidentAssessedLevel(sentence, lang);
+      if (confident) {
+        out.assessed_level = confident;
+      }
     }
     return out;
   }

@@ -7,7 +7,7 @@
     "node": "20"
   },
   "scripts": {
-    "lint": "node -c index.js && node -c lib/prompts.js && node -c lib/parse.js && node -c lib/analyze.js"
+    "lint": "node -c index.js && node -c lib/prompts.js && node -c lib/parse.js && node -c lib/analyze.js && node -c lib/usage.js"
   },
   "dependencies": {
     "firebase-admin": "^13.4.0",

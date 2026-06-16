@@ -45,10 +45,25 @@ Set only the providers you plan to offer; missing secrets return an error for th
 cd firebase/functions
 npm install
 cd ..
-firebase deploy --only functions
+firebase deploy --only functions,firestore
 ```
 
-Callable function name: **`analyzeText`** (requires Firebase Auth ID token).
+Callable functions (all require Firebase Auth ID token):
+- **`analyzeText`** — grammar analysis, rate-limited
+- **`getUsage`** — returns signed-in user's monthly usage summary
+
+## Usage / Pricing model
+
+| Tier     | Monthly limit | How to unlock                    |
+|----------|--------------|----------------------------------|
+| free     | 30 calls     | Default for all signed-in users  |
+| starter  | 30 + packs   | $0.99 consumable = 100 pack calls|
+| plus     | Unlimited    | $9.99/month subscription (TBD)   |
+
+Usage is tracked per user per calendar month in Firestore:
+- `users/{uid}` — tier and metadata
+- `users/{uid}/usage/{YYYY-MM}` — monthly call count
+- `users/{uid}/packs/{packId}` — remaining purchased pack calls
 
 ## Local lint
 

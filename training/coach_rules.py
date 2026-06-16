@@ -129,14 +129,17 @@ def _is_placeholder_correction(text: str | None) -> bool:
     if not text or not str(text).strip():
         return True
     t = str(text).strip()
-    if len(t) < 15:
+    # Allow short but valid corrections (e.g. "Comí ayer", "¿Cómo está?")
+    if len(t) < 5:
         return True
     lower = t.lower().rstrip(".:")
     if lower in _PLACEHOLDER_CORRECTIONS:
         return True
-    return not re.search(
-        r"[áéíóúñü]|\b(el|la|que|por|para|tengo|tenemos|aplicaci)\b", t, re.I
-    )
+    # Reject strings that look like English labels or pure ASCII with no Spanish content
+    if len(t) < 20 and re.fullmatch(r"[a-zA-Z0-9 .,;:'\-]+", t):
+        if not re.search(r"\b(el|la|los|las|un|una|que|por|para|es|son|fue|fui|con|sin|muy)\b", t, re.I):
+            return True
+    return False
 
 
 def _explanation_covers(issue: dict[str, Any], explanation: str) -> bool:
@@ -163,6 +166,47 @@ def _explanation_covers(issue: dict[str, Any], explanation: str) -> bool:
     return any(str(m).lower() in lower for m in issue.get("mention") or [])
 
 
+def _grammar_rule_is_generic(text: str) -> bool:
+    """Return True when a grammar_rule string is too vague to be useful."""
+    if not text or len(text.strip()) < 8:
+        return True
+    lower = text.strip().lower()
+    generic_phrases = (
+        "grammar rule",
+        "sentence structure",
+        "general grammar",
+        "spanish grammar",
+        "french grammar",
+        "language rule",
+        "grammar and style",
+        "grammar and usage",
+        "correct grammar",
+        "basic grammar",
+        "improve grammar",
+    )
+    return any(p in lower for p in generic_phrases)
+
+
+def _register_note(sentence: str, lang: str = "es") -> str:
+    norm = _normalize(sentence)
+    if re.search(r"\b(senor|senora|usted)\b", norm) and "tu " not in norm:
+        return (
+            "Formal usted with vocative «señor/señora» — keep third-person verb forms "
+            "(«está», not «estás») in professional settings."
+        )
+    if re.search(r"\b(te|tu|amor|carino)\b", norm):
+        return "Informal tú/familiar address — match the relationship in your interpreting scenario."
+    return "Match tú/usted and formality to the setting (clinical, legal, or casual)."
+
+
+def _tip_for_issues(
+    sentence: str, issues: list[dict[str, Any]], correction: str | None, *, lang: str = "es"
+) -> str:
+    from coach_tips import tip_for_improvement
+
+    return tip_for_improvement(sentence, issues, correction, lang=lang)
+
+
 def feedback_from_rules(sentence: str, lang: str = "es") -> dict[str, Any] | None:
     """Full rule-based feedback when the model fails or is bypassed."""
     ground = analyze_sentence(sentence, lang)
@@ -172,13 +216,14 @@ def feedback_from_rules(sentence: str, lang: str = "es") -> dict[str, Any] | Non
     grammar_parts = list(dict.fromkeys(i["grammar_rule"] for i in issues if i.get("grammar_rule")))
     pack = load_rules(lang)
     bullets = "\n".join(f"• {i['issue']}" for i in issues)
+    correction = ground["correction"]
     return {
         "status": "Needs Improvement",
         "grammar_rule": "; ".join(grammar_parts) or pack.get("grammar_rule_default", ""),
         "explanation": f"Issues in your sentence:\n{bullets}",
-        "correction": ground["correction"],
-        "register": "Neutral; standard written Spanish for interpreter training.",
-        "tip": "Fix each bullet in order — agreement and prepositions before stylistic upgrades.",
+        "correction": correction,
+        "register": _register_note(sentence, lang),
+        "tip": _tip_for_issues(sentence, issues, correction, lang=lang),
         "_coach_repaired": True,
         "_coach_rules": [i["id"] for i in issues],
     }
@@ -223,9 +268,15 @@ def merge_with_ai(sentence: str, feedback: dict[str, Any], lang: str = "es") -> 
         out["correction"] = ground["correction"]
 
     grammar_parts = list(dict.fromkeys(i["grammar_rule"] for i in ground["issues"] if i.get("grammar_rule")))
-    if not str(out.get("grammar_rule") or "").strip() or len(str(out.get("grammar_rule"))) < 20:
-        out["grammar_rule"] = "; ".join(grammar_parts) or load_rules(lang).get("grammar_rule_default", "")
+    rule_grammar = "; ".join(grammar_parts) or load_rules(lang).get("grammar_rule_default", "")
+    if _grammar_rule_is_generic(str(out.get("grammar_rule") or "")) or len(str(out.get("grammar_rule") or "")) < 12:
+        out["grammar_rule"] = rule_grammar
+    elif grammar_parts and not any(g.lower() in str(out.get("grammar_rule") or "").lower() for g in grammar_parts):
+        out["grammar_rule"] = rule_grammar
 
     out["_coach_rules"] = [i["id"] for i in ground["issues"]]
     out["_coach_enhanced"] = True
+    if ground["correction"]:
+        out["tip"] = _tip_for_issues(sentence, ground["issues"], ground["correction"], lang=lang)
+        out["register"] = _register_note(sentence, lang)
     return out

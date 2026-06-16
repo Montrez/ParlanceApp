@@ -440,6 +440,42 @@ function updateFirebaseAuthUI() {
   if (signedInEl) signedInEl.style.display = signedIn ? '' : 'none';
   const label = document.getElementById('authUserLabel');
   if (label && signedIn) label.textContent = firebaseDisplayName();
+
+  // Refresh usage counter when signed in
+  if (signedIn) refreshUsageDisplay();
+}
+
+/** Fetch usage from Cloud Function and update the counter badge in the auth section. */
+async function refreshUsageDisplay() {
+  try {
+    const ready = await ensureFirebaseReady();
+    if (!ready) return;
+    const fn = firebase.functions().httpsCallable('getUsage');
+    const result = await fn({});
+    const u = result.data;
+    if (!u) return;
+
+    const el = document.getElementById('authCloudNote');
+    if (!el) return;
+
+    if (u.tier === 'plus') {
+      el.textContent = 'Unlimited cloud AI — Parlance Plus';
+      el.style.display = '';
+      return;
+    }
+
+    const used = u.monthlyUsed || 0;
+    const limit = u.monthlyLimit || 30;
+    const packs = u.packCallsRemaining || 0;
+    const remaining = Math.max(0, limit - used);
+
+    let msg = `${remaining} free cloud calls left this month`;
+    if (packs > 0) msg += ` · ${packs} pack calls remaining`;
+    el.textContent = msg;
+    el.style.display = '';
+  } catch (_) {
+    // Non-critical — silently skip if function unavailable
+  }
 }
 
 function normalizeFirebaseAnalyzeResult(data, sentence, language = 'es') {
@@ -1594,7 +1630,16 @@ async function analyzeSentence(id) {
     statusEl.textContent = '';
     console.error('[Parlance] Analysis error:', err);
 
-    const msg = err.message || 'Could not analyze — check your settings.';
+    // Friendly message for rate-limit and auth errors from Firebase Functions
+    const code = err.code || '';
+    let msg = err.message || 'Could not analyze — check your settings.';
+    if (code === 'functions/resource-exhausted' || msg.includes('Monthly free limit')) {
+      msg = 'Monthly free limit reached (30 calls). On-device Parlance Coach is always free — switch in ⚙ AI.';
+      refreshUsageDisplay();
+    } else if (code === 'functions/unauthenticated') {
+      msg = 'Sign in to use cloud AI providers — tap ⚙ AI.';
+    }
+
     showErrorInPanel(msg);
     showToast(msg.length > 80 ? msg.slice(0, 80) + '…' : msg);
   } finally {

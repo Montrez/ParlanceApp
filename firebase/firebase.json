@@ -8,6 +8,9 @@
       "firebase-config.js"
     ]
   },
+  "firestore": {
+    "rules": "firestore.rules"
+  },
   "functions": [
     {
       "source": "functions",

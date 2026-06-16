@@ -59,7 +59,6 @@
 }
 [data-theme="dark"] .entry-feedback-badge.excellent { background: rgba(92,184,138,0.12); color: #5cb88a; }
 [data-theme="dark"] .entry-feedback-badge.needs-work { background: rgba(212,160,78,0.12); color: #d4a04e; }
-[data-theme="dark"] .entry-load-btn { background: var(--accent); color: #111114; }
 
 * { margin:0; padding:0; box-sizing:border-box; }
 
@@ -160,7 +159,7 @@ header {
 .workspace {
   flex: 1;
   display: grid;
-  grid-template-columns: 1fr 380px;
+  grid-template-columns: 1fr clamp(320px, 28vw, 420px);
   gap: 1.5rem;
   max-width: 1300px;
   width: 100%;
@@ -206,7 +205,7 @@ header {
 /* ── SENTENCE LIST ── */
 .sentences-area {
   padding: 1.5rem 1.75rem;
-  min-height: 420px;
+  min-height: 200px;
 }
 .sentence-row {
   display: grid;
@@ -333,6 +332,7 @@ header {
 .feedback-tab {
   flex: 1;
   padding: 0.55rem 0.5rem;
+  min-height: 44px;
   font-family: 'DM Mono', monospace;
   font-size: 0.65rem;
   text-transform: uppercase;
@@ -1006,8 +1006,24 @@ header {
   padding: 1rem 1.5rem;
   border-top: 1px solid var(--rule);
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
 }
+
+.settings-privacy-link {
+  background: none;
+  border: none;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--muted);
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s;
+}
+.settings-privacy-link:hover { color: var(--ink); }
 
 .settings-save-btn {
   background: var(--ink);
@@ -1204,16 +1220,35 @@ header {
   margin-top: 0.35rem;
 }
 
-@media (max-width: 900px) {
-  .workspace { grid-template-columns: 1fr; }
-  .feedback-panel { position: static; height: auto; }
+/* ── TABLET (768–1024px): two columns but narrower feedback panel ── */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .workspace {
+    grid-template-columns: 1fr clamp(280px, 32vw, 360px);
+    gap: 1rem;
+    padding: 1.5rem 1rem;
+  }
+  .feedback-panel {
+    top: 64px;
+    height: calc(100vh - 88px);
+  }
+}
+
+/* ── MOBILE (≤768px): single column ── */
+@media (max-width: 768px) {
+  .workspace {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+    gap: 1rem;
+  }
+  .feedback-panel { position: static; height: auto; max-height: 70vh; }
+  .sentences-area { min-height: 120px; }
   header {
     flex-wrap: wrap;
     gap: 0.4rem;
-    padding: 0.6rem 1rem;
+    padding: 0.6rem 0.75rem;
   }
   .header-right {
-    gap: 0.35rem;
+    gap: 0.3rem;
   }
   .header-select {
     font-size: 0.65rem;
@@ -1223,7 +1258,14 @@ header {
     padding: 0.25rem 0.4rem;
     font-size: 0.6rem;
     min-width: 44px;
-    min-height: 32px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .theme-toggle {
+    min-width: 44px;
+    min-height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1231,4 +1273,7 @@ header {
   .ai-provider-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  .journal-header { padding: 1rem 1.25rem 0.65rem; }
+  .sentences-area { padding: 1rem 1.25rem; }
+  .journal-footer { padding: 0.7rem 1.25rem; }
 }
