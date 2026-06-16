@@ -34,6 +34,9 @@
   root.ParlanceCoachStandard = {
     standardPromptBlock,
     forLang(lang) {
+      if (lang === 'fr' && root.ParlanceCoachStandardFR) {
+        return standardPromptBlock(root.ParlanceCoachStandardFR);
+      }
       if (lang === 'es' && root.ParlanceCoachStandardES) {
         return standardPromptBlock(root.ParlanceCoachStandardES);
       }

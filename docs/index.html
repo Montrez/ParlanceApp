@@ -15,18 +15,17 @@
     <div class="date-badge" id="dateBadge"></div>
   </div>
   <div class="header-right">
-    <select class="header-select" id="uiLangSelect" onchange="onUILangChange()">
+    <select class="header-select" id="uiLangSelect" onchange="onUILangChange()" title="Interface language">
       <option value="en">EN</option>
       <option value="es">ES</option>
       <option value="fr">FR</option>
     </select>
-    <select class="header-select" id="langSelect" onchange="onLanguageChange()">
+    <select class="header-select" id="langSelect" onchange="onLanguageChange()" title="Practice language">
       <option value="es">Español</option>
       <option value="fr">Français</option>
     </select>
-    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" data-i18n-title="toggleTheme">☀</button>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" data-i18n-title="toggleTheme" aria-label="Toggle theme">☀</button>
     <button class="privacy-link ai-settings-btn" id="aiSettingsBtn" onclick="openAISettings()">⚙ AI</button>
-    <button class="privacy-link" id="privacyBtn" onclick="showPrivacyPolicy()" data-i18n="privacy">Privacy</button>
   </div>
 </header>
 
@@ -152,6 +151,7 @@
       </div>
     </div>
     <div class="modal-footer">
+      <button class="settings-privacy-link" onclick="closeAISettings();showPrivacyPolicy()" data-i18n="privacy">Privacy Policy</button>
       <button class="settings-save-btn" onclick="saveAISettingsFromModal()">Save &amp; Close</button>
     </div>
   </div>
@@ -175,6 +175,7 @@
 <script src="i18n.js"></script>
 <script src="rag-knowledge.js"></script>
 <script src="coach-standard-es.js?v=14"></script>
+<script src="coach-standard-fr.js?v=14"></script>
 <script src="coach-standard.js?v=14"></script>
 <script src="coach-rules-es.js?v=14"></script>
 <script src="coach-rules-engine.js?v=14"></script>
