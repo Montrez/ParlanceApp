@@ -654,7 +654,7 @@ Respond with ONLY a valid JSON object. No markdown fences, no text outside the J
   "grammar_rule": "The specific grammar rule tested or applied — always explain, even when correct",
   "explanation": "WHY the sentence is correct or incorrect — be specific and actionable",
   "correction": null or "Corrected sentence in ${langName} (only if Needs Improvement)",
-  "register": "Identify the register: formal (${formalRegister}) or informal (${informalRegister}), and whether appropriate for a professional interpreter",
+  "register": "Read the pronouns and verb endings ACTUALLY IN THIS SENTENCE to detect its register. Look for: subject/possessive pronouns (${informalRegister} = informal, ${formalRegister} = formal), possessive determiners, and 2nd-person verb conjugations. Report what the learner WROTE — do NOT default to formal just because the context is professional.",
   "next_level_alt": "COMPLETE SENTENCE in ${langName}: same idea one CEFR level above assessed_level, or null if no assessed_level",
   "target_level_alt": "COMPLETE SENTENCE in ${langName}: two levels above assessed_level, or null",
   "tip": "A practical tip about register, Anglicisms, or word precision for interpreter training"

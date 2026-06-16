@@ -143,6 +143,72 @@
     return null;
   }
 
+  /**
+   * Infer the sentence's actual register from pronouns and verb forms.
+   * Returns a canonical register string, or null when inconclusive.
+   */
+  function inferRegisterFromSentence(sentence, lang) {
+    const norm = normalizeTextForCompare(sentence);
+
+    if (lang === 'fr') {
+      // Possessive/subject tu-forms
+      const hasTu = /\b(tu |t |te |toi|ton |ta |tes |tiens|viens|fais|dis|vas|es |peux|veux|sais|dois|penses|aimes|parles|habites|prends|mets|sors)\b/.test(norm);
+      const hasVous = /\b(vous|votre|vos)\b/.test(norm);
+      if (hasTu && !hasVous) return 'informal (tu)';
+      if (hasVous && !hasTu) return 'formal (vous)';
+      return null;
+    }
+
+    // Spanish — voseo first (most specific)
+    if (/\bvos\b/.test(norm) || /\b(sos|tenes|haces|podes|queres|venis)\b/.test(norm)) {
+      return 'voseo (vos) — informal, regional (Argentina/Uruguay/Central America)';
+    }
+
+    // Informal tú: possessive "tu" before a noun, subject "tú", te/ti, or
+    // 2nd-person singular informal verb forms that are unambiguous
+    const hasTuInformal =
+      /\btu\s+\w/.test(norm) ||             // possessive "tu <noun>"
+      /\btu\b/.test(norm) ||                // standalone tú/tu
+      /\b(te|ti)\b/.test(norm) ||           // object/reflexive
+      /\b(tienes|eres|estas|fuiste|hiciste|sabes|puedes|quieres|hablas|vives|dices|vienes|oye)\b/.test(norm);
+
+    const hasUsted = /\busted(es)?\b/.test(norm);
+
+    if (hasTuInformal && !hasUsted) return 'informal (tú)';
+    if (hasUsted && !hasTuInformal) return 'formal (usted)';
+    return null;
+  }
+
+  /**
+   * Correct an AI-reported register string when sentence evidence clearly contradicts it.
+   * Returns the original string if evidence is inconclusive.
+   */
+  function sanitizeRegister(sentence, aiRegister, lang) {
+    if (!sentence || !aiRegister) return aiRegister;
+    const inferred = inferRegisterFromSentence(sentence, lang);
+    if (!inferred) return aiRegister; // can't tell from the sentence — trust the AI
+
+    const regNorm = aiRegister.toLowerCase();
+
+    if (lang === 'fr') {
+      // Use word-boundary regex — "informal" contains "formal" as substring
+      const aiSaysFormal   = /\bvous\b/.test(regNorm) || /\bformal\b/.test(regNorm);
+      const aiSaysInformal = /\binformal\b/.test(regNorm) || /\btu\b/.test(regNorm);
+      if (inferred === 'informal (tu)' && aiSaysFormal && !aiSaysInformal) return inferred;
+      if (inferred === 'formal (vous)' && aiSaysInformal && !aiSaysFormal) return inferred;
+      return aiRegister;
+    }
+
+    const aiSaysFormal   = /\busted(es)?\b/.test(regNorm) || /\bformal\b/.test(regNorm);
+    const aiSaysInformal = /\binformal\b/.test(regNorm) || /\bt[uú]\b/.test(regNorm);
+    const aiSaysVoseo    = /\bvos\b/.test(regNorm);
+
+    if (inferred.startsWith('informal') && aiSaysFormal && !aiSaysInformal) return inferred;
+    if (inferred.startsWith('formal')   && aiSaysInformal && !aiSaysFormal) return inferred;
+    if (inferred.startsWith('voseo')    && !aiSaysVoseo)                    return inferred;
+    return aiRegister;
+  }
+
   function coerceFeedbackText(value) {
     if (value == null) return null;
     if (typeof value === 'string') {
@@ -262,6 +328,10 @@
       applyCoachRules(sentence, out, lang);
     }
     preserveInferredFields(out, sentence, lang);
+    // Correct register when sentence evidence contradicts the AI's report
+    if (sentence && out.register) {
+      out.register = sanitizeRegister(sentence, out.register, lang);
+    }
     const sentNorm = normalizeTextForCompare(sentence);
     if (out.next_level_alt && normalizeTextForCompare(out.next_level_alt) === sentNorm) {
       delete out.next_level_alt;
@@ -282,6 +352,8 @@
     normalizeTextForCompare,
     preserveInferredFields,
     confidentAssessedLevel,
+    inferRegisterFromSentence,
+    sanitizeRegister,
   };
 
   if (typeof module !== 'undefined' && module.exports) {
