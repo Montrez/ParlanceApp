@@ -16,3 +16,6 @@
 {"id": "informal_register_tu", "sentence": "Hola amigo, ¿cómo estás?", "lang": "es", "expect_register_contains": "informal", "note": "tú-register sentence must not be labeled formal"}
 {"id": "tip_has_example", "sentence": "Hola amigo, ¿como estas?", "lang": "es", "expect_tip_has_example": true, "note": "tip must contain a Spanish example sentence"}
 {"id": "next_alt_not_verbatim", "sentence": "Comí en el restaurante.", "lang": "es", "expect_alt_differs": true, "note": "next_level_alt must differ from input"}
+{"id": "voseo_detected", "sentence": "Vos tenés razón en eso.", "lang": "es", "expect_register_contains": "voseo", "note": "voseo must be recognized, not labeled as informal tú or formal usted"}
+{"id": "tu_register_informal", "sentence": "¿Tienes tiempo para hablar?", "lang": "es", "expect_register_contains": "informal", "note": "tienes = tú form, must be informal not formal"}
+{"id": "y_chain_no_porque_fragment", "sentence": "Comí y fui al trabajo.", "lang": "es", "expect_no_fragment_alt": true, "note": "y-chain upgrade must not produce porque-fragment"}
