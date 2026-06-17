@@ -71,6 +71,68 @@ def tip_for_improvement(
     lang: str = "es",
 ) -> str:
     """Needs Improvement — quote what they wrote and how to fix it."""
+    if lang == "fr":
+        ids = {i.get("id", "") for i in issues}
+        parts: list[str] = []
+
+        if any(x in ids for x in ("si_clause", "si_conditionnel")) or re.search(r"\bsi\b[^.!?]{0,45}conditionnel\b", sentence, re.I):
+            snip = _snippet(sentence, r"\bsi\b[^.!?]{0,45}")
+            if snip:
+                parts.append(
+                    f"In «{snip}», the si-clause needs imparfait, not conditionnel — "
+                    "e.g. «Si j'**avais** le temps, je viendrais.»"
+                )
+
+        if any(x in ids for x in ("subjunctive", "subjonctif")) or re.search(
+            r"\b(veux|voulons|faut|doute|faudrait)\s+que\b", sentence, re.I
+        ):
+            snip = _snippet(sentence, r"\b(veux|voulons|faut|doute|faudrait)\s+que[^.!?]{0,45}")
+            if snip:
+                parts.append(
+                    f"After «{snip}», use the subjunctive — "
+                    "e.g. «Je veux que tu **viennes** demain.»"
+                )
+
+        if any(x in ids for x in ("negation", "ne_pas")) or re.search(r"\bsais\s+pas\b|\bsait\s+pas\b|\bvais\s+pas\b", sentence, re.I):
+            snip = _snippet(sentence, r"\bne\b[^.!?]{0,30}") or ""
+            parts.append(
+                f"Written French requires «ne … pas» — "
+                "e.g. «Je **ne** sais **pas**» not «Je sais pas»."
+            )
+
+        if any("particip" in x or "agreement" in x for x in ids) or re.search(
+            r"\b(allé|venu|parti|arrivé)\b", sentence, re.I
+        ):
+            parts.append(
+                "Participle agrees with subject using être: «Elle est **allée**», not «elle est allé»."
+            )
+
+        if any("accent" in x for x in ids) or re.search(r"\bou\b|\ba\b", sentence):
+            parts.append(
+                "Accents change meaning: «où» (where) vs «ou» (or); «à» (at) vs «a» (has) — "
+                "e.g. «Je **suis allé** à Paris **où** elle habite.»"
+            )
+
+        if any("question" in x or "punctuation" in x for x in ids) or re.search(r"\?\s*$", sentence):
+            parts.append(
+                "French adds a space before «?»: «Comment allez-vous ?» — "
+                "and uses inversion or «est-ce que» in formal writing."
+            )
+
+        if any(x in ids for x in ("register", "tu_vous")) or re.search(r"\btu\b", sentence, re.I):
+            parts.append(
+                "Formal settings (medical, legal) require vous — "
+                "e.g. «Comment vous sentez-vous aujourd'hui, madame ?»"
+            )
+
+        if parts:
+            return " ".join(parts[:2])
+
+        if delta := _correction_delta(sentence, correction or ""):
+            return f"Appliquez chaque correction dans l'ordre, en conservant le sens d'origine. E.g. «{delta}»"
+
+        return _correction_delta(sentence, correction or "") or "Appliquez chaque correction dans l'ordre, en conservant le sens d'origine."
+
     if lang != "es":
         return _correction_delta(sentence, correction or "") or "Apply the fixes above in order."
 
@@ -160,6 +222,55 @@ def tip_for_excellent(
     lang: str = "es",
 ) -> str:
     """Excellent — one concrete upgrade using their words, not generic connector advice."""
+    if lang == "fr":
+        text = sentence.strip()
+        norm = _normalize(text)
+
+        if re.search(r"\bsi\s+(j'avais|tu avais|nous avions|vous aviez|il avait|elle avait|ils avaient|elles avaient)\b", text, re.I):
+            return (
+                "Strong si-clause with imparfait — in formal interpreting, keep the tense aligned throughout: "
+                "«Si j'avais su, **je serais** venu plus tôt.»"
+            )
+
+        if re.search(r"\b(viennes|vienne|fasses|fasse|soit|ailles|aille|puisse|puisses)\b", text, re.I):
+            return (
+                "Subjunctive correctly used — note the trigger verb + que construction: "
+                "«Je veux que tu **viennes**», «Il faut qu'elle **soit** là.»"
+            )
+
+        if re.search(r"\b(vous|votre)\b", text, re.I):
+            return (
+                "Formal vous register fits professional interpreting — maintain it throughout: "
+                "«Merci de **vous** présenter à l'accueil, s'il **vous** plaît.»"
+            )
+
+        if re.search(r"\b(suis allé|est allé|est allée|sommes allés|avons fait|êtes allé)\b", text, re.I):
+            return (
+                "Good past compound tense — in interpreter notes, add a time anchor: "
+                "«Hier, je **suis allé** à la réunion **à 9 heures**.»"
+            )
+
+        if y_coordinated or (re.search(r"\s+et\s+", text, re.I) and re.search(
+            r"\b(allé|allée|fait|parti|venu|arrivé|suis|avons|est)\b", text, re.I
+        )):
+            _parts = re.split(r"\s+et\s+", text, maxsplit=1, flags=re.I)
+            _left = _parts[0].strip(" .")
+            return (
+                f"You link ideas with «et» — for formal interpreting, use subordination: "
+                f"«Je suis allé au gymnase **avant d'aller** chez ma grand-mère.»"
+            )
+
+        if re.search(r"\b(patient|médicament|chirurgie|diagnostic|symptôme|douleur|traitement)\b", text, re.I):
+            return (
+                "Medical register — maintain clinical precision and vous: "
+                "«Le patient **se plaint** de douleurs aiguës depuis deux jours.»"
+            )
+
+        return (
+            "Votre phrase est correcte — pour l'interprétariat formel, vérifiez le registre (tu/vous) et la ponctuation. "
+            "E.g. «**Bonjour**, comment puis-je vous aider ?»"
+        )
+
     if lang != "es":
         return "Keep your meaning; adjust formality to match the interpreting setting."
 
