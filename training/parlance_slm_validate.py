@@ -97,10 +97,15 @@ def _has_subordinator(text: str) -> bool:
 
 CEFR_COMPLEXITY_PROMPT = (
     "CEFR & COMPLEXITY:\n"
-    "- assessed_level: A1–C2 ONLY if highly confident from specific structures in THIS sentence. "
-    "When uncertain, omit and describe complexity in complexity_note without a CEFR label. Never guess from word count.\n"
+    "- assessed_level: A1–C2 when THIS sentence shows clear MCER anchors — assign the label, do not omit:\n"
+    "  • A1: present-only main clause (soy, voy, es…) — no subordination, no subjunctive, no preterite narrative\n"
+    "  • A2: gustar + phrase, or simple preterite past narrative (fui, comí…)\n"
+    "  • B1: formal usted greeting (señor/señora + está), estar + gerund, basic subordination\n"
+    "  • B2: subjunctive triggers (quiero que + subjunctive, si + tuviera + conditional)\n"
+    "  • C1/C2: dense subordination, professional/medical/legal register\n"
+    "- Omit assessed_level ONLY when structures genuinely mix bands or are ambiguous — never guess from word count alone.\n"
     "- complexity_note: 1–2 English sentences on vocabulary, syntax, subordination, and register. "
-    "Always include when possible, even without assessed_level.\n"
+    "Always include — even when assessed_level is omitted.\n"
     "- next_level_alt / target_level_alt: stronger rewrites; level labels only when assessed_level is set.\n\n"
 )
 
@@ -292,6 +297,28 @@ def _confident_assessed_level(sentence: str, lang: str = "es") -> str | None:
             return "C2"
         return None
 
+    if wc <= 6 and re.search(
+        r"\b(soy|eres|es|somos|son|voy|vas|va|vamos|van)\b", norm, re.I
+    ) and not _has_subordinator(sentence):
+        if _assessed_level_plausible(sentence, "A1", lang):
+            return "A1"
+    if re.search(r"\bgust", norm) and wc >= 5 and _assessed_level_plausible(sentence, "A2", lang):
+        return "A2"
+    if re.search(r"\b(senora|senor)\b", norm) and re.search(
+        r"\b(como esta|esta\?|está)\b", norm, re.I
+    ):
+        if _assessed_level_plausible(sentence, "B1", lang):
+            return "B1"
+    if re.search(r"\bsi\b", norm) and re.search(
+        r"\b(tuviera|hubiera|fuera|pudiera|hiciera|quisiera)\b", norm, re.I
+    ):
+        if re.search(
+            r"\b(estudiaria|estudiaría|haria|haría|seria|sería|podria|podría|vendria|vendría)\b",
+            norm,
+            re.I,
+        ):
+            if _assessed_level_plausible(sentence, "B2", lang):
+                return "B2"
     if has_preterite and wc >= 5 and _assessed_level_plausible(sentence, "A2", lang):
         return "A2"
     if ("estoy incomoda" in norm or ("estoy" in norm and "no dejo de" in norm)) and _assessed_level_plausible(
@@ -315,6 +342,53 @@ def _confident_assessed_level(sentence: str, lang: str = "es") -> str | None:
     ) and _assessed_level_plausible(sentence, "C2", lang):
         return "C2"
     return None
+
+
+def _default_complexity_note(
+    sentence: str, assessed: str | None, *, uncertain: bool = False
+) -> str:
+    from coach_training_format import complexity_note_for
+
+    return complexity_note_for(sentence, assessed, uncertain=uncertain)
+
+
+def _enrich_rule_feedback(sentence: str, out: dict[str, Any], lang: str = "es") -> None:
+    """Attach assessed_level and complexity_note for rule-repaired NI responses."""
+    if str(out.get("complexity_note") or out.get("complexityNote") or "").strip():
+        return
+
+    rule_ids = set(out.get("_coach_rules") or [])
+    if "si_clause_conditional_protasis" in rule_ids:
+        out["assessed_level"] = "B2"
+        out["_keep_assessed_level"] = True
+        out["complexity_note"] = (
+            "Hypothetical «si» clause with conditional in the protasis instead of "
+            "imperfect subjunctive — upper-intermediate structure band even when the form is wrong."
+        )
+        return
+
+    if any(r.startswith("leismo") for r in rule_ids):
+        out["complexity_note"] = (
+            "Fixed expression «echar de menos» with clitic pronoun; leísmo with «le» is common in speech "
+            "but direct-object lo/la is expected in formal and exam Spanish."
+        )
+        return
+
+    if "accent_comi" in rule_ids or any("accent" in r for r in rule_ids):
+        out["assessed_level"] = "A2"
+        out["_keep_assessed_level"] = True
+        out["complexity_note"] = (
+            "Short past-tense narrative: time adverb «ayer», preterite verbs, "
+            "coordination with «y» — A2 band, not B1 subordination."
+        )
+        return
+
+    assessed = _confident_assessed_level(sentence, lang=lang)
+    if assessed:
+        out["assessed_level"] = assessed
+        out["complexity_note"] = _default_complexity_note(sentence, assessed)
+    else:
+        out["complexity_note"] = _default_complexity_note(sentence, None, uncertain=True)
 
 
 def _preserve_inferred_fields(
@@ -348,6 +422,11 @@ def _preserve_inferred_fields(
     out.pop("assessedLevel", None)
     out.pop("sentence_level", None)
     note = str(out.get("complexity_note") or out.get("complexityNote") or "").strip()
+    if not note and sentence:
+        if assessed:
+            note = _default_complexity_note(sentence, assessed)
+        elif str(out.get("status")) == "Needs Improvement":
+            note = _default_complexity_note(sentence, assessed, uncertain=True)
     if note:
         out["complexity_note"] = note
     else:
@@ -369,7 +448,8 @@ def spanish_coach_system_prompt(level: str = "", dialect: str = DEFAULT_ES_DIALE
         "CRITICAL ACCURACY RULES:\n"
         "- Do NOT invent grammatical errors. Only flag real, clear mistakes.\n"
         '- Grammatically correct sentences are "Excellent" — but explanation must cite specific structures (not generic praise).\n'
-        '- Do NOT set assessed_level unless highly confident. When uncertain, omit and use complexity_note only.\n'
+        '- Set assessed_level when clear MCER anchors appear in the sentence (see CEFR & COMPLEXITY above). '
+        "Omit only when genuinely ambiguous — always include complexity_note.\n"
         '- next_level_alt MUST upgrade the sentence — never copy input verbatim.\n'
         '- tip MUST include a complete Spanish example sentence showing stronger phrasing.\n'
         '- Only mark "Needs Improvement" when there is an actual grammar error — not a style preference.\n'
@@ -562,13 +642,79 @@ def detect_register_conflict(sentence: str, feedback: dict[str, Any]) -> bool:
 
 
 def _grammar_rule_looks_like_meta(rule: str) -> bool:
-    lower = rule.lower()
+    lower = rule.lower().strip()
+    if _grammar_rule_is_generic(lower):
+        return True
     return (
         "the learner" in lower
         or "the sentence" in lower
         or "needs to" in lower
         or "should have" in lower
     )
+
+
+_GENERIC_GRAMMAR_RULES = frozenset(
+    {
+        "sentence structure and register",
+        "sentence structure",
+        "general spanish grammar",
+        "spanish grammar",
+        "grammar and register",
+    }
+)
+
+
+def _grammar_rule_is_generic(rule: str) -> bool:
+    lower = rule.lower().strip()
+    if lower in _GENERIC_GRAMMAR_RULES:
+        return True
+    if lower.startswith("sentence structure"):
+        return True
+    if " and register" in lower and len(lower) < 48:
+        return True
+    return False
+
+
+def _dynamic_excellent_grammar(sentence: str) -> tuple[str, str]:
+    """Return (grammar_rule, explanation) citing structures in a correct sentence."""
+    text = sentence.strip()
+    norm = _normalize(text)
+    wc = len(text.split())
+    rules: list[str] = []
+    cites: list[str] = []
+
+    if re.search(r"\bquiero\b", norm):
+        rules.append("Present tense «querer» + infinitive complement")
+        cites.append("«quiero» + infinitive")
+    if re.search(r"\b(tengo|tenemos)\s+que\b", norm):
+        rules.append("«Tener que» + infinitive (obligation)")
+        cites.append("«tener que» + infinitive")
+    if re.search(r"\b(fui|fue|hice|hizo|comi|comí|trabaje|trabajé)\b", norm, re.I):
+        rules.append("Preterite (pretérito indefinido) for completed past actions")
+        cites.append("preterite verb form(s)")
+    if re.search(r"\b(hubiera|tuviera|fuera|vengas|haga)\b", norm, re.I):
+        rules.append("Subjunctive mood in subordinate or conditional clauses")
+        cites.append("subjunctive form(s)")
+    if re.search(r"\b(estoy|está|estamos)\b", norm):
+        rules.append("Present tense «estar» + complement (state or location)")
+        cites.append("«estar» + complement")
+    if re.search(r"\b(soy|eres|es|somos)\b", norm) and not re.search(r"\bcomo\s+es\b", norm):
+        rules.append("Present tense «ser» + noun/adjective (identity or classification)")
+        cites.append("«ser» + complement")
+    if re.search(r"\bgust", norm):
+        rules.append("«Gustar» + indirect object + noun (impersonal-like construction)")
+        cites.append("«gustar» construction")
+    if _has_subordinator(text):
+        rules.append("Subordination (clause linked with «que», «porque», «si», etc.)")
+        cites.append("subordinate clause")
+
+    grammar = "; ".join(rules[:3]) if rules else f"Main-clause syntax ({wc} words)"
+    cite_text = ", ".join(cites[:3]) if cites else "the structures you used"
+    explanation = (
+        f"No grammar error stands out. You used {cite_text} correctly — "
+        "next, tighten connectors or vocabulary if the line must sound more formal for interpreting."
+    )
+    return grammar, explanation
 
 
 def _echar_de_menos_leismo_feedback(sentence: str, level: str) -> dict[str, Any] | None:
@@ -617,20 +763,22 @@ def _echar_de_menos_leismo_feedback(sentence: str, level: str) -> dict[str, Any]
 
 
 def _heuristic_improvement_tip(sentence: str, level: str, issues: list[str]) -> str:
-    norm = _normalize(sentence)
-    if "echo de menos" in norm:
-        return "«Echar de menos» takes lo/la: «la echo de menos» (her), «lo echo de menos» (him) — not «le»."
-    if re.search(r"\b(le|les|lo|la|los|las)\s+\w", sentence, re.I):
-        return (
-            "Check clitic pronouns: direct objects are lo/la/los/las; "
-            "«le/les» mark indirect objects unless regional leísmo applies."
-        )
+    from coach_rules import analyze_sentence
+    from coach_tips import tip_for_improvement
+
+    ground = analyze_sentence(sentence, "es")
+    if ground["has_errors"]:
+        return tip_for_improvement(sentence, ground["issues"], ground["correction"], lang="es")
     if issues:
-        return "Fix punctuation first, then confirm tú/usted matches your interpreting scenario."
-    return (
-        f"Tighten vocabulary for {level}: prefer precise verbs and connectors over repeated "
-        "«y» clauses where a subordinate fits."
-    )
+        return tip_for_improvement(
+            sentence,
+            [{"id": "punctuation_question", "issue": issues[0]}],
+            None,
+            lang="es",
+        )
+    from coach_tips import tip_for_excellent
+
+    return tip_for_excellent(sentence, lang="es")
 
 
 def known_spanish_error_feedback(sentence: str, level: str) -> dict[str, Any] | None:
@@ -638,6 +786,7 @@ def known_spanish_error_feedback(sentence: str, level: str) -> dict[str, Any] | 
 
     if fb := feedback_from_rules(sentence, "es"):
         out = dict(fb)
+        _enrich_rule_feedback(sentence, out, lang="es")
         if level.upper() not in ("C1", "C2") and out.get("correction"):
             out["next_level_alt"] = out["correction"]
             out["target_level_alt"] = out["correction"]
@@ -900,10 +1049,9 @@ def _substantive_excellent_feedback(sentence: str) -> dict[str, Any]:
         )
         next_alt = "Me siento incómoda porque no dejo de pensar en ello."
         target_alt = "Me encuentro incómoda, sobre todo porque no consigo dejar de darle vueltas al asunto."
-        tip = (
-            "Replace «y» with cause: «Me siento incómoda **porque** no dejo de pensar en ello.» Or: "
-            "«…**pues** no puedo dejar de **darle vueltas** al asunto.»"
-        )
+        from coach_tips import tip_for_excellent
+
+        tip = tip_for_excellent(text, next_alt=next_alt, y_coordinated=True)
         assessed = "B1"
     elif y_coordinated and not _has_subordinator(text):
         grammar = "Coordination with «y» vs subordination (porque, pues, lo cual)"
@@ -921,7 +1069,9 @@ def _substantive_excellent_feedback(sentence: str) -> dict[str, Any]:
             "upgraded in formal interpreting."
         )
         next_alt, target_alt = _upgrade_y_coordination(text)
-        tip = f"Upgrade: «{next_alt}» — swap «y» for **porque** or **pues** to show how the two ideas relate."
+        from coach_tips import tip_for_excellent
+
+        tip = tip_for_excellent(text, next_alt=next_alt, y_coordinated=True)
     elif "estoy " in norm or "estoy," in norm:
         grammar = "Ser vs estar — temporary states with estar"
         explanation = (
@@ -938,28 +1088,29 @@ def _substantive_excellent_feedback(sentence: str) -> dict[str, Any]:
         target_alt = None
         if y_coordinated:
             next_alt, target_alt = _upgrade_y_coordination(text)
-        tip = (
-            "Add precision: try «Me siento…» or «Me encuentro…» for a slightly more formal register."
+        from coach_tips import tip_for_excellent
+
+        tip = tip_for_excellent(
+            text, next_alt=next_alt if y_coordinated else None, y_coordinated=y_coordinated
         )
     else:
-        grammar = "Sentence structure and register"
-        explanation = (
-            "No grammar error stands out. The structures you used are acceptable — tighten vocabulary "
-            "and connectors so the line fits a professional interpreting context."
-        )
+        grammar, explanation = _dynamic_excellent_grammar(text)
         complexity = (
-            f"{word_count}-word sentence. "
-            f"{'Includes subordination' if _has_subordinator(text) else 'Main-clause structure'} — "
-            "describe syntax and vocabulary rather than assigning a CEFR band."
+            f"{word_count}-word sentence"
+            f"{', with subordination' if _has_subordinator(text) else ', main-clause structure'}."
         )
-        register = "Confirm tú/usted and formality match the scenario (clinical, legal, or casual)."
+        register = (
+            "Formal usted with «señor/señora» — keep third-person verb forms in professional settings."
+            if re.search(r"\b(senor|senora|usted)\b", norm)
+            else "Match tú/usted and formality to the scenario (clinical, legal, or casual)."
+        )
         if y_coordinated and not _has_subordinator(text):
             next_alt, target_alt = _upgrade_y_coordination(text)
         else:
             next_alt, target_alt = text, None
-        tip = (
-            "Try a subordinate clause: «…, **porque** …» or «…, **lo cual** …» to link ideas in one sentence."
-        )
+        from coach_tips import tip_for_excellent
+
+        tip = tip_for_excellent(text, next_alt=next_alt, y_coordinated=y_coordinated)
 
     out: dict[str, Any] = {
         "status": "Excellent",
@@ -984,7 +1135,11 @@ def _feedback_is_low_quality(sentence: str, feedback: dict[str, Any]) -> bool:
     explanation = str(feedback.get("explanation") or "")
     complexity = str(feedback.get("complexity_note") or feedback.get("complexityNote") or "").strip()
     nxt = str(feedback.get("next_level_alt") or "")
+    if _grammar_rule_is_generic(grammar):
+        return True
     if "general spanish grammar" in grammar:
+        return True
+    if "no grammar error stands out" in explanation.lower():
         return True
     if "no clear errors detected" in explanation.lower():
         return True
@@ -1113,11 +1268,10 @@ def heuristic_feedback(sentence: str, level: str) -> dict[str, Any]:
         "amor" in norm and "extran" in norm and bool(re.search(r"\bte\b", norm))
     )
     has_formal_greeting_cue = (
-        (
-            ("como esta" in norm or "cómo está" in text.lower())
-            and "estas" not in norm
-        )
-        or bool(re.search(r"\b(usted|senor|senora)\b", norm))
+        ("como esta" in norm or "cómo está" in text.lower())
+        and "estas" not in norm
+        and "como es" not in norm
+        and re.search(r"\b(senor|senora)\b", norm)
     ) and not has_informal_greeting_cue
     if has_informal_greeting_cue:
         register = (
@@ -1175,7 +1329,7 @@ def heuristic_feedback(sentence: str, level: str) -> dict[str, Any]:
             "relationship is personal, and use commas to set off a vocative where appropriate."
         )
     elif has_formal_greeting_cue:
-        grammar = "Formal greeting and usted register"
+        grammar = "Formal greeting — «¿Cómo está?» with usted"
         explanation = "Polite greeting with appropriate formal verb form; only minor punctuation may apply."
     else:
         grammar = "Greeting and context-appropriate register"
@@ -1215,7 +1369,14 @@ def heuristic_feedback(sentence: str, level: str) -> dict[str, Any]:
         out["correction"] = correction
     if level.upper() in ("B2", "C1", "C2"):
         out["target_level_alt"] = correction or next_alt
-    return out
+    if has_formal_greeting_cue and status == "Excellent":
+        out["assessed_level"] = "B1"
+        out["_keep_assessed_level"] = True
+        out["complexity_note"] = (
+            f"Formal greeting with vocative and usted ({len(text.split())} words); "
+            "polite formula without subordination — B1 register band."
+        )
+    return _preserve_inferred_fields(out, sentence)
 
 
 def _has_punctuation_issue(sentence: str) -> bool:
@@ -1262,6 +1423,39 @@ def _sanitize_french_feedback(sentence: str, feedback: dict[str, Any], level: st
             out.pop(alt_key, None)
 
     return _preserve_inferred_fields(out, sentence, lang="fr")
+
+
+def _ensure_contextual_tip(sentence: str, out: dict[str, Any], *, lang: str = "es") -> None:
+    """Replace generic model tips with sentence-specific advice."""
+    from coach_tips import tip_for_excellent, tip_for_improvement, tip_is_generic
+
+    tip = str(out.get("tip") or "")
+    if not tip_is_generic(tip):
+        return
+
+    status = str(out.get("status") or "")
+    if status == "Needs Improvement":
+        from coach_rules import analyze_sentence
+
+        ground = analyze_sentence(sentence, lang)
+        if ground["has_errors"]:
+            out["tip"] = tip_for_improvement(
+                sentence, ground["issues"], ground.get("correction"), lang=lang
+            )
+            return
+        correction = out.get("correction")
+        if correction:
+            out["tip"] = tip_for_improvement(sentence, [], str(correction), lang=lang)
+            return
+    elif status == "Excellent":
+        next_alt = out.get("next_level_alt")
+        y_coord = bool(re.search(r"\s+y\s+", sentence, re.I)) and not _has_subordinator(sentence)
+        out["tip"] = tip_for_excellent(
+            sentence,
+            next_alt=str(next_alt) if next_alt else None,
+            y_coordinated=y_coord,
+            lang=lang,
+        )
 
 
 def _sanitize_spanish_feedback(sentence: str, feedback: dict[str, Any], level: str = "") -> dict[str, Any]:
@@ -1347,6 +1541,9 @@ def _sanitize_spanish_feedback(sentence: str, feedback: dict[str, Any], level: s
     from coach_rules import merge_with_ai
 
     out = merge_with_ai(sentence, out, "es")
+    if out.get("_coach_enhanced") or out.get("_coach_rules"):
+        _enrich_rule_feedback(sentence, out, lang="es")
+    _ensure_contextual_tip(sentence, out, lang="es")
     return _preserve_inferred_fields(out, sentence)
 
 
@@ -1357,6 +1554,88 @@ def sanitize_feedback(
     if lang == "fr":
         return _sanitize_french_feedback(sentence, feedback, level)
     return _sanitize_spanish_feedback(sentence, feedback, level)
+
+
+# ── Generation quality checks ──────────────────────────────────────────────────
+
+# Mirrors isFragmentSentence() in Parlance/web/feedback-sanitize.js.
+_PORQUE_FRAGMENT_RE = re.compile(
+    r"\b(porque|pues|ya\s+que|puesto\s+que)\s+(la|el|los|las|mi|tu|su|un|una)\s+\w+[.!?]?\s*$",
+    re.I,
+)
+_CAUSAL_CONNECTOR_RE = re.compile(
+    r"\b(?:porque|pues|ya\s+que|puesto\s+que)\s+(.+)", re.I
+)
+_CONJUGATED_VERB_RE = re.compile(
+    r"\b(fui|fue|es|está|esta|tengo|hay|quiero|necesito|soy|voy|estoy|tiene|hace|"
+    r"van|son|están|estan|llegué|llegue|podía|podia|tenía|tenia|era|hice|hizo|"
+    r"estuve|estuvo|quise|vine|dije|trabajo|vive|viven|tienen|sé|se)\b",
+    re.I,
+)
+
+# Spanish words with accented characters — a quick proxy for target-language content.
+_SPANISH_ACCENT_RE = re.compile(r"[áéíóúüñÁÉÍÓÚÜÑ]")
+# Guillemet quotes in tips indicate an embedded example sentence.
+_GUILLEMET_RE = re.compile(r"[«»]")
+
+_CONCRETE_REGISTER_RE = re.compile(r"\b(informal|formal|voseo|usted|vous)\b|t[uú]\b", re.I)
+
+
+def _is_porque_fragment(text: str, lang: str) -> bool:
+    """Return True when *text* ends in a causal connector + noun phrase with no verb."""
+    if not text or lang != "es":
+        return False
+    if _PORQUE_FRAGMENT_RE.search(text):
+        return True
+    m = _CAUSAL_CONNECTOR_RE.search(text)
+    if m and not _CONJUGATED_VERB_RE.search(m.group(1)):
+        return True
+    return False
+
+
+def validate_generation_quality(
+    sentence: str, result: dict[str, Any], lang: str = "es"
+) -> list[str]:
+    """Check generated fields for known quality failures.
+
+    Returns a list of human-readable failure strings; an empty list means all
+    checks passed.  Designed to run on every model checkpoint alongside the
+    existing rule-firing validation loop.
+    """
+    failures: list[str] = []
+
+    # 1. next_level_alt must not be a porque-fragment.
+    nla = result.get("next_level_alt") or ""
+    if nla and _is_porque_fragment(nla, lang):
+        failures.append(
+            f"next_level_alt is a porque-fragment: {nla!r}"
+        )
+
+    # 2. next_level_alt must differ from the input sentence after normalization.
+    if nla and _normalize(nla) == _normalize(sentence):
+        failures.append(
+            "next_level_alt is verbatim copy of input sentence"
+        )
+
+    # 3. tip must contain at least one target-language signal:
+    #    an accented character (Spanish) or guillemet quotes «…» (either lang).
+    tip = result.get("tip") or ""
+    if tip:
+        has_accent = bool(_SPANISH_ACCENT_RE.search(tip)) if lang == "es" else True
+        has_guillemet = bool(_GUILLEMET_RE.search(tip))
+        if not has_accent and not has_guillemet:
+            failures.append(
+                f"tip lacks a target-language example (no accented chars or «» guillemets): {tip!r}"
+            )
+
+    # 4. register must assert a concrete label, not vague meta-advice.
+    register = result.get("register") or ""
+    if register and not _CONCRETE_REGISTER_RE.search(register):
+        failures.append(
+            f"register is vague (no concrete informal/formal/voseo label): {register!r}"
+        )
+
+    return failures
 
 
 def _correction_adds_accents(

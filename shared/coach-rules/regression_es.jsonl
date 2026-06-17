@@ -12,3 +12,7 @@
 {"id": "leismo_amigo", "sentence": "Le echo de menos a mi amigo.", "expect_rules": ["leismo_echar_de_menos"], "expect_correction_contains": ["echo de menos"], "expect_status": "Needs Improvement", "notes": "leismo: masculine direct object must fire; repair defaults to 'la' (learner corrects lo/la from explanation)"}
 {"id": "gracias_por_trabajo", "sentence": "Gracias por el buen trabajo.", "expect_rules": [], "expect_correction_contains": [], "expect_status": null, "notes": "por_para_trabajo must NOT fire on 'gracias por'"}
 {"id": "trabajo_por_noches", "sentence": "Trabajo por las noches.", "expect_rules": [], "expect_correction_contains": [], "expect_status": null, "notes": "por_para_trabajo must NOT fire on 'trabajo por las noches'"}
+{"id": "porque_fragment_rejected", "sentence": "Fui al gimnasio y la casa de mi abuela.", "lang": "es", "expect_no_fragment_alt": true, "note": "next_level_alt must not be a porque-fragment"}
+{"id": "informal_register_tu", "sentence": "Hola amigo, ¿cómo estás?", "lang": "es", "expect_register_contains": "informal", "note": "tú-register sentence must not be labeled formal"}
+{"id": "tip_has_example", "sentence": "Hola amigo, ¿como estas?", "lang": "es", "expect_tip_has_example": true, "note": "tip must contain a Spanish example sentence"}
+{"id": "next_alt_not_verbatim", "sentence": "Comí en el restaurante.", "lang": "es", "expect_alt_differs": true, "note": "next_level_alt must differ from input"}
