@@ -166,12 +166,27 @@ def tip_for_excellent(
     text = sentence.strip()
     norm = _normalize(text)
 
-    if y_coordinated and next_alt and _normalize(next_alt) != _normalize(text):
-        left = re.split(r"\s+y\s+", text, maxsplit=1, flags=re.I)[0].strip(" .")
-        if left:
+    if y_coordinated:
+        _parts = re.split(r"\s+y\s+", text, maxsplit=1, flags=re.I)
+        _left = _parts[0].strip(" .")
+        _right = _parts[1].strip(" .") if len(_parts) > 1 else ""
+        if next_alt and _normalize(next_alt) != _normalize(text):
+            # Reject porque-fragments — they teach bad Spanish
+            _is_porque_fragment = re.search(
+                r"\bporque\s+(la|el|los|las|mi|tu|su|un|una)\s+\w+\.?\s*$",
+                next_alt,
+                re.I,
+            )
+            if not _is_porque_fragment and _left:
+                return (
+                    f"You link ideas with «{_left}… y …» — for formal interpreting, "
+                    f"try your own words in: «{next_alt}»"
+                )
+        # Fallback: fragment detected or no usable next_alt — use sequencing connectors
+        if _left and _right:
             return (
-                f"You link ideas with «{left}… y …» — for formal interpreting, "
-                f"try your own words in: «{next_alt}»"
+                f"With «y» chains, add sequencing: e.g. «{_left} y después {_right}.» "
+                f"or subordination: «{_left} antes de ir a {_right}.»"
             )
 
     m = re.search(r"(?i)\b(quiero\s+[^.!?]{3,50})", text)

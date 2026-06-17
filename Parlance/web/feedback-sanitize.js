@@ -32,6 +32,44 @@
     return markers.some((m) => (' ' + n + ' ').includes(m));
   }
 
+  /**
+   * Detect sentence fragments produced by SLMs.
+   * The most common failure: "porque [det] [noun]" with no conjugated verb in the causal clause.
+   */
+  function isFragmentSentence(text, lang) {
+    if (!text || lang !== 'es') return false;
+    // Pattern: ends with a causal connector followed by a noun phrase but no verb
+    if (/\b(porque|pues|ya que|puesto que)\s+(la|el|los|las|mi|tu|su|un|una)\s+\w+[.!?]?\s*$/i.test(text)) {
+      return true;
+    }
+    // Broader check: extract the clause after any causal connector and verify it has a conjugated verb
+    const causalMatch = text.match(/\b(?:porque|pues|ya\s+que|puesto\s+que)\s+(.+)/i);
+    if (causalMatch) {
+      const clause = causalMatch[1];
+      const conjugated = /\b(fui|fue|es|está|esta|tengo|hay|quiero|necesito|soy|voy|estoy|tiene|hace|van|son|están|estan|llegué|llegue|podía|podia|tenía|tenia|era|hice|hizo|estuve|estuvo|quise|vine|dije|trabajo|vive|viven|tienen|sé|se)\b/i;
+      if (!conjugated.test(clause)) return true;
+    }
+    return false;
+  }
+
+  /**
+   * Validate an AI-generated alt sentence.
+   * Returns null when the alt is a fragment or lacks any conjugated verb (very short/incomplete).
+   * Otherwise returns the text unchanged.
+   */
+  function sanitizeAlt(text, lang) {
+    if (!text) return null;
+    if (isFragmentSentence(text, lang)) return null;
+    if (lang === 'es') {
+      const words = text.trim().split(/\s+/);
+      if (words.length <= 5) {
+        const conjugated = /\b(fui|fue|es|está|esta|tengo|hay|quiero|necesito|soy|voy|estoy|tiene|hace|van|son|están|estan|llegué|llegue|podía|podia|tenía|tenia|era|hice|hizo|estuve|estuvo|quise|vine|dije)\b/i;
+        if (!conjugated.test(text)) return null;
+      }
+    }
+    return text;
+  }
+
   function isMedicalRegister(sentence, lang) {
     const n = normalizeTextForCompare(sentence);
     if (lang === 'fr') {
@@ -323,6 +361,15 @@
       return isInformal
         ? 'This sentence uses tú (informal). In clinical/legal interpreting, shift to usted: «¿**Cómo está usted** hoy?»'
         : 'Formal usted fits here. In casual contexts you may use tú: «¿Cómo **estás** hoy, amigo?»';
+    // y-coordinated preterite sentence — suggest sequencing/subordination connectors
+    if (/ y /i.test(sentence) && /\b(fui|fue|hice|hizo|estuve|estuvo|llegué|llegue|salí|sali|comí|comi|trabajé|trabaje)\b/i.test(sentence)) {
+      const rawParts = sentence.replace(/[.!?]\s*$/, '').split(/ y /i);
+      const left = rawParts[0].trim();
+      const right = rawParts.slice(1).join(' y ').trim();
+      if (left && right) {
+        return `With «y» chains, add sequencing: e.g. «${left} y después ${right}.» or use subordination: «${left} antes de ir a ${right}.»`;
+      }
+    }
     if (grammarRule && grammarRule.length > 12)
       return `${grammarRule.charAt(0).toUpperCase() + grammarRule.slice(1)}. Apply this consistently when interpreting for precision.`;
     return isInformal
@@ -464,11 +511,20 @@
       out.tip = sanitizeTip(sentence, out.tip, out.grammar_rule, lang, out.register);
     }
     const sentNorm = normalizeTextForCompare(sentence);
-    if (out.next_level_alt && normalizeTextForCompare(out.next_level_alt) === sentNorm) {
-      delete out.next_level_alt;
+    let fragmentAltDetected = false;
+    if (out.next_level_alt) {
+      const sanitized = sanitizeAlt(out.next_level_alt, lang);
+      if (sanitized === null) { fragmentAltDetected = true; delete out.next_level_alt; }
+      else if (normalizeTextForCompare(out.next_level_alt) === sentNorm) { delete out.next_level_alt; }
     }
-    if (out.target_level_alt && normalizeTextForCompare(out.target_level_alt) === sentNorm) {
-      delete out.target_level_alt;
+    if (out.target_level_alt) {
+      const sanitized = sanitizeAlt(out.target_level_alt, lang);
+      if (sanitized === null) { fragmentAltDetected = true; delete out.target_level_alt; }
+      else if (normalizeTextForCompare(out.target_level_alt) === sentNorm) { delete out.target_level_alt; }
+    }
+    // If a fragment alt was stripped, the tip may still cite it — regenerate from the sentence
+    if (fragmentAltDetected && sentence) {
+      out.tip = synthesizeTip(sentence, out.grammar_rule, lang, out.register);
     }
     return out;
   }
@@ -489,6 +545,8 @@
     tipIsGeneric,
     sanitizeTip,
     synthesizeTip,
+    isFragmentSentence,
+    sanitizeAlt,
   };
 
   if (typeof module !== 'undefined' && module.exports) {
