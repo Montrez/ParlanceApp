@@ -34,10 +34,10 @@
 <p>When you choose to use cloud AI analysis, the sentence you submit is sent to Google Firebase Cloud Functions, which routes it to a third-party AI provider (such as Groq, Gemini, OpenAI, or others you select). Sentences are not stored by us after the response is returned. Third-party providers process your input under their own privacy policies.</p>
 
 <h2>3. Authentication</h2>
-<p>Parlance uses Google Sign-In (Firebase Authentication) to identify your account. We store your Firebase User ID (UID) to track your monthly usage quota. We do not store your name, email address, or profile picture on our servers.</p>
+<p>Parlance uses Google Sign-In (Firebase Authentication), managed entirely by Google. We never receive or store your name, email address, or profile picture. Google provides an anonymous User ID (UID) that we use solely to associate your usage quota and call packs with your account.</p>
 
-<h2>4. Usage Data</h2>
-<p>We store a usage counter in Firestore (Google Cloud) tied to your UID. This counter tracks how many cloud analysis calls you have made in the current calendar month. It resets monthly and is used solely to enforce the free tier and apply call packs.</p>
+<h2>4. Usage Counter</h2>
+<p>We store a single counter in Firestore (Google Cloud) tied to your UID. It tracks how many cloud analysis calls you have made in the current calendar month. It resets monthly and is used only to enforce the 30-call free tier and apply purchased call packs. This counter is never used for advertising, analytics, or any purpose beyond app functionality.</p>
 
 <h2>5. In-App Purchases</h2>
 <p>Call pack purchases are processed by Apple. Upon a successful purchase, Apple provides a signed transaction token that we verify server-side. We store a record of the transaction ID and the number of remaining calls in Firestore under your UID. We do not receive or store your payment information.</p>
