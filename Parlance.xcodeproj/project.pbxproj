@@ -12,6 +12,7 @@
 		A1000003 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000003 /* Config.swift */; };
 		A1000004 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000004 /* Assets.xcassets */; };
 		A1000006 /* Config.plist in Resources */ = {isa = PBXBuildFile; fileRef = A2000006 /* Config.plist */; };
+		E74F04F02FF01AB60075581B /* StoreKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E74F04EF2FF01AB60075581B /* StoreKitManager.swift */; };
 		E778CF132F9E327000296847 /* PrivacyPolicyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E778CF122F9E327000296847 /* PrivacyPolicyView.swift */; };
 		E778CF172F9E3AF800296847 /* styles.css in Resources */ = {isa = PBXBuildFile; fileRef = E778CF162F9E3AF800296847 /* styles.css */; };
 		E778CF192F9E3AF800296847 /* guide-es.html in Resources */ = {isa = PBXBuildFile; fileRef = E778CF182F9E3AF800296847 /* guide-es.html */; };
@@ -59,6 +60,7 @@
 		A2000006 /* Config.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Config.plist; sourceTree = "<group>"; };
 		A2000007 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A3000001 /* Parlance - Interpreter Journal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Parlance - Interpreter Journal.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E74F04EF2FF01AB60075581B /* StoreKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitManager.swift; sourceTree = "<group>"; };
 		E778CF122F9E327000296847 /* PrivacyPolicyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyPolicyView.swift; sourceTree = "<group>"; };
 		E778CF162F9E3AF800296847 /* styles.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = styles.css; sourceTree = "<group>"; };
 		E778CF182F9E3AF800296847 /* guide-es.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "guide-es.html"; sourceTree = "<group>"; };
@@ -147,6 +149,7 @@
 				E7SLM0022 /* ParlanceSLMModelLocator.swift */,
 				E7SLM0023 /* ParlanceSLMFeedbackValidator.swift */,
 				E7SLM0040 /* Models */,
+				E74F04EF2FF01AB60075581B /* StoreKitManager.swift */,
 			);
 			path = Parlance;
 			sourceTree = "<group>";
@@ -317,6 +320,7 @@
 				E7AI0009 /* GeminiAnalyzer.swift in Sources */,
 				E7AI0011 /* UnifiedAnalyzer.swift in Sources */,
 				E7SLM0001 /* ParlanceSLMAnalyzer.swift in Sources */,
+				E74F04F02FF01AB60075581B /* StoreKitManager.swift in Sources */,
 				E7SLM0011 /* ParlanceSLMEngine.swift in Sources */,
 				E7SLM0012 /* ParlanceSLMModelLocator.swift in Sources */,
 				E7SLM0013 /* ParlanceSLMFeedbackValidator.swift in Sources */,

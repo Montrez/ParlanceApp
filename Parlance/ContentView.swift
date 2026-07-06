@@ -301,6 +301,8 @@ struct ParlanceWebView: UIViewRepresentable {
                 handleSignInGoogle(body)
             } else if action == "signOut" {
                 handleSignOut(body)
+            } else if action == "purchaseCallPack" {
+                handlePurchaseCallPack(body)
             }
         }
 
@@ -519,6 +521,29 @@ struct ParlanceWebView: UIViewRepresentable {
             self.webView?.evaluateJavaScript(
                 "window.__parlanceOnDeviceResult(\"\(requestId)\", null, \"On-device analysis not available\")"
             ) { _, _ in }
+        }
+
+        private func handlePurchaseCallPack(_ body: [String: Any]) {
+            guard let requestId = body["requestId"] as? String else { return }
+            Task { @MainActor in
+                let result = await StoreKitManager.shared.purchaseCallPack()
+                switch result {
+                case .success(let transactionId):
+                    let escaped = Self.jsonEscaped(transactionId)
+                    self.webView?.evaluateJavaScript(
+                        "window.__parlancePurchaseResult(\"\(requestId)\", {success:true,transactionId:\"\(escaped)\"}, null)"
+                    ) { _, _ in }
+                case .cancelled:
+                    self.webView?.evaluateJavaScript(
+                        "window.__parlancePurchaseResult(\"\(requestId)\", null, \"cancelled\")"
+                    ) { _, _ in }
+                case .failed(let msg):
+                    let escaped = Self.jsonEscaped(msg)
+                    self.webView?.evaluateJavaScript(
+                        "window.__parlancePurchaseResult(\"\(requestId)\", null, \"\(escaped)\")"
+                    ) { _, _ in }
+                }
+            }
         }
 
         deinit {

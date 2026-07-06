@@ -1,0 +1,55 @@
+name: Release notification
+
+# Fires when you publish a GitHub Release (tag + release notes)
+on:
+  release:
+    types: [published]
+
+jobs:
+  notify-discord:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post to Discord #whats-new
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
+          TAG:   ${{ github.event.release.tag_name }}
+          TITLE: ${{ github.event.release.name }}
+          BODY:  ${{ github.event.release.body }}
+          PRERELEASE: ${{ github.event.release.prerelease }}
+        run: |
+          # Determine label and color based on pre-release flag
+          if [ "$PRERELEASE" = "true" ]; then
+            LABEL="TestFlight beta"
+            COLOR=16753920   # orange
+            PLATFORM_NOTE="Available now on **TestFlight**. Update in the app or accept the invite."
+          else
+            LABEL="App Store release"
+            COLOR=5763719    # green
+            PLATFORM_NOTE="Available now on the **App Store**. Update in the App Store or search Parlance."
+          fi
+
+          # Truncate body to 2000 chars (Discord embed limit)
+          SHORT_BODY=$(echo "$BODY" | head -c 1900)
+
+          # Build JSON payload
+          PAYLOAD=$(jq -n \
+            --arg title "🚀 Parlance $TAG — $LABEL" \
+            --arg desc "$SHORT_BODY" \
+            --arg note "$PLATFORM_NOTE" \
+            --argjson color "$COLOR" \
+            '{
+              embeds: [{
+                title: $title,
+                description: $desc,
+                color: $color,
+                fields: [
+                  { name: "📱 Availability", value: $note, inline: false }
+                ],
+                footer: { text: "Parlance" },
+                timestamp: (now | todate)
+              }]
+            }')
+
+          curl -fsSL -X POST "$DISCORD_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD"

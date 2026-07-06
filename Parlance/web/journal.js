@@ -1197,6 +1197,31 @@ function closeAISettings() {
   document.getElementById('aiSettingsOverlay').style.display = 'none';
 }
 
+// ── Call pack purchase ────────────────────────────────────────────────────────
+
+function triggerCallPackPurchase() {
+  if (!isNativeParlanceApp()) {
+    showErrorInPanel('Monthly limit reached (30 calls). Get 100 more calls for $0.99 in the app.');
+    return;
+  }
+  const requestId = 'purchase_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+  window.__parlancePurchaseResult = (id, data, err) => {
+    if (id !== requestId) return;
+    delete window.__parlancePurchaseResult;
+    if (err === 'cancelled') {
+      showToast('Purchase cancelled.');
+      return;
+    }
+    if (err) {
+      showErrorInPanel('Purchase failed: ' + err + '. You can try again or switch to Parlance Coach in Settings.');
+      return;
+    }
+    refreshUsageDisplay();
+    showToast('100 calls added! Analyzing now...');
+  };
+  window.webkit.messageHandlers.parlance.postMessage({ action: 'purchaseCallPack', requestId });
+}
+
 function renderProviderGrid() {
   const grid = document.getElementById('providerGrid');
   grid.innerHTML = '';
@@ -1634,8 +1659,9 @@ async function analyzeSentence(id) {
     const code = err.code || '';
     let msg = err.message || 'Could not analyze — check your settings.';
     if (code === 'functions/resource-exhausted' || msg.includes('Monthly free limit')) {
-      msg = 'Monthly free limit reached (30 calls). On-device Parlance Coach is always free — switch in ⚙ AI.';
       refreshUsageDisplay();
+      triggerCallPackPurchase();
+      return;
     } else if (code === 'functions/unauthenticated') {
       msg = 'Sign in to use cloud AI providers — tap ⚙ AI.';
     }
