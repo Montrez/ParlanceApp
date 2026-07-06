@@ -9,30 +9,29 @@ jobs:
   notify-discord:
     runs-on: ubuntu-latest
     steps:
-      - name: Post to Discord #whats-new
+      - name: Post to Discord
         env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
-          TAG:   ${{ github.event.release.tag_name }}
-          TITLE: ${{ github.event.release.name }}
-          BODY:  ${{ github.event.release.body }}
+          WEBHOOK_WHATS_NEW:   ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
+          WEBHOOK_ANNOUNCE:    ${{ secrets.DISCORD_ANNOUNCE_WEBHOOK }}
+          TAG:       ${{ github.event.release.tag_name }}
+          TITLE:     ${{ github.event.release.name }}
+          BODY:      ${{ github.event.release.body }}
           PRERELEASE: ${{ github.event.release.prerelease }}
         run: |
-          # Determine label and color based on pre-release flag
           if [ "$PRERELEASE" = "true" ]; then
             LABEL="TestFlight beta"
-            COLOR=16753920   # orange
+            COLOR=16753920
             PLATFORM_NOTE="Available now on **TestFlight**. Update in the app or accept the invite."
           else
             LABEL="App Store release"
-            COLOR=5763719    # green
+            COLOR=5763719
             PLATFORM_NOTE="Available now on the **App Store**. Update in the App Store or search Parlance."
           fi
 
-          # Truncate body to 2000 chars (Discord embed limit)
           SHORT_BODY=$(echo "$BODY" | head -c 1900)
 
-          # Build JSON payload
-          PAYLOAD=$(jq -n \
+          # Full embed — goes to #whats-new
+          FULL_PAYLOAD=$(jq -n \
             --arg title "🚀 Parlance $TAG — $LABEL" \
             --arg desc "$SHORT_BODY" \
             --arg note "$PLATFORM_NOTE" \
@@ -50,6 +49,30 @@ jobs:
               }]
             }')
 
-          curl -fsSL -X POST "$DISCORD_WEBHOOK" \
+          # Short announcement — goes to #announcements
+          ANNOUNCE_PAYLOAD=$(jq -n \
+            --arg title "🚀 Parlance $TAG is out" \
+            --arg note "$PLATFORM_NOTE" \
+            --argjson color "$COLOR" \
+            '{
+              embeds: [{
+                title: $title,
+                color: $color,
+                fields: [
+                  { name: "📱 Where to get it", value: $note, inline: false },
+                  { name: "📋 Full release notes", value: "See <#1520434030984822888> for details.", inline: false }
+                ],
+                footer: { text: "Parlance" },
+                timestamp: (now | todate)
+              }]
+            }')
+
+          curl -fsSL -X POST "$WEBHOOK_WHATS_NEW" \
             -H "Content-Type: application/json" \
-            -d "$PAYLOAD"
+            -d "$FULL_PAYLOAD"
+
+          if [ -n "$WEBHOOK_ANNOUNCE" ]; then
+            curl -fsSL -X POST "$WEBHOOK_ANNOUNCE" \
+              -H "Content-Type: application/json" \
+              -d "$ANNOUNCE_PAYLOAD"
+          fi
