@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guía de dialectos — Español</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #faf8f4;
+  --surface: #fff;
+  --border: #e2ddd6;
+  --text: #1a1714;
+  --muted: #8a8278;
+  --accent: #c0392b;
+  --accent2: #2e6b4a;
+  --accent3: #1a5c99;
+  --gold: #a0742a;
+  --tag-bg: #f0ece5;
+  --highlight: #fff8e8;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+}
+a { color: var(--accent3); }
+
+.layout { display:flex; min-height:100vh; }
+.sidebar {
+  width: 250px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 1.5rem 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+.sidebar-logo { padding: 0 1.2rem 1.2rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
+.sidebar-logo h1 { font-family: 'Lora', serif; font-size: 1.25rem; color: var(--accent); }
+.sidebar-logo p { font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem; }
+.nav-label {
+  padding: 0.5rem 1.2rem 0.2rem;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  font-weight: 600;
+}
+.nav-item {
+  display: block;
+  padding: 0.35rem 1.2rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+  cursor: pointer;
+  border-left: 2px solid transparent;
+}
+.nav-item:hover { color: var(--text); background: var(--tag-bg); }
+.nav-item.active { color: var(--accent); border-left-color: var(--accent); background: #fdf0ee; font-weight: 500; }
+
+.content { flex: 1; max-width: 780px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
+.section { margin-bottom: 3rem; scroll-margin-top: 1.5rem; }
+.section h2 {
+  font-family: 'Lora', serif;
+  font-size: 1.55rem;
+  margin-bottom: 0.35rem;
+}
+.section .subtitle { font-size: 0.88rem; color: var(--muted); margin-bottom: 1.25rem; font-style: italic; }
+
+.picker-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+.picker-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.75rem; }
+@media (max-width: 600px) { .picker-row { grid-template-columns: 1fr; } }
+.picker-row label { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; margin-bottom: 0.35rem; }
+.picker-row select {
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  background: var(--bg);
+}
+.picker-note { font-size: 0.82rem; color: var(--muted); }
+
+.pair-result {
+  background: var(--highlight);
+  border: 1px solid #e8d89a;
+  border-left: 4px solid var(--gold);
+  border-radius: 0 8px 8px 0;
+  padding: 1.1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  display: none;
+}
+.pair-result.visible { display: block; }
+.pair-result h3 { font-size: 0.95rem; margin-bottom: 0.5rem; color: var(--gold); }
+.pair-result ul { padding-left: 1.2rem; font-size: 0.9rem; }
+.pair-result li { margin-bottom: 0.35rem; }
+
+.rule-box {
+  background: var(--highlight);
+  border: 1px solid #e8d89a;
+  border-left: 4px solid var(--gold);
+  border-radius: 0 8px 8px 0;
+  padding: 1rem 1.2rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.9rem;
+}
+
+table.data {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+  margin-bottom: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+table.data th {
+  background: var(--tag-bg);
+  text-align: left;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+table.data td {
+  padding: 0.45rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+table.data tr:last-child td { border-bottom: none; }
+table.data td:first-child { font-weight: 500; width: 28%; }
+.mono { font-family: 'IBM Plex Mono', monospace; font-size: 0.84rem; }
+
+.region-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
+  margin-bottom: 0.85rem;
+}
+.region-card h3 { font-size: 0.95rem; margin-bottom: 0.35rem; }
+.region-card p { font-size: 0.88rem; color: var(--text); }
+.region-card .tag { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+.warn-box {
+  background: #fdecea;
+  border: 1px solid #f5c6c0;
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.88rem;
+}
+.warn-box strong { color: var(--accent); }
+
+.lang-switch {
+  font-size: 0.8rem;
+  margin-top: 0.75rem;
+  padding: 0 1.2rem;
+}
+.lang-switch a { color: var(--accent3); }
+
+.back-btn {
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.65rem 1.1rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  z-index: 100;
+}
+.back-btn:hover { opacity: 0.92; }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <h1>🌎 Dialectos</h1>
+    <p>Para hablantes nativos e intérpretes</p>
+  </div>
+  <div class="nav-label">Navegación</div>
+  <a class="nav-item active" href="#picker">Tu región → la suya</a>
+  <a class="nav-item" href="#pronouns">Pronombres</a>
+  <a class="nav-item" href="#vocab">Vocabulario</a>
+  <a class="nav-item" href="#traps">Palabras trampa</a>
+  <a class="nav-item" href="#regions">Perfiles regionales</a>
+  <a class="nav-item" href="#dont-correct">No corrijas esto</a>
+  <div class="lang-switch">Practicas francés → <a href="dialect-fr.html">Guía de dialectos FR</a></div>
+</nav>
+
+<main class="content">
+  <section class="section" id="picker">
+    <h2>Tu región → la suya</h2>
+    <p class="subtitle">Elige de dónde eres tú y de dónde es la otra persona. Verás solo lo que importa para esa conversación.</p>
+
+    <div class="picker-card">
+      <div class="picker-row">
+        <div>
+          <label for="fromRegion">Yo hablo como en…</label>
+          <select id="fromRegion">
+            <option value="">Selecciona tu región</option>
+            <option value="mexico">México y Centroamérica</option>
+            <option value="caribbean">Caribe (Cuba, PR, RD)</option>
+            <option value="rioplatense">Rioplatense (Argentina, Uruguay)</option>
+            <option value="andean">Andino (Colombia, Perú, Ecuador)</option>
+            <option value="spain">España</option>
+          </select>
+        </div>
+        <div>
+          <label for="toRegion">La otra persona es de…</label>
+          <select id="toRegion">
+            <option value="">Selecciona su región</option>
+            <option value="mexico">México y Centroamérica</option>
+            <option value="caribbean">Caribe (Cuba, PR, RD)</option>
+            <option value="rioplatense">Rioplatense (Argentina, Uruguay)</option>
+            <option value="andean">Andino (Colombia, Perú, Ecuador)</option>
+            <option value="spain">España</option>
+          </select>
+        </div>
+      </div>
+      <p class="picker-note">Consejo: en interpretación, adapta tu salida al registro del hablante, no al tuyo.</p>
+    </div>
+
+    <div id="pairResult" class="pair-result">
+      <h3 id="pairTitle"></h3>
+      <ul id="pairList"></ul>
+    </div>
+
+    <div class="rule-box">
+      Esta guía no enseña gramática básica. Asume que ya dominas el español. El objetivo es evitar malentendidos entre variantes del mismo idioma.
+    </div>
+  </section>
+
+  <section class="section" id="pronouns">
+    <h2>Pronombres y trato</h2>
+    <p class="subtitle">La diferencia más práctica entre países.</p>
+    <table class="data">
+      <thead><tr><th>Región</th><th>Tú / vos / usted</th><th>Nota rápida</th></tr></thead>
+      <tbody>
+        <tr><td>México / Centroamérica</td><td class="mono">tú</td><td><em>usted</em> con mayores y en contextos formales. Plural: <em>ustedes</em> (no <em>vosotros</em>).</td></tr>
+        <tr><td>Caribe</td><td class="mono">tú / usted</td><td><em>Usted</em> muy extendido, incluso en familia en algunos contextos. Habla rápida, a veces se omite la -s final.</td></tr>
+        <tr><td>Rioplatense</td><td class="mono">vos</td><td><em>Vos</em> es estándar: <em>vos hablás, vos tenés</em>. <em>Tú</em> suena más formal o literario.</td></tr>
+        <tr><td>Andino</td><td class="mono">tú / usted</td><td>En Colombia, <em>usted</em> con familia y amigos es normal. No es distancia, es costumbre.</td></tr>
+        <tr><td>España</td><td class="mono">tú / vosotros</td><td>Plural informal: <em>vosotros</em>. En Latinoamérica eso no existe: siempre <em>ustedes</em>.</td></tr>
+      </tbody>
+    </table>
+    <table class="data">
+      <thead><tr><th>Forma</th><th>Ejemplo (hablar)</th><th>Dónde</th></tr></thead>
+      <tbody>
+        <tr><td>tú hablas</td><td class="mono">¿Cómo estás?</td><td>México, Caribe, Andes (varía)</td></tr>
+        <tr><td>vos hablás</td><td class="mono">¿Cómo estás? / ¿Cómo andás?</td><td>Argentina, Uruguay, partes de Centroamérica</td></tr>
+        <tr><td>usted habla</td><td class="mono">¿Cómo está usted?</td><td>Formal en casi todo el mundo; cotidiano en Colombia y Caribe</td></tr>
+        <tr><td>vosotros habláis</td><td class="mono">¿Cómo estáis?</td><td>Solo España</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section" id="vocab">
+    <h2>Misma cosa, distinta palabra</h2>
+    <p class="subtitle">Las equivalencias que más confunden en conversación real.</p>
+    <table class="data">
+      <thead><tr><th>Concepto</th><th>Variantes por región</th></tr></thead>
+      <tbody>
+        <tr><td>Coche / auto</td><td><span class="mono">carro</span> (MX, Caribe) · <span class="mono">auto</span> (AR, UY, CL) · <span class="mono">coche</span> (ES)</td></tr>
+        <tr><td>Autobús</td><td><span class="mono">camión</span> (MX) · <span class="mono">guagua</span> (Caribe) · <span class="mono">colectivo/micro</span> (AR) · <span class="mono">autobús</span> (ES)</td></tr>
+        <tr><td>Apartamento</td><td><span class="mono">departamento</span> (MX, AR) · <span class="mono">apartamento</span> (Caribe) · <span class="mono">piso</span> (ES)</td></tr>
+        <tr><td>Ordenador</td><td><span class="mono">computadora</span> (LatAm) · <span class="mono">ordenador</span> (ES)</td></tr>
+        <tr><td>Conducir</td><td><span class="mono">manejar</span> (LatAm) · <span class="mono">conducir</span> (ES)</td></tr>
+        <tr><td>Dinero (coloquial)</td><td><span class="mono">lana/plata</span> (MX) · <span class="mono">guita</span> (AR) · <span class="mono">pasta</span> (ES)</td></tr>
+        <tr><td>Popote / pajita</td><td><span class="mono">popote</span> (MX) · <span class="mono">pajilla/pitillo</span> (varía) · <span class="mono">cañita/pajita</span> (ES/Caribe)</td></tr>
+        <tr><td>Chico / muchacho</td><td><span class="mono">chavo/chamaco</span> (MX) · <span class="mono">pibe/chico</span> (AR) · <span class="mono">chaval</span> (ES)</td></tr>
+        <tr><td>Refrigerador</td><td><span class="mono">refri/refrigerador</span> (MX) · <span class="mono">heladera</span> (AR) · <span class="mono">nevera</span> (Caribe, ES)</td></tr>
+        <tr><td>Celular</td><td><span class="mono">celular</span> (LatAm) · <span class="mono">móvil</span> (ES)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section" id="traps">
+    <h2>Palabras trampa</h2>
+    <p class="subtitle">Neutral en un país, problemática en otro.</p>
+    <div class="warn-box"><strong>coger</strong> — En España: tomar, agarrar (neutral). En muchos países de Latinoamérica: vulgar. Di <em>tomar el autobús</em>, no <em>coger el autobús</em>.</div>
+    <div class="warn-box"><strong>bicho</strong> — En España: insecto. En varios países caribeños: insulto o connotación sexual.</div>
+    <div class="warn-box"><strong>platicar</strong> — En México: charlar. En España casi no se usa; suena arcaico o extraño.</div>
+    <div class="warn-box"><strong>concha</strong> — Concha marina en algunos países; insulto fuerte en Rioplatense.</div>
+    <div class="warn-box"><strong>pelota</strong> — Pelota deportiva en muchos países; en México a veces significa testículo en contexto coloquial.</div>
+    <div class="warn-box"><strong>fregar</strong> — Lavar/trapear en México; en España puede sonar más fuerte o distinto según contexto.</div>
+  </section>
+
+  <section class="section" id="regions">
+    <h2>Perfiles regionales</h2>
+    <p class="subtitle">Una pantalla por zona. Lo esencial antes de una sesión.</p>
+
+    <div class="region-card" id="profile-mexico">
+      <div class="tag">México y Centroamérica</div>
+      <h3>México y Centroamérica</h3>
+      <p><strong>Trato:</strong> <em>tú</em> entre pares; <em>usted</em> con mayores y en servicios. <strong>Vocabulario:</strong> <em>carro, camión, celular, computadora, popote</em>. <strong>Interpretación:</strong> el español mexicano domina muchos materiales de entrenamiento; no asumas que todo el mundo dice las mismas palabras.</p>
+    </div>
+    <div class="region-card" id="profile-caribbean">
+      <div class="tag">Caribe</div>
+      <h3>Caribe (Cuba, Puerto Rico, República Dominicana)</h3>
+      <p><strong>Trato:</strong> <em>usted</em> muy común. <strong>Habla:</strong> ritmo rápido, aspiración de -s, elisión. <strong>Vocabulario:</strong> <em>guagua, apartamento, frío</em> (nevera). <strong>Interpretación:</strong> no “corrijas” la velocidad ni la elisión; son rasgos del dialecto, no errores.</p>
+    </div>
+    <div class="region-card" id="profile-rioplatense">
+      <div class="tag">Rioplatense</div>
+      <h3>Argentina y Uruguay</h3>
+      <p><strong>Trato:</strong> <em>vos</em> estándar. <strong>Conjugación:</em> <em>hablás, tenés, venís</em>. <strong>Vocabulario:</strong> <em>auto, bondi/colectivo, plata, che</em>. <strong>Yeísmo rehilado:</strong> <em>yo, calle</em> suenan distinto. <strong>Interpretación:</strong> el voseo no es informal incorrecto; es la forma normal.</p>
+    </div>
+    <div class="region-card" id="profile-andean">
+      <div class="tag">Andino</div>
+      <h3>Colombia, Perú, Ecuador, Bolivia</h3>
+      <p><strong>Trato:</strong> en Colombia, <em>usted</em> incluso con familia. <strong>Claridad:</strong> muchos consideran el andino “claro” para aprendices, pero tiene su propio vocabulario. <strong>Vocabulario:</strong> <em>chévere, plata, celular, porfa</em>. <strong>Interpretación:</strong> respeto y cortesía pesan mucho en registro formal.</p>
+    </div>
+    <div class="region-card" id="profile-spain">
+      <div class="tag">España</div>
+      <h3>España</h3>
+      <p><strong>Trato:</strong> <em>tú</em> amplio; <em>vosotros</em> para plural informal. <strong>Vocabulario:</strong> <em>coche, ordenador, móvil, conducir, piso</em>. <strong>Interpretación:</strong> <em>coger</em> es neutral en España; evítalo al interpretar hacia Latinoamérica si el contexto es ambiguo.</p>
+    </div>
+  </section>
+
+  <section class="section" id="dont-correct">
+    <h2>No corrijas esto</h2>
+    <p class="subtitle">En interpretación, tu trabajo es transmitir, no estandarizar.</p>
+    <ul style="padding-left:1.2rem; font-size:0.9rem;">
+      <li><strong>Voseo</strong> no es un error. Es la forma estándar en gran parte del Cono Sur.</li>
+      <li><strong>Usted con familia</strong> en Colombia y el Caribe no es distancia excesiva.</li>
+      <li><strong>Omisión de -s</strong> en el Caribe no es “español mal hablado”.</li>
+      <li><strong>Vosotros</strong> no existe en Latinoamérica. No esperes que lo usen.</li>
+      <li><strong>Vocabulario regional</strong> (<em>guagua, auto, carro</em>) no es incorrección; es variante léxica.</li>
+      <li>Si el hablante es nativo y coherente, <strong>no sustituyas su palabra por la tuya</strong> al interpretar salvo que el sentido lo exija.</li>
+    </ul>
+  </section>
+</main>
+</div>
+
+<button class="back-btn" onclick="window.parent.postMessage('closeGuide', '*')">Volver al diario</button>
+
+<script>
+const PAIR_INSIGHTS = {
+  'mexico|rioplatense': [
+    'Tú vs vos: en Argentina/Uruguay espera «vos hablás», no «tú hablas».',
+    'Carro (MX) → auto (AR). Camión (MX) → colectivo/bondi (AR).',
+    'Plata (ambos) pero guita es muy argentino.',
+    'No corrijas el voseo. Es estándar, no es informal incorrecto.',
+  ],
+  'mexico|spain': [
+    'Carro → coche. Computadora → ordenador. Celular → móvil.',
+    'Manejar → conducir. Ustedes (MX) vs vosotros (ES) en plural informal.',
+    'Evita «coger» al hablar con mexicanos si puedes decir «tomar» o «agarrar».',
+    'Popote (MX) no se entiende en España; di «pajita» o «cañita».',
+  ],
+  'mexico|caribbean': [
+    'Usted más extendido en el Caribe, incluso en contextos que en México serían tú.',
+    'Camión (MX) = autobús; guagua (Caribe) = autobús.',
+    'Ritmo más rápido y elisión de -s en el Caribe. No es «mala pronunciación».',
+    'Apartamento (Caribe) vs departamento (MX): misma idea, distinta palabra.',
+  ],
+  'mexico|andean': [
+    'En Colombia, usted con familia es normal. No lo interpretes como frialdad.',
+    'Chévere, bacano, parce (Colombia) son cotidianos.',
+    'Vocabulario muy parecido al mexicano en lo general, pero ojo con falsos amigos locales.',
+  ],
+  'rioplatense|spain': [
+    'Vos vs tú/vosotros: sistemas pronominales distintos.',
+    'Auto vs coche. Celular vs móvil.',
+    'Concha: cuidado con contexto (insulto en Rioplatense).',
+    'Yeísmo rehilado argentino puede sonar unfamiliar para oídos peninsulares.',
+  ],
+  'rioplatense|caribbean': [
+    'Vos (AR) vs tú/usted (Caribe): diferencia grande en trato.',
+    'Guagua (Caribe) vs bondi/colectivo (AR).',
+    'Ritmo y elisión caribeña vs entonación rioplatense.',
+  ],
+  'rioplatense|andean': [
+    'Vos (AR) vs tú/usted (Andes, especialmente Colombia con usted familiar).',
+    'Registro: Colombia muy cortés en formal; Argentina más directa en comparación.',
+    'Plata en ambos; vocabulario local distinto (che vs parce/chévere).',
+  ],
+  'caribbean|spain': [
+    'Guagua (Caribe) no existe en España; autobús.',
+    'Usted muy frecuente en Caribe vs tú en España.',
+    'Velocidad y elisión caribeña vs articulación más plena en muchos contextos peninsulares.',
+  ],
+  'caribbean|andean': [
+    'Usted en ambos, pero por razones distintas (costumbre caribeña vs cortesía andina).',
+    'Vocabulario compartido en muchas zonas pero ritmo diferente.',
+  ],
+  'andean|spain': [
+    'Usted extendido en Colombia puede sorprender a hablantes peninsulares.',
+    'Celular vs móvil. Carro vs coche.',
+    'Formalidad andina alta en contextos profesionales.',
+  ],
+  'spain|mexico': null,
+};
+
+function pairKey(a, b) {
+  if (!a || !b || a === b) return null;
+  const k1 = `${a}|${b}`;
+  const k2 = `${b}|${a}`;
+  if (PAIR_INSIGHTS[k1]) return { key: k1, reverse: false };
+  if (PAIR_INSIGHTS[k2]) return { key: k2, reverse: true };
+  return { key: k1, reverse: false, fallback: true };
+}
+
+const REGION_NAMES = {
+  mexico: 'México y Centroamérica',
+  caribbean: 'Caribe',
+  rioplatense: 'Rioplatense',
+  andean: 'Andino',
+  spain: 'España',
+};
+
+const fromSel = document.getElementById('fromRegion');
+const toSel = document.getElementById('toRegion');
+const result = document.getElementById('pairResult');
+const title = document.getElementById('pairTitle');
+const list = document.getElementById('pairList');
+
+function updatePair() {
+  const from = fromSel.value;
+  const to = toSel.value;
+  if (!from || !to) {
+    result.classList.remove('visible');
+    return;
+  }
+  if (from === to) {
+    title.textContent = `Ambos hablan como en ${REGION_NAMES[from]}`;
+    list.innerHTML = '<li>Misma región: el vocabulario y el trato suelen coincidir. Revisa «Palabras trampa» si hay generación o país específico dentro de la zona.</li>';
+    result.classList.add('visible');
+    return;
+  }
+  const pk = pairKey(from, to);
+  let items = PAIR_INSIGHTS[pk.key];
+  if (!items || pk.fallback) {
+    items = [
+      `Contraste ${REGION_NAMES[from]} ↔ ${REGION_NAMES[to]}: revisa las tablas de pronombres y vocabulario.`,
+      'Compara «carro/auto/coche», «camión/guagua/colectivo», y tú/vos/usted.',
+      'En duda, adapta tu salida al registro del hablante, no al tuyo.',
+      'Consulta «Palabras trampa» antes de usar palabras que pueden sonar neutras en tu país.',
+    ];
+  }
+  title.textContent = `${REGION_NAMES[from]} → ${REGION_NAMES[to]}`;
+  list.innerHTML = items.map(i => `<li>${i}</li>`).join('');
+  result.classList.add('visible');
+}
+
+fromSel.addEventListener('change', updatePair);
+toSel.addEventListener('change', updatePair);
+
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    item.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
