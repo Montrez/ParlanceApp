@@ -13,10 +13,14 @@
 		A1000004 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000004 /* Assets.xcassets */; };
 		A1000006 /* Config.plist in Resources */ = {isa = PBXBuildFile; fileRef = A2000006 /* Config.plist */; };
 		E74F04F02FF01AB60075581B /* StoreKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E74F04EF2FF01AB60075581B /* StoreKitManager.swift */; };
+		E74F04F32FFB2E950075581B /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E74F04F22FFB2E950075581B /* StoreKit.framework */; };
 		E778CF132F9E327000296847 /* PrivacyPolicyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E778CF122F9E327000296847 /* PrivacyPolicyView.swift */; };
 		E778CF172F9E3AF800296847 /* styles.css in Resources */ = {isa = PBXBuildFile; fileRef = E778CF162F9E3AF800296847 /* styles.css */; };
 		E778CF192F9E3AF800296847 /* guide-es.html in Resources */ = {isa = PBXBuildFile; fileRef = E778CF182F9E3AF800296847 /* guide-es.html */; };
 		E778CF1B2F9E3AF800296847 /* guide-fr.html in Resources */ = {isa = PBXBuildFile; fileRef = E778CF1A2F9E3AF800296847 /* guide-fr.html */; };
+		E7DIAL012F9E500000296847 /* dialect-guide.css in Resources */ = {isa = PBXBuildFile; fileRef = E7DIAL022F9E500000296847 /* dialect-guide.css */; };
+		E7DIAL032F9E500000296847 /* dialect-es.html in Resources */ = {isa = PBXBuildFile; fileRef = E7DIAL042F9E500000296847 /* dialect-es.html */; };
+		E7DIAL052F9E500000296847 /* dialect-fr.html in Resources */ = {isa = PBXBuildFile; fileRef = E7DIAL062F9E500000296847 /* dialect-fr.html */; };
 		E778CF1D2F9E3B5300296847 /* journal.js in Resources */ = {isa = PBXBuildFile; fileRef = E778CF1C2F9E3B5300296847 /* journal.js */; };
 		E778CF1F2F9E3B7000296847 /* index.html in Resources */ = {isa = PBXBuildFile; fileRef = E778CF1E2F9E3B7000296847 /* index.html */; };
 		E778CF212F9E46DF00296847 /* OnDeviceAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E778CF202F9E46DF00296847 /* OnDeviceAnalyzer.swift */; };
@@ -61,10 +65,14 @@
 		A2000007 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A3000001 /* Parlance - Interpreter Journal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Parlance - Interpreter Journal.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E74F04EF2FF01AB60075581B /* StoreKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitManager.swift; sourceTree = "<group>"; };
+		E74F04F22FFB2E950075581B /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		E778CF122F9E327000296847 /* PrivacyPolicyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyPolicyView.swift; sourceTree = "<group>"; };
 		E778CF162F9E3AF800296847 /* styles.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = styles.css; sourceTree = "<group>"; };
 		E778CF182F9E3AF800296847 /* guide-es.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "guide-es.html"; sourceTree = "<group>"; };
 		E778CF1A2F9E3AF800296847 /* guide-fr.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "guide-fr.html"; sourceTree = "<group>"; };
+		E7DIAL022F9E500000296847 /* dialect-guide.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = "dialect-guide.css"; sourceTree = "<group>"; };
+		E7DIAL042F9E500000296847 /* dialect-es.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "dialect-es.html"; sourceTree = "<group>"; };
+		E7DIAL062F9E500000296847 /* dialect-fr.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "dialect-fr.html"; sourceTree = "<group>"; };
 		E778CF1C2F9E3B5300296847 /* journal.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = journal.js; sourceTree = "<group>"; };
 		E778CF1E2F9E3B7000296847 /* index.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
 		E778CF202F9E46DF00296847 /* OnDeviceAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnDeviceAnalyzer.swift; sourceTree = "<group>"; };
@@ -103,6 +111,7 @@
 				E7FB0101 /* FirebaseCore in Frameworks */,
 				E7FB0102 /* FirebaseAuth in Frameworks */,
 				E7FB0103 /* FirebaseFunctions in Frameworks */,
+				E74F04F32FFB2E950075581B /* StoreKit.framework in Frameworks */,
 				E7FB0104 /* GoogleSignIn in Frameworks */,
 				E7PKG0101 /* MLXLLM in Frameworks */,
 				E7PKG0102 /* MLXLMCommon in Frameworks */,
@@ -117,6 +126,7 @@
 			isa = PBXGroup;
 			children = (
 				A5000001 /* Parlance */,
+				E74F04F12FFB2E950075581B /* Frameworks */,
 				A5000002 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -162,6 +172,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		E74F04F12FFB2E950075581B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				E74F04F22FFB2E950075581B /* StoreKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		E778CF142F9E3A9200296847 /* web */ = {
 			isa = PBXGroup;
 			children = (
@@ -170,6 +188,9 @@
 				E778CF1E2F9E3B7000296847 /* index.html */,
 				E778CF182F9E3AF800296847 /* guide-es.html */,
 				E778CF1A2F9E3AF800296847 /* guide-fr.html */,
+				E7DIAL042F9E500000296847 /* dialect-es.html */,
+				E7DIAL062F9E500000296847 /* dialect-fr.html */,
+				E7DIAL022F9E500000296847 /* dialect-guide.css */,
 				E7924DC52FA115DE002A93FF /* rag-knowledge.js */,
 				E7DE265F2FBFEEC70066F0F5 /* locales 2 */,
 				E7DE26602FBFEED80066F0F5 /* i18n.js */,
@@ -286,6 +307,9 @@
 				E7924DC62FA115DE002A93FF /* rag-knowledge.js in Resources */,
 				E778CF172F9E3AF800296847 /* styles.css in Resources */,
 				E778CF192F9E3AF800296847 /* guide-es.html in Resources */,
+				E7DIAL032F9E500000296847 /* dialect-es.html in Resources */,
+				E7DIAL052F9E500000296847 /* dialect-fr.html in Resources */,
+				E7DIAL012F9E500000296847 /* dialect-guide.css in Resources */,
 				E778CF1F2F9E3B7000296847 /* index.html in Resources */,
 				A1000006 /* Config.plist in Resources */,
 				E7FB0013 /* GoogleService-Info.plist in Resources */,

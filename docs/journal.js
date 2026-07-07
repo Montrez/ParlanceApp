@@ -1124,6 +1124,7 @@ const languages = {
     titlePlaceholder: 'Entry title… (e.g. Mi primer día en Valencia)',
     coachRole: 'Spanish',
     guideFile: 'guide-es.html',
+    dialectFile: 'dialect-es.html',
   },
   fr: {
     code: 'fr',
@@ -1132,6 +1133,7 @@ const languages = {
     titlePlaceholder: 'Entry title… (e.g. Mon premier jour à Paris)',
     coachRole: 'French',
     guideFile: 'guide-fr.html',
+    dialectFile: 'dialect-fr.html',
   },
 };
 
@@ -1195,6 +1197,31 @@ function callNativeAuth(action) {
 
 function closeAISettings() {
   document.getElementById('aiSettingsOverlay').style.display = 'none';
+}
+
+// ── Call pack purchase ────────────────────────────────────────────────────────
+
+function triggerCallPackPurchase() {
+  if (!isNativeParlanceApp()) {
+    showErrorInPanel('Monthly limit reached (30 calls). Get 100 more calls for $0.99 in the app.');
+    return;
+  }
+  const requestId = 'purchase_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+  window.__parlancePurchaseResult = (id, data, err) => {
+    if (id !== requestId) return;
+    delete window.__parlancePurchaseResult;
+    if (err === 'cancelled') {
+      showToast('Purchase cancelled.');
+      return;
+    }
+    if (err) {
+      showErrorInPanel('Purchase failed: ' + err + '. You can try again or switch to Parlance Coach in Settings.');
+      return;
+    }
+    refreshUsageDisplay();
+    showToast('100 calls added! Analyzing now...');
+  };
+  window.webkit.messageHandlers.parlance.postMessage({ action: 'purchaseCallPack', requestId });
 }
 
 function renderProviderGrid() {
@@ -1634,8 +1661,9 @@ async function analyzeSentence(id) {
     const code = err.code || '';
     let msg = err.message || 'Could not analyze — check your settings.';
     if (code === 'functions/resource-exhausted' || msg.includes('Monthly free limit')) {
-      msg = 'Monthly free limit reached (30 calls). On-device Parlance Coach is always free — switch in ⚙ AI.';
       refreshUsageDisplay();
+      triggerCallPackPurchase();
+      return;
     } else if (code === 'functions/unauthenticated') {
       msg = 'Sign in to use cloud AI providers — tap ⚙ AI.';
     }
@@ -1659,12 +1687,11 @@ function applyFeedback(id, sentence, parsed, ta, statusEl) {
 
 // ── FEEDBACK DISPLAY ──────────────────────────────────────────────
 function switchTab(tab, btn) {
-  if (tab === 'guide') { openGuideOverlay(); return; }
   document.querySelectorAll('.feedback-tab').forEach(t => t.classList.remove('active'));
   if (btn) btn.classList.add('active');
   document.getElementById('feedbackInner').style.display  = tab === 'feedback' ? 'flex' : 'none';
   document.getElementById('promptsInner').style.display   = tab === 'prompts'  ? 'flex' : 'none';
-  document.getElementById('guideInner').style.display     = 'none';
+  document.getElementById('guideInner').style.display     = tab === 'guide'    ? 'flex' : 'none';
 }
 
 function clearFeedbackCards() {
@@ -1830,14 +1857,15 @@ function loadGuide() {
   if (frame && frame.src) frame.src = '';
 }
 
-function openGuideOverlay() {
+function openGuideOverlay(kind = 'grammar') {
   const lang    = currentLang();
   const overlay = document.getElementById('guideOverlay');
   const frame   = document.getElementById('guideFrame');
+  const file = kind === 'dialect' ? lang.dialectFile : lang.guideFile;
 
-  if (!lang.guideFile) { showToast('Guide coming soon for this language.'); return; }
+  if (!file) { showToast('Guide coming soon for this language.'); return; }
 
-  frame.src = lang.guideFile;
+  frame.src = file;
   frame.onload = () => {
     const theme = document.documentElement.getAttribute('data-theme');
     if (theme === 'dark') {

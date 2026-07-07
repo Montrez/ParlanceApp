@@ -72,8 +72,18 @@
       </div>
     </div>
     <div class="feedback-panel-inner" id="guideInner" style="display:none">
-      <div class="guide-container" id="guideContent">
-        <div class="guide-coming-soon">Select the Guide tab to load the conjugation reference.</div>
+      <div class="guide-picker" id="guidePicker">
+        <p class="guide-picker-lead" data-i18n="guidePickerLead">Open a reference guide for your practice language.</p>
+        <button type="button" class="guide-picker-card" onclick="openGuideOverlay('grammar')">
+          <span class="guide-picker-icon">📚</span>
+          <span class="guide-picker-title" data-i18n="grammarGuideTitle">Conjugation guide</span>
+          <span class="guide-picker-desc" data-i18n="grammarGuideDesc">A1 to C2 tenses, rules, and examples.</span>
+        </button>
+        <button type="button" class="guide-picker-card guide-picker-card-accent" onclick="openGuideOverlay('dialect')">
+          <span class="guide-picker-icon">🌎</span>
+          <span class="guide-picker-title" data-i18n="dialectGuideTitle">Dialect guide</span>
+          <span class="guide-picker-desc" data-i18n="dialectGuideDesc">For native speakers: regional vocabulary, pronouns, and traps.</span>
+        </button>
       </div>
     </div>
   </div>

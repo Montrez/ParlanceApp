@@ -2,182 +2,12 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Guide des dialectes — Français</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<style>
-:root {
-  --bg: #faf8f4;
-  --surface: #fff;
-  --border: #e2ddd6;
-  --text: #1a1714;
-  --muted: #8a8278;
-  --accent: #1a5c99;
-  --accent2: #2e6b4a;
-  --gold: #a0742a;
-  --tag-bg: #f0ece5;
-  --highlight: #fff8e8;
-}
-* { margin:0; padding:0; box-sizing:border-box; }
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'IBM Plex Sans', sans-serif;
-  font-size: 15px;
-  line-height: 1.7;
-}
-a { color: var(--accent); }
-
-.layout { display:flex; min-height:100vh; }
-.sidebar {
-  width: 250px;
-  flex-shrink: 0;
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-  padding: 1.5rem 0;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  overflow-y: auto;
-}
-.sidebar-logo { padding: 0 1.2rem 1.2rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
-.sidebar-logo h1 { font-family: 'Lora', serif; font-size: 1.25rem; color: var(--accent); }
-.sidebar-logo p { font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem; }
-.nav-label {
-  padding: 0.5rem 1.2rem 0.2rem;
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--muted);
-  font-weight: 600;
-}
-.nav-item {
-  display: block;
-  padding: 0.35rem 1.2rem;
-  font-size: 0.82rem;
-  color: var(--muted);
-  cursor: pointer;
-  border-left: 2px solid transparent;
-}
-.nav-item:hover { color: var(--text); background: var(--tag-bg); }
-.nav-item.active { color: var(--accent); border-left-color: var(--accent); background: #e8f0fb; font-weight: 500; }
-
-.content { flex: 1; max-width: 780px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
-.section { margin-bottom: 3rem; scroll-margin-top: 1.5rem; }
-.section h2 { font-family: 'Lora', serif; font-size: 1.55rem; margin-bottom: 0.35rem; }
-.section .subtitle { font-size: 0.88rem; color: var(--muted); margin-bottom: 1.25rem; font-style: italic; }
-
-.picker-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 1.25rem;
-  margin-bottom: 1.5rem;
-}
-.picker-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.75rem; }
-@media (max-width: 600px) { .picker-row { grid-template-columns: 1fr; } }
-.picker-row label { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; margin-bottom: 0.35rem; }
-.picker-row select {
-  width: 100%;
-  padding: 0.55rem 0.65rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  font-family: inherit;
-  font-size: 0.9rem;
-  background: var(--bg);
-}
-.picker-note { font-size: 0.82rem; color: var(--muted); }
-
-.pair-result {
-  background: var(--highlight);
-  border: 1px solid #e8d89a;
-  border-left: 4px solid var(--gold);
-  border-radius: 0 8px 8px 0;
-  padding: 1.1rem 1.25rem;
-  margin-bottom: 1.25rem;
-  display: none;
-}
-.pair-result.visible { display: block; }
-.pair-result h3 { font-size: 0.95rem; margin-bottom: 0.5rem; color: var(--gold); }
-.pair-result ul { padding-left: 1.2rem; font-size: 0.9rem; }
-.pair-result li { margin-bottom: 0.35rem; }
-
-.rule-box {
-  background: var(--highlight);
-  border: 1px solid #e8d89a;
-  border-left: 4px solid var(--gold);
-  border-radius: 0 8px 8px 0;
-  padding: 1rem 1.2rem;
-  margin-bottom: 1.25rem;
-  font-size: 0.9rem;
-}
-
-table.data {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.86rem;
-  margin-bottom: 1.25rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  overflow: hidden;
-}
-table.data th {
-  background: var(--tag-bg);
-  text-align: left;
-  padding: 0.45rem 0.75rem;
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-  border-bottom: 1px solid var(--border);
-}
-table.data td { padding: 0.45rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
-table.data tr:last-child td { border-bottom: none; }
-table.data td:first-child { font-weight: 500; width: 28%; }
-.mono { font-family: 'IBM Plex Mono', monospace; font-size: 0.84rem; }
-
-.region-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 1rem 1.1rem;
-  margin-bottom: 0.85rem;
-}
-.region-card h3 { font-size: 0.95rem; margin-bottom: 0.35rem; }
-.region-card p { font-size: 0.88rem; }
-.region-card .tag { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
-
-.warn-box {
-  background: #e8f0fb;
-  border: 1px solid #b8d4f0;
-  border-radius: 8px;
-  padding: 1rem 1.1rem;
-  margin-bottom: 0.75rem;
-  font-size: 0.88rem;
-}
-.warn-box strong { color: var(--accent); }
-
-.lang-switch { font-size: 0.8rem; margin-top: 0.75rem; padding: 0 1.2rem; }
-
-.back-btn {
-  position: fixed;
-  bottom: 1.25rem;
-  right: 1.25rem;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 0.65rem 1.1rem;
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
-  z-index: 100;
-}
-</style>
+<link rel="stylesheet" href="dialect-guide.css">
 </head>
-<body>
+<body class="dialect dialect-fr">
 <div class="layout">
 <nav class="sidebar">
   <div class="sidebar-logo">
@@ -242,7 +72,7 @@ table.data td:first-child { font-weight: 500; width: 28%; }
   <section class="section" id="pronouns">
     <h2>Pronoms et tutoiement</h2>
     <p class="subtitle">La différence la plus pratique entre pays.</p>
-    <table class="data">
+    <div class="table-scroll"><table class="data">
       <thead><tr><th>Région</th><th>Tu / vous</th><th>Note rapide</th></tr></thead>
       <tbody>
         <tr><td>France</td><td class="mono">tu / vous</td><td><em>Vous</em> formel, <em>tu</em> entre proches. Pluriel : <em>vous</em> (formel et informel).</td></tr>
@@ -252,13 +82,13 @@ table.data td:first-child { font-weight: 500; width: 28%; }
         <tr><td>Afrique</td><td class="mono">tu / vous</td><td><em>Vous</em> souvent marque de respect envers les aînés. Registre très contextuel.</td></tr>
         <tr><td>Caraïbe</td><td class="mono">tu / vous</td><td>Influence créole. Rythme et lexique locaux forts (Haïti, Antilles).</td></tr>
       </tbody>
-    </table>
+    </table></div></div>
   </section>
 
   <section class="section" id="vocab">
     <h2>Même chose, mot différent</h2>
     <p class="subtitle">Les équivalences qui créent le plus de confusion.</p>
-    <table class="data">
+    <div class="table-scroll"><table class="data">
       <thead><tr><th>Concept</th><th>Variantes par région</th></tr></thead>
       <tbody>
         <tr><td>Voiture</td><td><span class="mono">voiture</span> (FR) · <span class="mono">char</span> (QC, familier) · <span class="mono">auto</span> (QC, formel)</td></tr>
@@ -325,7 +155,7 @@ table.data td:first-child { font-weight: 500; width: 28%; }
   <section class="section" id="dont-correct">
     <h2>Ne corrige pas ça</h2>
     <p class="subtitle">En interprétation, tu transmets, tu n'uniformises pas.</p>
-    <ul style="padding-left:1.2rem; font-size:0.9rem;">
+    <ul class="bullet-list">
       <li><strong>Septante / nonante</strong> (BE, CH, QC) ne sont pas des erreurs. C'est du français régional standard.</li>
       <li><strong>Char, courriel, fin de semaine</strong> au Québec sont corrects en contexte québécois.</li>
       <li><strong>Le tutoiement québécois</strong> plus large n'est pas de l'impolitesse par défaut.</li>
@@ -336,8 +166,27 @@ table.data td:first-child { font-weight: 500; width: 28%; }
 </main>
 </div>
 
-<button class="back-btn" onclick="window.parent.postMessage('closeGuide', '*')">Retour au journal</button>
 
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeMobileNav()"></div>
+<button class="mobile-nav-btn" type="button" onclick="toggleMobileNav()">☰ Menu</button>
+<button class="back-btn" type="button" onclick="window.parent.postMessage('closeGuide', '*')">Retour au journal</button>
+<script>
+function toggleMobileNav() {
+  document.querySelector('.sidebar').classList.toggle('mobile-open');
+  document.getElementById('sidebarBackdrop').classList.toggle('open');
+}
+function closeMobileNav() {
+  document.querySelector('.sidebar').classList.remove('mobile-open');
+  document.getElementById('sidebarBackdrop').classList.remove('open');
+}
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    item.classList.add('active');
+    closeMobileNav();
+  });
+});
+</script>
 <script>
 const PAIR_INSIGHTS = {
   'france|quebec': [
@@ -441,13 +290,6 @@ function updatePair() {
 
 fromSel.addEventListener('change', updatePair);
 toSel.addEventListener('change', updatePair);
-
-document.querySelectorAll('.nav-item').forEach(item => {
-  item.addEventListener('click', () => {
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    item.classList.add('active');
-  });
-});
 </script>
 </body>
 </html>
