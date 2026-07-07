@@ -60,7 +60,7 @@ jobs:
                 color: $color,
                 fields: [
                   { name: "📱 Where to get it", value: $note, inline: false },
-                  { name: "📋 Full release notes", value: "See <#1520434030984822888> for details.", inline: false }
+                  { name: "📋 Full release notes", value: "See <#1520432921708724274> for details.", inline: false }
                 ],
                 footer: { text: "Parlance" },
                 timestamp: (now | todate)
