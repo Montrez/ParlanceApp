@@ -1,0 +1,2 @@
+# Discord community bots (Morgan, Jordan, Herald)
+discord.py>=2.3
