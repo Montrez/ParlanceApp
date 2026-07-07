@@ -2,11 +2,15 @@ output/
 training/
 Parlance/
 Parlance.xcodeproj/
+Diario.xcodeproj/
 docs/
 firebase/
 .github/
+node_modules/
 scripts/discord_bots/__pycache__/
 *.xcarchive
 *.ipa
 *.zip
 *.log
+package.json
+package-lock.json

@@ -1,7 +1,11 @@
 [build]
 builder = "NIXPACKS"
+buildCommand = "pip install -r requirements.txt"
 
 [deploy]
 startCommand = "python3 scripts/discord_bots/run_all.py"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
+
+[build.nixpacksPlan.phases.setup]
+nixPkgs = ["python312"]
