@@ -12,3 +12,6 @@
 {"sentence": "La paciente debe suspender los AINEs antes de la cirugía programada.", "expect_assessed_level": "C1", "max_assessed_level": null, "min_word_count": null, "notes": "medical register"}
 {"sentence": "El hecho de que hubiera llegado tarde complicó la negociación.", "expect_assessed_level": "C1", "max_assessed_level": null, "min_word_count": null, "notes": "subordination + subjunctive"}
 {"sentence": "En la medida en que el laudo arbitral resulte vinculante, las partes renuncian expresamente a cualquier recurso ordinario que pudiera corresponderles en sede judicial.", "expect_assessed_level": "C2", "max_assessed_level": null, "min_word_count": null, "notes": "legal subordination + subjunctive"}
+{"sentence": "Voy al mercado con mi madre.", "expect_assessed_level": "A2", "max_assessed_level": "B1", "notes": "gen-quality: next_level_alt must not be verbatim copy of input", "lang": "es"}
+{"sentence": "Estoy cansado porque el trabajo.", "expect_assessed_level": null, "max_assessed_level": "B1", "expect_status": "Needs Improvement", "notes": "gen-quality: next_level_alt must not be porque-fragment", "lang": "es"}
+{"sentence": "Yo soy estudiante de medicina.", "expect_assessed_level": "A1", "max_assessed_level": "A2", "notes": "gen-quality: tip must contain accented Spanish example; register must name formal or informal", "lang": "es"}

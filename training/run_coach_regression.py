@@ -12,7 +12,7 @@ TRAINING_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(TRAINING_DIR))
 
 from parlance_slm_infer import get_engine  # noqa: E402
-from parlance_slm_validate import normalize_assessed_level  # noqa: E402
+from parlance_slm_validate import normalize_assessed_level, validate_generation_quality  # noqa: E402
 
 LEVEL_ORDER = ["A1", "A2", "B1", "B2", "C1", "C2"]
 
@@ -91,6 +91,15 @@ def check_case(row: dict, result: dict, *, level_tolerance: int = 0) -> list[str
         needle = row["require_explanation_contains"].lower()
         if needle not in expl and needle not in str(result.get("grammar_rule") or "").lower():
             errors.append(f"explanation must mention {needle!r}")
+
+    # Generation quality checks (next_level_alt, tip, register)
+    lang = row.get("lang", "es")
+    gen_failures = validate_generation_quality(row.get("sentence", ""), result, lang=lang)
+    for gf in gen_failures:
+        # Allow individual cases to opt out of specific quality checks
+        skip = row.get("skip_quality_checks") or []
+        if not any(kw in gf for kw in skip):
+            errors.append(gf)
 
     if errors:
         errors.insert(0, f"[{note}] {row.get('sentence', '')[:50]}")
