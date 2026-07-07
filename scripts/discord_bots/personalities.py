@@ -3,7 +3,7 @@ Three community helpers — set these usernames in the Discord Developer Portal 
 
   Morgan  — general questions (#general, #support, #parlance-coach)
   Jordan  — bugs & feedback (#bugs, #feedback)
-  Parlance — announcements (#announcements) — or use your own name
+  Claire   — announcements (#announcements) — optional if using webhooks
 
 Each has a different voice. Replies are plain text, not branded embeds.
 """
@@ -26,7 +26,7 @@ SENTINEL = {
 }
 
 HERALD = {
-    "name": "Parlance",
+    "name": "Claire",
     "color": 0x95A5A6,
 }
 

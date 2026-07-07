@@ -39,7 +39,7 @@ class GuideBot(commands.Bot):
     def __init__(self):
         intents = discord.Intents.default()
         intents.guilds = True
-        intents.message_content = True
+        # No message_content intent — replies use @mentions and /help only.
         super().__init__(command_prefix="?", intents=intents)
 
     async def setup_hook(self):
@@ -67,9 +67,7 @@ class GuideBot(commands.Bot):
             return
 
         mentioned = self.user and self.user.id in [u.id for u in message.mentions]
-        lower = message.content.lower().strip()
-        prefixed = lower.startswith(("?help", "?parlance"))
-        if not mentioned and not prefixed:
+        if not mentioned:
             return
 
         text = message.content
