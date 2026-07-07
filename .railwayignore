@@ -1,0 +1,12 @@
+output/
+training/
+Parlance/
+Parlance.xcodeproj/
+docs/
+firebase/
+.github/
+scripts/discord_bots/__pycache__/
+*.xcarchive
+*.ipa
+*.zip
+*.log
