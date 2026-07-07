@@ -17,15 +17,20 @@ jobs:
           TITLE:     ${{ github.event.release.name }}
           BODY:      ${{ github.event.release.body }}
           PRERELEASE: ${{ github.event.release.prerelease }}
+          APP_STORE_LIVE: ${{ vars.APP_STORE_LIVE }}
         run: |
           if [ "$PRERELEASE" = "true" ]; then
             LABEL="TestFlight beta"
             COLOR=16753920
             PLATFORM_NOTE="Available now on **TestFlight**. Update in the app or accept the invite."
-          else
+          elif [ "$APP_STORE_LIVE" = "true" ]; then
             LABEL="App Store release"
             COLOR=5763719
             PLATFORM_NOTE="Available now on the **App Store**. Update in the App Store or search Parlance."
+          else
+            LABEL="Product update"
+            COLOR=5763719
+            PLATFORM_NOTE="Live now on the **web app**: https://montrez.github.io/ParlanceApp/ — iOS is still in App Store review."
           fi
 
           SHORT_BODY=$(echo "$BODY" | head -c 1900)
