@@ -24,7 +24,7 @@ DESCRIPTION = (
 
 CATEGORIES = [
     ("WELCOME", ["rules", "announcements"]),
-    ("COMMUNITY", ["general", "introductions"]),
+    ("COMMUNITY", ["daily-culture", "general", "introductions"]),
     ("PRODUCT", ["support", "feedback", "bugs", "beta-testers", "parlance-coach"]),
     ("PRACTICE", ["spanish-practice", "french-practice"]),
 ]

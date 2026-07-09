@@ -1,5 +1,5 @@
 """
-Daily language and culture posts for #general.
+Daily language and culture posts for #daily-culture.
 
 Morgan picks one topic per day from a rotating list and posts it at 10:00 AM ET.
 Topics cover Spanish and French language, culture, interpreter craft, and exam tips.
@@ -251,10 +251,15 @@ TOPICS = [
 ]
 
 
+def _topic_for_today() -> dict:
+    day_index = datetime.date.today().timetuple().tm_yday
+    return TOPICS[day_index % len(TOPICS)]
+
+
 # ── Scheduled cog ─────────────────────────────────────────────────────────────
 
 class DailyCultureCog(commands.Cog):
-    """Posts one language/culture topic per day to #general."""
+    """Posts one language/culture topic per day to #daily-culture."""
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -264,8 +269,8 @@ class DailyCultureCog(commands.Cog):
     def cog_unload(self):
         self.daily_post.cancel()
 
-    def _general_channel(self, guild: discord.Guild) -> discord.TextChannel | None:
-        return discord.utils.get(guild.text_channels, name=CHANNELS["general"])
+    def _culture_channel(self, guild: discord.Guild) -> discord.TextChannel | None:
+        return discord.utils.get(guild.text_channels, name=CHANNELS["daily_culture"])
 
     @tasks.loop(hours=24)
     async def daily_post(self):
@@ -273,13 +278,12 @@ class DailyCultureCog(commands.Cog):
         guild = self.bot.get_guild(GUILD_ID)
         if not guild:
             return
-        channel = self._general_channel(guild)
+        channel = self._culture_channel(guild)
         if not channel:
             return
 
         # Pick a topic based on the day of year so all members see the same one
-        day_index = datetime.date.today().timetuple().tm_yday
-        topic = TOPICS[day_index % len(TOPICS)]
+        topic = _topic_for_today()
 
         await channel.send(f"**{topic['title']}**\n\n{topic['body']}")
 

@@ -12,6 +12,7 @@ GUILD_ID = 1519729833079210064
 # Channel slugs → live Discord names (emoji prefixes)
 CHANNELS = {
     "general": CHANNEL_NAMES["general"],
+    "daily_culture": CHANNEL_NAMES["daily-culture"],
     "support": CHANNEL_NAMES["support"],
     "coach": CHANNEL_NAMES["parlance-coach"],
     "bugs": CHANNEL_NAMES["bugs"],

@@ -10,6 +10,7 @@ CHANNEL_NAMES: dict[str, str] = {
     "rules": "📜-rules",
     "announcements": "📢-announcements",
     "general": "💬-general",
+    "daily-culture": "📖-daily-culture",
     "introductions": "👋-introductions",
     "support": "🆘-support",
     "feedback": "💡-feedback",
