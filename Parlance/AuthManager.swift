@@ -40,6 +40,8 @@ final class AuthManager: NSObject {
     private var authListener: AuthStateDidChangeListenerHandle?
     private var currentNonce: String?
     private var appleSignInContinuation: CheckedContinuation<Void, Error>?
+    private var appleSignInController: ASAuthorizationController?
+    private weak var presentationAnchorView: UIView?
 
     var displayLabel: String {
         if let email = user?.email, !email.isEmpty { return email }
@@ -81,8 +83,13 @@ final class AuthManager: NSObject {
 
     func injectAuth(into webView: WKWebView?) {
         guard let webView else { return }
+        presentationAnchorView = webView
         let script = "window.__PARLANCE_AUTH__ = \(authInjectionJSON());"
         webView.evaluateJavaScript(script, completionHandler: nil)
+    }
+
+    func setPresentationAnchor(_ view: UIView?) {
+        presentationAnchorView = view
     }
 
     @discardableResult
@@ -101,7 +108,7 @@ final class AuthManager: NSObject {
         }
         GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: clientID)
 
-        guard let presenter = Self.topViewController() else {
+        guard let presenter = Self.topViewController(from: presentationAnchorView) else {
             authError = AuthManagerError.noPresenter.localizedDescription
             throw AuthManagerError.noPresenter
         }
@@ -135,9 +142,11 @@ final class AuthManager: NSObject {
                 let controller = ASAuthorizationController(authorizationRequests: [request])
                 controller.delegate = self
                 controller.presentationContextProvider = self
+                self.appleSignInController = controller
                 controller.performRequests()
             }
         } catch {
+            appleSignInController = nil
             let ns = error as NSError
             if ns.domain == ASAuthorizationError.errorDomain,
                ns.code == ASAuthorizationError.canceled.rawValue {
@@ -161,18 +170,54 @@ final class AuthManager: NSObject {
         isSignedIn = user != nil
     }
 
-    private static func topViewController() -> UIViewController? {
+    private static func topViewController(from anchor: UIView? = nil) -> UIViewController? {
+        if let anchor {
+            var responder: UIResponder? = anchor
+            while let next = responder {
+                if let viewController = next as? UIViewController {
+                    var top = viewController
+                    while let presented = top.presentedViewController {
+                        top = presented
+                    }
+                    return top
+                }
+                responder = next.next
+            }
+            if let window = anchor.window,
+               let root = window.rootViewController {
+                var top = root
+                while let presented = top.presentedViewController {
+                    top = presented
+                }
+                return top
+            }
+        }
+
         guard let scene = UIApplication.shared.connectedScenes
             .compactMap({ $0 as? UIWindowScene })
-            .first(where: { $0.activationState == .foregroundActive }),
-              let root = scene.windows.first(where: \.isKeyWindow)?.rootViewController
+            .first(where: { $0.activationState == .foregroundActive })
         else { return nil }
+
+        let window = scene.windows.first(where: \.isKeyWindow) ?? scene.windows.first
+        guard let root = window?.rootViewController else { return nil }
 
         var top = root
         while let presented = top.presentedViewController {
             top = presented
         }
         return top
+    }
+
+    private static func presentationWindow(from anchor: UIView? = nil) -> UIWindow? {
+        if let window = anchor?.window { return window }
+        if let scene = anchor?.window?.windowScene { return scene.windows.first(where: \.isKeyWindow) ?? scene.windows.first }
+
+        guard let scene = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first(where: { $0.activationState == .foregroundActive })
+        else { return nil }
+
+        return scene.windows.first(where: \.isKeyWindow) ?? scene.windows.first
     }
 
     private func jsonEscape(_ value: String) -> String {
@@ -206,19 +251,25 @@ final class AuthManager: NSObject {
 extension AuthManager: ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
 
     func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
-        UIApplication.shared.connectedScenes
+        if let window = Self.presentationWindow(from: presentationAnchorView) {
+            return window
+        }
+        for scene in UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }) {
+            guard scene.activationState == .foregroundActive, let window = scene.windows.first else { continue }
+            return window
+        }
+        return UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
             .flatMap(\.windows)
-            .first(where: \.isKeyWindow)
-            ?? UIApplication.shared.connectedScenes
-                .compactMap { $0 as? UIWindowScene }
-                .flatMap(\.windows)
-                .first!
+            .first!
     }
 
     func authorizationController(controller: ASAuthorizationController,
                                  didCompleteWithAuthorization authorization: ASAuthorization) {
-        defer { appleSignInContinuation = nil }
+        defer {
+            appleSignInContinuation = nil
+            appleSignInController = nil
+        }
 
         guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential,
               let nonce = currentNonce,
@@ -247,7 +298,10 @@ extension AuthManager: ASAuthorizationControllerDelegate, ASAuthorizationControl
     }
 
     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
-        defer { appleSignInContinuation = nil }
+        defer {
+            appleSignInContinuation = nil
+            appleSignInController = nil
+        }
         let ns = error as NSError
         if ns.domain == ASAuthorizationError.errorDomain,
            ns.code == ASAuthorizationError.canceled.rawValue {

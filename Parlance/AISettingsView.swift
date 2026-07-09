@@ -101,6 +101,7 @@ struct AISettingsView: View {
                     authBusy = true
                     Task {
                         defer { authBusy = false }
+                        authManager.setPresentationAnchor(ParlanceWebView.activeWebView)
                         do { try await authManager.signInWithApple() }
                         catch AuthManagerError.cancelled { }
                         catch { }
@@ -115,6 +116,7 @@ struct AISettingsView: View {
                         authBusy = true
                         Task {
                             defer { authBusy = false }
+                            authManager.setPresentationAnchor(ParlanceWebView.activeWebView)
                             do { try await authManager.signInWithGoogle() }
                             catch AuthManagerError.cancelled { }
                             catch { }

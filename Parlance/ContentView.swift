@@ -410,6 +410,7 @@ struct ParlanceWebView: UIViewRepresentable {
 
         private func handleSignInApple(_ body: [String: Any]) {
             guard let requestId = body["requestId"] as? String else { return }
+            authManager.setPresentationAnchor(webView)
             Task { @MainActor in
                 do {
                     try await authManager.signInWithApple()
@@ -425,6 +426,7 @@ struct ParlanceWebView: UIViewRepresentable {
 
         private func handleSignInGoogle(_ body: [String: Any]) {
             guard let requestId = body["requestId"] as? String else { return }
+            authManager.setPresentationAnchor(webView)
             Task { @MainActor in
                 do {
                     try await authManager.signInWithGoogle()
