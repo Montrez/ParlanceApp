@@ -11,7 +11,7 @@ const PARLANCE_LANGUAGES = {
   es: {
     code: 'es',
     name: 'Español',
-    placeholder: 'Escribe una oración en español…',
+    placeholder: 'Escribe un párrafo en español…',
     titlePlaceholder: 'Entry title… (e.g. Mi primer día en Valencia)',
     coachRole: 'Spanish',
     guideFile: 'guide-es.html',
@@ -24,7 +24,7 @@ const PARLANCE_LANGUAGES = {
   fr: {
     code: 'fr',
     name: 'Français',
-    placeholder: 'Écrivez une phrase en français…',
+    placeholder: 'Écrivez un paragraphe en français…',
     titlePlaceholder: 'Entry title… (e.g. Mon premier jour à Paris)',
     coachRole: 'French',
     guideFile: 'guide-fr.html',

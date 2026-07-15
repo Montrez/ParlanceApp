@@ -1,9 +1,23 @@
 // ── AI PROVIDER CONFIGURATION ────────────────────────────────────
 const PARLANCE_SLM_URL = localStorage.getItem('parlance_slm_server_url') || 'http://127.0.0.1:8765';
 
-/** Min trimmed length to analyze on Enter. */
+/** Min trimmed length to analyze. */
 const MIN_SENTENCE_CHARS = 15;
 const MIN_SENTENCE_WORDS = 3;
+
+/** Split a paragraph into sentence units for per-sentence feedback. */
+function splitIntoSentences(text) {
+  const trimmed = String(text || '').replace(/\s+/g, ' ').trim();
+  if (!trimmed) return [];
+  // Keep terminator with each unit. Handles . ! ? … and Spanish/French spacing.
+  const parts = trimmed.match(/[^.!?…]+(?:[.!?…]+(?:\s*["»”']+)?|(?=$))/g);
+  if (!parts) return [trimmed];
+  return parts.map(p => p.trim()).filter(p => p.length > 0);
+}
+
+function countSentencesInText(text) {
+  return splitIntoSentences(text).length;
+}
 
 /** Parlance Coach on-device first load can take 60–120s+ on iPhone. */
 const TIMEOUT_MS = {
@@ -1513,10 +1527,16 @@ function usePrompt(p) {
 // ── SENTENCES ─────────────────────────────────────────────────────
 let sentenceIdCounter = 0;
 
-function addSentence(prefill = '') {
+function addSentence(prefill = '', opts = {}) {
+  const { insertAt = null, focus = true } = opts;
   const id       = ++sentenceIdCounter;
   const sentence = { id, text: '', feedback: null, status: 'empty' };
-  state.sentences.push(sentence);
+
+  if (insertAt == null || insertAt >= state.sentences.length) {
+    state.sentences.push(sentence);
+  } else {
+    state.sentences.splice(insertAt, 0, sentence);
+  }
 
   const area = document.getElementById('sentencesArea');
   const row  = document.createElement('div');
@@ -1529,30 +1549,55 @@ function addSentence(prefill = '') {
         class="sentence-input"
         id="ta-${id}"
         placeholder="${currentLang().placeholder}"
-        rows="1"
+        rows="3"
         spellcheck="false"
+        data-i18n-title="analyzeHint"
+        title="Write freely. ⌘Enter / Ctrl+Enter for feedback."
       ></textarea>
-      <div class="sentence-status" id="status-${id}"></div>
+      <div class="sentence-actions">
+        <button type="button" class="analyze-btn" id="analyze-btn-${id}" data-i18n="getFeedback" title="Get feedback">Feedback</button>
+        <div class="sentence-status" id="status-${id}"></div>
+      </div>
     </div>
   `;
-  area.appendChild(row);
+
+  if (insertAt == null || insertAt >= state.sentences.length - 1) {
+    area.appendChild(row);
+  } else {
+    const afterId = state.sentences[insertAt + 1]?.id;
+    const nextRow = afterId ? document.getElementById('row-' + afterId) : null;
+    if (nextRow) area.insertBefore(row, nextRow);
+    else area.appendChild(row);
+  }
 
   const ta = row.querySelector('textarea');
+  const analyzeBtn = row.querySelector('.analyze-btn');
   ta.addEventListener('input', () => onSentenceInput(id));
   ta.addEventListener('keydown', (e) => onSentenceKeydown(e, id));
   ta.addEventListener('focus', () => { state.activeSentenceId = id; showFeedback(id); });
   ta.addEventListener('input', () => {
     ta.style.height = 'auto';
-    ta.style.height = ta.scrollHeight + 'px';
+    ta.style.height = Math.max(ta.scrollHeight, 72) + 'px';
   });
+  analyzeBtn.addEventListener('click', () => {
+    state.activeSentenceId = id;
+    analyzeSentence(id);
+  });
+  if (typeof i18n !== 'undefined' && i18n.apply) {
+    analyzeBtn.textContent = i18n.t('getFeedback');
+    const hint = i18n.t('analyzeHint');
+    if (hint && hint !== 'analyzeHint') ta.title = hint;
+  }
 
   if (prefill) {
     ta.value = prefill;
+    sentence.text = prefill;
+    sentence.status = 'dirty';
     ta.dispatchEvent(new Event('input'));
   }
 
   updateCounts();
-  setTimeout(() => ta.focus(), 50);
+  if (focus) setTimeout(() => ta.focus(), 50);
   return id;
 }
 
@@ -1575,11 +1620,13 @@ function onSentenceInput(id) {
 }
 
 function onSentenceKeydown(e, id) {
-  if (e.key === 'Enter' && !e.shiftKey) {
+  // Enter inserts a new line so people can write paragraphs.
+  // ⌘Enter / Ctrl+Enter requests feedback for this block.
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
     e.preventDefault();
     const ta   = document.getElementById('ta-' + id);
     const text = ta.value.trim();
-    if (sentenceReadyToAnalyze(text)) {
+    if (sentenceReadyToAnalyze(text) || splitIntoSentences(text).some(sentenceReadyToAnalyze)) {
       state.activeSentenceId = id;
       analyzeSentence(id);
     }
@@ -1587,10 +1634,13 @@ function onSentenceKeydown(e, id) {
 }
 
 function updateCounts() {
-  const sentences = state.sentences.filter(s => s.text.trim());
+  const filled = state.sentences.filter(s => s.text.trim());
+  const sentenceUnits = filled.reduce(
+    (acc, s) => acc + Math.max(1, countSentencesInText(s.text)), 0
+  );
   document.getElementById('sentenceCount').textContent =
-    i18n.tc('sentenceCount', sentences.length);
-  const words = sentences.reduce(
+    i18n.tc('sentenceCount', sentenceUnits);
+  const words = filled.reduce(
     (acc, s) => acc + s.text.trim().split(/\s+/).filter(Boolean).length, 0
   );
   document.getElementById('wordCount').textContent =
@@ -1605,8 +1655,36 @@ function updateCounts() {
 // ── ANALYSIS ──────────────────────────────────────────────────────
 async function analyzeSentence(id) {
   const sentence = state.sentences.find(s => s.id === id);
-  if (!sentence || !sentenceReadyToAnalyze(sentence.text)) return;
+  if (!sentence) return;
   if (state.analyzingSentenceIds.has(id)) return;
+
+  // If the box holds a full paragraph, split into sentence rows first so
+  // each one still gets its own feedback card.
+  const parts = splitIntoSentences(sentence.text).filter(p => p.trim());
+  if (parts.length > 1) {
+    const idx = state.sentences.findIndex(s => s.id === id);
+    const ta0 = document.getElementById('ta-' + id);
+    sentence.text = parts[0];
+    sentence.feedback = null;
+    sentence.status = 'dirty';
+    if (ta0) {
+      ta0.value = parts[0];
+      ta0.style.height = 'auto';
+      ta0.style.height = Math.max(ta0.scrollHeight, 72) + 'px';
+    }
+    const extraIds = [];
+    for (let i = 1; i < parts.length; i++) {
+      extraIds.push(addSentence(parts[i], { insertAt: idx + i, focus: false }));
+    }
+    updateCounts();
+    await analyzeSentence(id);
+    for (const extraId of extraIds) {
+      await analyzeSentence(extraId);
+    }
+    return;
+  }
+
+  if (!sentenceReadyToAnalyze(sentence.text)) return;
 
   state.analyzingSentenceIds.add(id);
 

@@ -193,7 +193,7 @@ header {
   background: transparent;
   border: none;
   border-bottom: 1px solid var(--rule);
-  padding: 0.5rem 0.25rem;
+  padding: 0.5rem 0.25rem 2rem;
   font-family: 'Spectral', serif;
   font-size: 1.05rem;
   color: var(--ink);
@@ -202,7 +202,7 @@ header {
   line-height: 1.65;
   transition: border-color 0.2s;
   overflow: hidden;
-  min-height: 40px;
+  min-height: 72px;
 }
 .sentence-input:focus { border-bottom-color: var(--accent); }
 .sentence-input.has-error { border-bottom-color: #b91c1c; }
@@ -213,13 +213,36 @@ header {
   animation: shimmer 1.2s infinite;
 }
 @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-.sentence-status {
+.sentence-actions {
   position: absolute;
-  right: 4px;
-  top: 50%;
-  transform: translateY(-50%);
+  right: 0;
+  bottom: 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.analyze-btn {
+  background: transparent;
+  border: 1px solid var(--rule);
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.analyze-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-light);
+}
+.sentence-status {
   font-size: 0.75rem;
   pointer-events: none;
+  min-width: 1rem;
+  text-align: center;
 }
 
 /* ── ADD SENTENCE ── */
