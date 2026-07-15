@@ -49,10 +49,10 @@ struct AISettingsView: View {
                     Text("Settings saved")
                 }
                 .font(.system(size: 13, weight: .medium, design: .monospaced))
-                .foregroundStyle(.white)
+                .foregroundStyle(Color("Paper"))
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
-                .background(Color(red: 0.11, green: 0.1, blue: 0.09))
+                .background(Color("Ink"))
                 .clipShape(Capsule())
                 .padding(.bottom, 24)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -270,7 +270,7 @@ struct AISettingsView: View {
         if langs.isEmpty {
             return "Not bundled in this build. Run ./training/prepare_ios_coach_model.sh and re-archive."
         }
-        return langs.map { $0 == "fr" ? "French" : "Spanish" }.joined(separator: " · ")
+        return langs.map { LanguageRegistry.displayName(for: $0) }.joined(separator: " · ")
     }
 
     private var aboutSection: some View {

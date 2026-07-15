@@ -1,0 +1,53 @@
+{
+  "$comment": "Single source of truth for Parlance's color palette. Edit this file, then run scripts/generate_theme.py to regenerate Parlance/web/theme.css, docs/theme.css, and the native Xcode color assets under Parlance/Assets.xcassets/. Never hardcode colors directly in CSS or Swift.",
+  "tokens": {
+    "ink": { "light": "#1c1917", "dark": "#e8e0d0" },
+    "paper": { "light": "#faf7f2", "dark": "#1a1a1e" },
+    "paper2": { "light": "#f4f0e8", "dark": "#242428" },
+    "rule": { "light": "#e8e0d0", "dark": "#3a3a40" },
+    "muted": { "light": "#9b9189", "dark": "#8a8a94" },
+    "accent": {
+      "light": "#0b9cd0",
+      "dark": "#3db8e8",
+      "tint_alpha": { "light": 0.08, "dark": 0.1 }
+    },
+    "green": {
+      "light": "#2d6a4f",
+      "dark": "#5cb88a",
+      "tint_alpha": { "light": 0.08, "dark": 0.12 }
+    },
+    "amber": {
+      "light": "#92400e",
+      "dark": "#d4a04e",
+      "tint_alpha": { "light": 0.08, "dark": 0.12 }
+    },
+    "blue": {
+      "light": "#1e3a5f",
+      "dark": "#6ba3d6",
+      "tint_alpha": { "light": 0.08, "dark": 0.12 }
+    },
+    "red": {
+      "light": "#7f1d1d",
+      "dark": "#e07070",
+      "tint_alpha": { "light": 0.08, "dark": 0.12 }
+    }
+  },
+  "raw_css": {
+    "shadow": {
+      "light": "0 2px 24px rgba(28,25,23,0.08)",
+      "dark": "0 2px 24px rgba(0,0,0,0.3)"
+    }
+  },
+  "native_assets": {
+    "AccentColor": "accent",
+    "Ink": "ink",
+    "Paper": "paper",
+    "Paper2": "paper2",
+    "Rule": "rule",
+    "Muted": "muted",
+    "StatusGreen": "green",
+    "StatusAmber": "amber",
+    "StatusBlue": "blue",
+    "StatusRed": "red"
+  }
+}

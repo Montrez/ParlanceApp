@@ -4,7 +4,7 @@ import Foundation
 enum ParlanceSLMAnalyzer {
 
     private static let devServerKey = "parlance_slm_dev_server"
-    private static let supportedLanguages = ["es", "fr"]
+    private static let supportedLanguages = LanguageRegistry.onDeviceSupportedCodes
 
     /// When true, routes to `http://127.0.0.1:8765` (training/parlance_slm_server.py) for development.
     static var useDevServer: Bool {

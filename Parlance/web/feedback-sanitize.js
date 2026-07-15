@@ -497,7 +497,7 @@
     if (!result || typeof result !== 'object') return result;
     const out = { ...result };
     normalizeFeedbackFields(out);
-    const lang = language === 'fr' ? 'fr' : 'es';
+    const lang = parlanceLanguageInfo(language).code;
     if (sentence && (lang === 'es' || lang === 'fr')) {
       applyCoachRules(sentence, out, lang);
     }

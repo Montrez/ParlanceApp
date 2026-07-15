@@ -9,6 +9,26 @@
   Practice writing in Spanish and French with real-time AI grammar feedback.
 </p>
 
+<p align="center">
+  <a href="https://github.com/Montrez/ParlanceApp/releases/latest">
+    <img src="https://img.shields.io/github/v/release/Montrez/ParlanceApp?label=release" alt="Latest release" />
+  </a>
+  <a href="https://montrez.github.io/ParlanceApp/">
+    <img src="https://img.shields.io/badge/web%20app-live-0b9cd0" alt="Web app live" />
+  </a>
+</p>
+
+---
+
+## What's in the app
+
+- **Journal**: write sentences in your target language and get structured AI feedback (corrections, register, CEFR level, higher-level rephrasings) as you go.
+- **Grammar Guide**: verb tenses and grammar rules, A1–C2, per practice language.
+- **Regional Guide**: regional vocabulary, pronouns, and dialect traps, with a "your region vs. theirs" picker.
+- **Parlance Coach**: on-device Spanish/French grammar coaching (Qwen 0.5B fine-tunes running fully offline via MLX), or plug in a cloud provider.
+- **Call Packs**: 30 free AI analyses a month, with an optional $0.99 top-up for 100 more.
+- Dark mode and interface language (EN/ES/FR) that apply consistently across the journal, guides, and regional content.
+
 ---
 
 ## Quick Start
@@ -115,6 +135,20 @@ Signed-in users call the **`analyzeText`** callable; API keys stay in Secret Man
 3. An AI model returns structured feedback: corrections, register analysis, higher-level rephrasings, and interpreter tips
 
 Feedback infers the sentence’s CEFR level (A1–C2) when the model is confident, plus a complexity note when it isn’t. Register identification and professional phrasing for medical, legal, and conference interpreting are included.
+
+---
+
+## Roadmap
+
+Active work is tracked as GitHub issues, grouped into epics:
+
+- [English learning path](https://github.com/Montrez/ParlanceApp/issues/9) for Spanish/French native speakers
+- [Language architecture](https://github.com/Montrez/ParlanceApp/issues/12) — making it easier to add new languages and sections
+- [Central design system](https://github.com/Montrez/ParlanceApp/issues/16) — one source of truth for colors across web, native, and the app icon
+- [App layout & UX polish](https://github.com/Montrez/ParlanceApp/issues/20)
+- [Coach model quality](https://github.com/Montrez/ParlanceApp/issues/26)
+
+See the [full issue list](https://github.com/Montrez/ParlanceApp/issues) for everything currently open.
 
 ---
 

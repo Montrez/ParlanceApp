@@ -366,6 +366,13 @@ enum ParlanceSLMFeedbackValidator {
     }
 
     static func sanitize(sentence: String, feedback: [String: Any], level: String, language: String = "es") -> [String: Any] {
+        // Spanish/French heuristics below are intentionally asymmetric (not a generic
+        // per-language table) — see LanguageRegistry.swift for the plumbing that IS
+        // centralized. This just makes the "else falls back to Spanish" behavior loud
+        // instead of silent when an unrecognized language sneaks through.
+        if language != "es" && language != "fr" {
+            assertionFailure("ParlanceSLMFeedbackValidator.sanitize: unrecognized language '\(language)', falling back to Spanish-path heuristics")
+        }
         if language == "fr" {
             return sanitizeFrench(sentence: sentence, feedback: feedback, level: level)
         }

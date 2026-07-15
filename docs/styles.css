@@ -1,40 +1,5 @@
-:root {
-  --ink: #1c1917;
-  --paper: #faf7f2;
-  --paper2: #f4f0e8;
-  --rule: #e8e0d0;
-  --muted: #9b9189;
-  --accent: #0b9cd0;
-  --accent-light: rgba(11,156,208,0.08);
-  --green: #2d6a4f;
-  --green-bg: rgba(45,106,79,0.08);
-  --amber: #92400e;
-  --amber-bg: rgba(146,64,14,0.08);
-  --blue: #1e3a5f;
-  --blue-bg: rgba(30,58,95,0.08);
-  --red: #7f1d1d;
-  --red-bg: rgba(127,29,29,0.08);
-  --shadow: 0 2px 24px rgba(28,25,23,0.08);
-}
-
-[data-theme="dark"] {
-  --ink: #e8e0d0;
-  --paper: #1a1a1e;
-  --paper2: #242428;
-  --rule: #3a3a40;
-  --muted: #8a8a94;
-  --accent: #3db8e8;
-  --accent-light: rgba(61,184,232,0.1);
-  --green: #5cb88a;
-  --green-bg: rgba(92,184,138,0.12);
-  --amber: #d4a04e;
-  --amber-bg: rgba(212,160,78,0.12);
-  --blue: #6ba3d6;
-  --blue-bg: rgba(107,163,214,0.12);
-  --red: #e07070;
-  --red-bg: rgba(224,112,112,0.12);
-  --shadow: 0 2px 24px rgba(0,0,0,0.3);
-}
+/* Color tokens (--ink, --paper, --accent, etc.) now live in theme.css,
+   generated from design/theme.json. See scripts/generate_theme.py. */
 [data-theme="dark"] header { background: #111114; }
 [data-theme="dark"] .logo { color: #faf7f2; }
 [data-theme="dark"] .header-select { background: #2a2a30; border-color: #3a3a40; }
@@ -670,8 +635,8 @@ header {
 }
 
 .guide-picker-card-accent {
-  border-color: #d8e8f8;
-  background: #f7fbff;
+  border-color: var(--accent);
+  background: var(--accent-light);
 }
 
 .guide-picker-icon {
@@ -692,7 +657,6 @@ header {
   font-size: 0.8rem;
   color: var(--muted);
   line-height: 1.45;
-}
 }
 
 /* ── DEEP ANALYSIS BUTTON ── */

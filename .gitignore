@@ -31,6 +31,16 @@ Parlance/Models/parlance-es-mlx/
 Parlance/Models/parlance-fr-mlx/
 training/models/parlance-fr-mlx/
 training/checkpoints/
+training/*.log
+training/*.zip
+
+# Xcode DerivedData / SourcePackages archives (xcodebuild -resultBundlePath, CI artifacts)
+output/
+
+# Firebase CLI debug logs
+firebase/*.log
+firebase/firepit-log.txt
+firebase/functions/firebase-debug.log
 
 # Node / Capacitor
 node_modules/
@@ -48,3 +58,6 @@ android/.idea/
 
 # macOS
 .DS_Store
+
+# Cursor agent session state (plans, local rules drafts) — local-only
+.cursor/

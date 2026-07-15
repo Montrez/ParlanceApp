@@ -987,7 +987,7 @@ async function analyzeWithAI(sentence, language, progressCallback) {
 
   const ragMeta     = buildRAGMeta(language, null, sentence, providerId === 'parlance');
   const ragContext  = ragMeta.context;
-  const langName    = language === 'fr' ? 'French' : 'Spanish';
+  const langName    = parlanceLanguageInfo(language).coachRole;
   const systemPrompt = buildSystemPrompt(langName, ragContext);
   const userMessage  = `Analyze this ${langName} sentence: "${sentence}"`;
 
@@ -1116,26 +1116,9 @@ function updateThemeIcon() {
 }
 
 // ── LANGUAGE DEFINITIONS ──────────────────────────────────────────
-const languages = {
-  es: {
-    code: 'es',
-    name: 'Español',
-    placeholder: 'Escribe una oración en español…',
-    titlePlaceholder: 'Entry title… (e.g. Mi primer día en Valencia)',
-    coachRole: 'Spanish',
-    guideFile: 'guide-es.html',
-    dialectFile: 'dialect-es.html',
-  },
-  fr: {
-    code: 'fr',
-    name: 'Français',
-    placeholder: 'Écrivez une phrase en français…',
-    titlePlaceholder: 'Entry title… (e.g. Mon premier jour à Paris)',
-    coachRole: 'French',
-    guideFile: 'guide-fr.html',
-    dialectFile: 'dialect-fr.html',
-  },
-};
+// Single source of truth lives in languages.js (PARLANCE_LANGUAGES) — loaded before
+// this file. Keep the `languages` name here since it's used throughout this file.
+const languages = PARLANCE_LANGUAGES;
 
 // ── STATE ─────────────────────────────────────────────────────────
 const state = {
@@ -1935,7 +1918,7 @@ function renderPastEntries() {
 // ── ENTRY VIEWER ──────────────────────────────────────────────────
 function viewEntry(entry) {
   document.getElementById('entryViewerTitle').textContent = entry.title || 'Untitled Entry';
-  const langName = entry.language === 'fr' ? 'Français' : 'Español';
+  const langName = parlanceLanguageInfo(entry.language).name;
   document.getElementById('entryViewerMeta').textContent =
     `${entry.date} · ${langName}`;
 

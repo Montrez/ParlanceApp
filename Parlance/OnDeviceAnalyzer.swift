@@ -45,7 +45,7 @@ final class OnDeviceAnalyzer: Sendable {
     }
 
     func analyze(sentence: String, language: String, level: String) async throws -> [String: Any] {
-        let langName = language == "fr" ? "French" : "Spanish"
+        let langName = LanguageRegistry.displayName(for: language)
 
         let instructions = """
         You are a \(langName) grammar checker for interpreter training. Do NOT assume the learner picked a CEFR level.
@@ -55,7 +55,7 @@ final class OnDeviceAnalyzer: Sendable {
 
         LANGUAGE RULE: The sentence is in \(langName). \
         All example sentences you write (nextLevelAlt, targetLevelAlt, correction) MUST be in \(langName). \
-        \(language == "es" ? "Write ALL example sentences in SPANISH. Do NOT write French." : "Write ALL example sentences in FRENCH. Do NOT write Spanish.")
+        Write ALL example sentences in \(langName.uppercased()). Do NOT write in any other language.
 
         ACCURACY RULE: Only mark a sentence as "Needs Improvement" if there is a real grammar error. \
         If the sentence is grammatically correct, mark it as "Excellent". \

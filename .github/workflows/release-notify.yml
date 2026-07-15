@@ -30,7 +30,7 @@ jobs:
           else
             LABEL="Product update"
             COLOR=5763719
-            PLATFORM_NOTE="Live now on the **web app**: https://montrez.github.io/ParlanceApp/ — iOS is still in App Store review."
+            PLATFORM_NOTE="Available now on **GitHub Pages**: https://montrez.github.io/ParlanceApp/. Coming soon to **TestFlight** for iOS users."
           fi
 
           SHORT_BODY=$(echo "$BODY" | head -c 1900)

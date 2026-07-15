@@ -266,17 +266,15 @@ extension AuthManager: ASAuthorizationControllerDelegate, ASAuthorizationControl
 
     func authorizationController(controller: ASAuthorizationController,
                                  didCompleteWithAuthorization authorization: ASAuthorization) {
-        defer {
-            appleSignInContinuation = nil
-            appleSignInController = nil
-        }
-
         guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential,
               let nonce = currentNonce,
               let appleTokenData = appleIDCredential.identityToken,
               let idTokenString = String(data: appleTokenData, encoding: .utf8)
         else {
             appleSignInContinuation?.resume(throwing: AuthManagerError.missingIDToken)
+            appleSignInContinuation = nil
+            appleSignInController = nil
+            currentNonce = nil
             return
         }
 
@@ -287,6 +285,12 @@ extension AuthManager: ASAuthorizationControllerDelegate, ASAuthorizationControl
         )
 
         Task { @MainActor in
+            defer {
+                appleSignInContinuation = nil
+                appleSignInController = nil
+                currentNonce = nil
+            }
+
             do {
                 _ = try await Auth.auth().signIn(with: credential)
                 appleSignInContinuation?.resume()
@@ -301,6 +305,7 @@ extension AuthManager: ASAuthorizationControllerDelegate, ASAuthorizationControl
         defer {
             appleSignInContinuation = nil
             appleSignInController = nil
+            currentNonce = nil
         }
         let ns = error as NSError
         if ns.domain == ASAuthorizationError.errorDomain,

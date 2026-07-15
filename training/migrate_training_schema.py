@@ -74,8 +74,9 @@ def main() -> None:
         total_ok = total_skip = 0
 
         sources = sorted(lang_dir.glob("*.jsonl"))
+        sources = [p for p in sources if p.name != out_name]
         if not args.include_train_valid:
-            sources = [p for p in sources if p.name not in ("train.jsonl", "valid.jsonl", out_name)]
+            sources = [p for p in sources if p.name not in ("train.jsonl", "valid.jsonl")]
 
         if not sources:
             print(f"  [{lang}] No source JSONL in {lang_dir}")

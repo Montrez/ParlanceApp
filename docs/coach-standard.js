@@ -33,14 +33,15 @@
 
   root.ParlanceCoachStandard = {
     standardPromptBlock,
+    // Looks up the language's registry entry (PARLANCE_LANGUAGES, from languages.js,
+    // loaded earlier) for the global variable name holding its standard, rather than
+    // hardcoding an es/fr check here — add coachStandardGlobal to the registry to
+    // support a new language instead of touching this function.
     forLang(lang) {
-      if (lang === 'fr' && root.ParlanceCoachStandardFR) {
-        return standardPromptBlock(root.ParlanceCoachStandardFR);
-      }
-      if (lang === 'es' && root.ParlanceCoachStandardES) {
-        return standardPromptBlock(root.ParlanceCoachStandardES);
-      }
-      return '';
+      const info = root.PARLANCE_LANGUAGES && root.PARLANCE_LANGUAGES[lang];
+      const globalName = info && info.coachStandardGlobal;
+      const standard = globalName ? root[globalName] : null;
+      return standard ? standardPromptBlock(standard) : '';
     },
   };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

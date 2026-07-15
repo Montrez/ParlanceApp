@@ -597,7 +597,7 @@ function getRAGContextWithMeta(language, level, sentence, options = {}) {
   const condensed = !!options.condensed;
   const parts = [];
   const topics = [];
-  const langKey = language === 'fr' ? 'fr' : 'es';
+  const langKey = parlanceLanguageInfo(language).code;
   const levelNorm = normalizeLevel(level);
   const lowerSentence = sentence.toLowerCase();
 
@@ -622,7 +622,7 @@ function getRAGContextWithMeta(language, level, sentence, options = {}) {
     }
   }
 
-  const examKey = langKey === 'es' ? 'dele' : 'delf';
+  const examKey = parlanceLanguageInfo(langKey).examKey;
   const examLine = levelNorm ? RAG_KNOWLEDGE.exam[examKey]?.levels?.[levelNorm] : null;
   if (examLine) {
     topics.push(examKey);

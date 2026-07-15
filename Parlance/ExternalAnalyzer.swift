@@ -20,7 +20,7 @@ final class ExternalAnalyzer: Sendable {
         }
 
         let endpoint = try endpointURL(for: provider)
-        let langName = language == "fr" ? "French" : "Spanish"
+        let langName = LanguageRegistry.displayName(for: language)
         let systemPrompt = buildSystemPrompt(langName: langName, ragContext: ragContext)
         let userPrompt   = "Analyze this \(langName) sentence: \"\(sentence)\""
 

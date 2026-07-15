@@ -6,11 +6,7 @@ enum ParlanceSLMModelLocator {
     private static let markerFile = "config.json"
 
     static func folderName(for language: String) -> String? {
-        switch language {
-        case "es": return "parlance-es-mlx"
-        case "fr": return "parlance-fr-mlx"
-        default: return nil
-        }
+        LanguageRegistry.onDeviceModelFolder(for: language)
     }
 
     /// Directory containing MLX `config.json` and `model.safetensors`, if present.

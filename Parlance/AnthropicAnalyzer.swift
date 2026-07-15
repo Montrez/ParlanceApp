@@ -18,7 +18,7 @@ final class AnthropicAnalyzer: Sendable {
             throw ExternalError.noAPIKey("Anthropic")
         }
 
-        let langName     = language == "fr" ? "French" : "Spanish"
+        let langName     = LanguageRegistry.displayName(for: language)
         let systemPrompt = ExternalAnalyzer.shared.buildSystemPromptPublic(
             langName: langName, level: level, ragContext: ragContext
         )

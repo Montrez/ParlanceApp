@@ -64,15 +64,16 @@ struct PrivacyPolicyView: View {
 
                         Text("Last updated: April 2026")
                             .font(.custom("Georgia", size: 12))
-                            .foregroundColor(Color(red: 0.45, green: 0.42, blue: 0.38))
+                            .foregroundColor(Color("Muted"))
                             .padding(.top, 8)
                     }
                     .padding()
                 }
             }
-            .background(Color(red: 0.98, green: 0.97, blue: 0.95))
+            .background(Color("Paper"))
             .clipShape(RoundedRectangle(cornerRadius: 16))
             .shadow(radius: 20)
+            .frame(maxWidth: 520)
             .padding(24)
         }
         .transition(.opacity)
@@ -84,10 +85,10 @@ struct PrivacyPolicyView: View {
             Text(title)
                 .font(.custom("Georgia", size: 15))
                 .fontWeight(.bold)
-                .foregroundColor(Color(red: 0.11, green: 0.09, blue: 0.08))
+                .foregroundColor(Color("Ink"))
             Text(body)
                 .font(.custom("Georgia", size: 14))
-                .foregroundColor(Color(red: 0.25, green: 0.22, blue: 0.20))
+                .foregroundColor(Color("Ink").opacity(0.8))
                 .lineSpacing(4)
         }
     }

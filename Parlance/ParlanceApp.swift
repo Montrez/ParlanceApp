@@ -7,7 +7,7 @@ struct ParlanceApp: App {
 
     init() {
         FirebaseApp.configure()
-        _authManager = State(initialValue: AuthManager())
+        _authManager = State(initialValue: AuthManager.shared)
     }
 
     var body: some Scene {

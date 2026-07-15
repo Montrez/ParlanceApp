@@ -42,10 +42,7 @@ actor ParlanceSLMEngine {
     }
 
     func analyze(sentence: String, language: String, level: String, ragContext: String = "") async throws -> sending [String: Any] {
-        guard language == "es" || language == "fr" else {
-            throw ParlanceSLMError.unsupportedLanguage
-        }
-        guard ParlanceSLMModelLocator.folderName(for: language) != nil else {
+        guard LanguageRegistry.onDeviceSupportedCodes.contains(language) else {
             throw ParlanceSLMError.unsupportedLanguage
         }
 
@@ -82,21 +79,30 @@ actor ParlanceSLMEngine {
 
     // MARK: - Prompts (match training/parlance_slm_infer.py)
 
-    private static func prompts(sentence: String, language: String, level: String, ragContext: String = "") -> (String, String) {
-        switch language {
-        case "es":
-            return (
+    /// Prompt-builder pairs (system, user) keyed by language code. `analyze(...)` already
+    /// guards on `LanguageRegistry.onDeviceSupportedCodes`, so adding a language here (plus
+    /// the model + registry row) is the only control-flow change needed — no switch/fatalError.
+    private static let promptProviders: [String: @Sendable (String, String, String) -> (String, String)] = [
+        "es": { sentence, level, ragContext in
+            (
                 ParlanceSLMFeedbackValidator.spanishSystemPrompt(level: level, ragContext: ragContext),
                 ParlanceSLMFeedbackValidator.spanishUserPrompt(sentence: sentence, level: level)
             )
-        case "fr":
-            return (
+        },
+        "fr": { sentence, level, ragContext in
+            (
                 ParlanceSLMFeedbackValidator.frenchSystemPrompt(level: level, ragContext: ragContext),
                 ParlanceSLMFeedbackValidator.frenchUserPrompt(sentence: sentence, level: level)
             )
-        default:
-            fatalError("Unsupported language: \(language)")
+        },
+    ]
+
+    private static func prompts(sentence: String, language: String, level: String, ragContext: String = "") -> (String, String) {
+        guard let provider = promptProviders[language] else {
+            assertionFailure("ParlanceSLMEngine: no prompt provider registered for language '\(language)'")
+            return promptProviders["es"]!(sentence, level, ragContext)
         }
+        return provider(sentence, level, ragContext)
     }
 
     // MARK: - JSON parsing (match training/parlance_slm_infer.py)

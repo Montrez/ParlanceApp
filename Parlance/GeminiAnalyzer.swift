@@ -21,7 +21,7 @@ final class GeminiAnalyzer: Sendable {
             throw ExternalError.invalidResponse
         }
 
-        let langName     = language == "fr" ? "French" : "Spanish"
+        let langName     = LanguageRegistry.displayName(for: language)
         let systemPrompt = ExternalAnalyzer.shared.buildSystemPromptPublic(
             langName: langName, level: level, ragContext: ragContext
         )
