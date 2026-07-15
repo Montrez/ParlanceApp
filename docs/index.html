@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Parlance</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Spectral:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=12">
+<link rel="stylesheet" href="theme.css?v=1">
+<link rel="stylesheet" href="styles.css?v=13">
 </head>
 <body>
 
@@ -73,16 +74,16 @@
     </div>
     <div class="feedback-panel-inner" id="guideInner" style="display:none">
       <div class="guide-picker" id="guidePicker">
-        <p class="guide-picker-lead" data-i18n="guidePickerLead">Open a reference guide for your practice language.</p>
+        <p class="guide-picker-lead" data-i18n="guidePickerLead">Choose a guide for your practice language.</p>
         <button type="button" class="guide-picker-card" onclick="openGuideOverlay('grammar')">
           <span class="guide-picker-icon">📚</span>
-          <span class="guide-picker-title" data-i18n="grammarGuideTitle">Conjugation guide</span>
-          <span class="guide-picker-desc" data-i18n="grammarGuideDesc">A1 to C2 tenses, rules, and examples.</span>
+          <span class="guide-picker-title" data-i18n="grammarGuideTitle">Grammar Guide</span>
+          <span class="guide-picker-desc" data-i18n="grammarGuideDesc">Verb tenses and rules, from beginner to advanced.</span>
         </button>
         <button type="button" class="guide-picker-card guide-picker-card-accent" onclick="openGuideOverlay('dialect')">
           <span class="guide-picker-icon">🌎</span>
-          <span class="guide-picker-title" data-i18n="dialectGuideTitle">Dialect guide</span>
-          <span class="guide-picker-desc" data-i18n="dialectGuideDesc">For native speakers: regional vocabulary, pronouns, and traps.</span>
+          <span class="guide-picker-title" data-i18n="dialectGuideTitle">Regional Guide</span>
+          <span class="guide-picker-desc" data-i18n="dialectGuideDesc">Regional vocabulary, pronouns, and words to know.</span>
         </button>
       </div>
     </div>
