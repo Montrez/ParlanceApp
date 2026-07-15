@@ -1848,15 +1848,22 @@ function openGuideOverlay(kind = 'grammar') {
 
   if (!file) { showToast('Guide coming soon for this language.'); return; }
 
-  // Pass interface language so dialect/grammar pages can show English chrome
-  // when the app UI is English (and native chrome when UI is es/fr).
-  const ui = (typeof i18n !== 'undefined' && i18n.getLocale) ? i18n.getLocale() : 'en';
+  // Pass interface language so dialect pages show English when the app UI is
+  // English. Prefer the live <select> value so a just-changed language sticks
+  // even if i18n.locale hasn't finished reloading yet.
+  const uiSelect = document.getElementById('uiLangSelect');
+  const ui = (uiSelect && uiSelect.value)
+    || ((typeof i18n !== 'undefined' && i18n.getLocale) ? i18n.getLocale() : 'en');
   const theme = document.documentElement.getAttribute('data-theme') || 'light';
   const qs = new URLSearchParams({ ui, theme });
   frame.src = `${file}?${qs.toString()}`;
   frame.onload = () => {
     try {
       frame.contentWindow?.postMessage({ type: 'parlanceGuideEnv', ui, theme }, '*');
+      const doc = frame.contentDocument;
+      if (doc?.body && typeof doc.defaultView?.applyGuideEnv === 'function') {
+        doc.defaultView.applyGuideEnv(ui, theme);
+      }
     } catch (_) { /* cross-origin safety */ }
     if (theme === 'dark') {
       frame.contentDocument?.documentElement?.setAttribute('data-theme', 'dark');
