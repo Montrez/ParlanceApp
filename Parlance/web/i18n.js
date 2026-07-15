@@ -5,16 +5,20 @@ const i18n = {
 
   async load(lang) {
     if (!this.messages[lang]) {
+      let loaded = null;
       try {
         const res = await fetch(`locales/${lang}.json`);
-        this.messages[lang] = await res.json();
-      } catch {
-        if (this._embedded[lang]) {
-          this.messages[lang] = this._embedded[lang];
-        } else {
-          console.warn(`i18n: could not load locale "${lang}"`);
-          return;
-        }
+        if (res.ok) loaded = await res.json();
+      } catch { /* fall through to embedded */ }
+      // Merge: locale JSON wins for shared keys, embedded fills gaps
+      // (e.g. prompts_es_1…) so a partial locales/*.json can't blank the UI.
+      this.messages[lang] = {
+        ...(this._embedded[lang] || {}),
+        ...(loaded || {}),
+      };
+      if (!loaded && !this._embedded[lang]) {
+        console.warn(`i18n: could not load locale "${lang}"`);
+        return;
       }
     }
     this.locale = lang;

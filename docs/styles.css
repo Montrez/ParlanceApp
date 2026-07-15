@@ -560,9 +560,16 @@ header {
   font-size: 0.84rem;
   color: var(--muted);
   font-style: italic;
-  padding: 0.3rem 0;
+  padding: 0.45rem 0.25rem;
   line-height: 1.4;
   border-bottom: 1px dashed var(--rule);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+.prompt-item:hover {
+  color: var(--accent);
+  background: var(--accent-light);
 }
 
 /* ── GUIDE TAB ── */

@@ -1509,6 +1509,12 @@ function renderPrompts() {
     const el = document.createElement('div');
     el.className = 'prompt-item';
     el.textContent = text;
+    el.setAttribute('role', 'button');
+    el.tabIndex = 0;
+    el.onclick = () => usePrompt(text);
+    el.onkeydown = (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); usePrompt(text); }
+    };
     list.appendChild(el);
   }
 }

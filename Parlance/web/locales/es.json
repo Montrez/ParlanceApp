@@ -47,5 +47,19 @@
   "privacyKeysText": "Las claves API que ingresas se almacenan en el almacenamiento local de tu navegador y solo se envían al punto de acceso API del proveedor respectivo. Parlance nunca ve ni almacena tus claves API.",
   "privacyTrackingTitle": "Sin rastreo",
   "privacyTrackingText": "Parlance no usa análisis, cookies ni ninguna forma de rastreo. Nada sobre tu uso se recopila ni se comparte.",
-  "privacyUpdated": "Última actualización: mayo 2026"
+  "privacyUpdated": "Última actualización: mayo 2026",
+  "prompts_es_1": "Describe tu primer día aprendiendo español.",
+  "prompts_es_2": "¿Qué significa ser intérprete para ti?",
+  "prompts_es_3": "Habla sobre un lugar que te gustaría visitar en España o Latinoamérica.",
+  "prompts_es_4": "Describe a una persona importante en tu vida.",
+  "prompts_es_5": "¿Cuáles son tus metas profesionales para este año?",
+  "prompts_es_6": "Escribe sobre una tradición cultural que te parezca interesante.",
+  "prompts_es_7": "¿Qué opinas sobre la importancia de los idiomas en el mundo actual?",
+  "prompts_fr_1": "Describe tu primer día aprendiendo francés.",
+  "prompts_fr_2": "¿Qué significa ser intérprete para ti?",
+  "prompts_fr_3": "Habla sobre un lugar que te gustaría visitar en Francia o un país francófono.",
+  "prompts_fr_4": "Describe a una persona importante en tu vida.",
+  "prompts_fr_5": "¿Cuáles son tus metas profesionales para este año?",
+  "prompts_fr_6": "Escribe sobre una tradición cultural francesa que te parezca interesante.",
+  "prompts_fr_7": "¿Qué opinas sobre la importancia de los idiomas en el mundo actual?"
 }
