@@ -1848,10 +1848,18 @@ function openGuideOverlay(kind = 'grammar') {
 
   if (!file) { showToast('Guide coming soon for this language.'); return; }
 
-  frame.src = file;
+  // Pass interface language so dialect/grammar pages can show English chrome
+  // when the app UI is English (and native chrome when UI is es/fr).
+  const ui = (typeof i18n !== 'undefined' && i18n.getLocale) ? i18n.getLocale() : 'en';
+  const theme = document.documentElement.getAttribute('data-theme') || 'light';
+  const qs = new URLSearchParams({ ui, theme });
+  frame.src = `${file}?${qs.toString()}`;
   frame.onload = () => {
-    const theme = document.documentElement.getAttribute('data-theme');
+    try {
+      frame.contentWindow?.postMessage({ type: 'parlanceGuideEnv', ui, theme }, '*');
+    } catch (_) { /* cross-origin safety */ }
     if (theme === 'dark') {
+      frame.contentDocument?.documentElement?.setAttribute('data-theme', 'dark');
       frame.contentDocument?.body?.classList.add('dark');
     }
   };

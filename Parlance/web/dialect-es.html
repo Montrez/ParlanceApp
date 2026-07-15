@@ -3,64 +3,89 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Guía de dialectos — Español</title>
+<title>Regional Guide — Spanish</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="content-theme.css?v=1">
 <link rel="stylesheet" href="content-guide.css?v=1">
+<style>
+  /* Show English or native (Spanish) chrome based on app UI language.
+     English is the default; native shows only when UI language is es. */
+  [data-guide-ui="native"] .ui-en { display: none !important; }
+  [data-guide-ui="en"] .ui-native { display: none !important; }
+</style>
 </head>
-<body class="dialect lang-es">
+<body class="dialect lang-es" data-guide-ui="en">
 <div class="layout">
 <nav class="sidebar">
   <div class="sidebar-logo">
-    <h1>🌎 Dialectos</h1>
-    <p>Para hablantes nativos e intérpretes</p>
+    <h1 class="ui-en">🌎 Regional Guide</h1>
+    <h1 class="ui-native">🌎 Dialectos</h1>
+    <p class="ui-en">For fluent speakers and interpreters</p>
+    <p class="ui-native">Para hablantes nativos e intérpretes</p>
   </div>
-  <div class="nav-section-label">Herramienta</div>
-  <a class="nav-item active" href="#picker">Tu región → la suya</a>
-  <div class="nav-section-label">Referencia rápida</div>
-  <a class="nav-item" href="#pronouns">Pronombres</a>
-  <a class="nav-item" href="#vocab">Vocabulario</a>
-  <a class="nav-item" href="#traps">Palabras trampa</a>
-  <a class="nav-item" href="#regions">Perfiles regionales</a>
-  <a class="nav-item" href="#dont-correct">No corrijas esto</a>
-  <div class="lang-switch">Practicas francés → <a href="dialect-fr.html">Guía de dialectos FR</a></div>
+  <div class="nav-section-label ui-en">Tool</div>
+  <div class="nav-section-label ui-native">Herramienta</div>
+  <a class="nav-item active ui-en" href="#picker">Your region → theirs</a>
+  <a class="nav-item active ui-native" href="#picker">Tu región → la suya</a>
+  <div class="nav-section-label ui-en">Quick reference</div>
+  <div class="nav-section-label ui-native">Referencia rápida</div>
+  <a class="nav-item ui-en" href="#pronouns">Pronouns</a>
+  <a class="nav-item ui-native" href="#pronouns">Pronombres</a>
+  <a class="nav-item ui-en" href="#vocab">Vocabulary</a>
+  <a class="nav-item ui-native" href="#vocab">Vocabulario</a>
+  <a class="nav-item ui-en" href="#traps">Trap words</a>
+  <a class="nav-item ui-native" href="#traps">Palabras trampa</a>
+  <a class="nav-item ui-en" href="#regions">Regional profiles</a>
+  <a class="nav-item ui-native" href="#regions">Perfiles regionales</a>
+  <a class="nav-item ui-en" href="#dont-correct">Don't correct this</a>
+  <a class="nav-item ui-native" href="#dont-correct">No corrijas esto</a>
+  <div class="lang-switch ui-en">Practicing French → <a href="dialect-fr.html">French regional guide</a></div>
+  <div class="lang-switch ui-native">Practicas francés → <a href="dialect-fr.html">Guía de dialectos FR</a></div>
 </nav>
 
 <main class="content">
-  <div class="rule-box">
+  <div class="rule-box ui-en">
+    <strong>How to use this guide</strong> — It does not teach basic grammar; it assumes you already know Spanish. First use the <strong>tool</strong> below to compare your region with the other person's. Then open the <strong>quick reference</strong> sections as needed: pronouns, vocabulary, words that can be misunderstood, and short regional profiles.
+  </div>
+  <div class="rule-box ui-native">
     <strong>Cómo usar esta guía</strong> — No enseña gramática básica; asume que ya dominas el español. Primero usa la <strong>herramienta</strong> de abajo para comparar tu región con la de la otra persona. Después, cuando la necesites, abre la <strong>referencia rápida</strong> del menú: pronombres, vocabulario, palabras que pueden malinterpretarse y resúmenes de cada región.
   </div>
 
   <section class="section" id="picker">
-    <h2>Tu región → la suya</h2>
-    <p class="subtitle">Elige de dónde eres tú y de dónde es la otra persona. Verás solo lo que importa para esa conversación.</p>
+    <h2 class="ui-en">Your region → theirs</h2>
+    <h2 class="ui-native">Tu región → la suya</h2>
+    <p class="subtitle ui-en">Pick where you speak from and where the other person is from. You'll only see what matters for that pairing.</p>
+    <p class="subtitle ui-native">Elige de dónde eres tú y de dónde es la otra persona. Verás solo lo que importa para esa conversación.</p>
 
     <div class="picker-card">
       <div class="picker-row">
         <div>
-          <label for="fromRegion">Yo hablo como en…</label>
+          <label for="fromRegion" class="ui-en">I speak like people from…</label>
+          <label for="fromRegion" class="ui-native">Yo hablo como en…</label>
           <select id="fromRegion">
-            <option value="">Selecciona tu región</option>
-            <option value="mexico">México y Centroamérica</option>
-            <option value="caribbean">Caribe (Cuba, PR, RD)</option>
-            <option value="rioplatense">Rioplatense (Argentina, Uruguay)</option>
-            <option value="andean">Andino (Colombia, Perú, Ecuador)</option>
-            <option value="spain">España</option>
+            <option value="" data-en="Select your region" data-es="Selecciona tu región">Select your region</option>
+            <option value="mexico" data-en="Mexico & Central America" data-es="México y Centroamérica">Mexico & Central America</option>
+            <option value="caribbean" data-en="Caribbean (Cuba, PR, DR)" data-es="Caribe (Cuba, PR, RD)">Caribbean (Cuba, PR, DR)</option>
+            <option value="rioplatense" data-en="Rioplatense (Argentina, Uruguay)" data-es="Rioplatense (Argentina, Uruguay)">Rioplatense (Argentina, Uruguay)</option>
+            <option value="andean" data-en="Andean (Colombia, Peru, Ecuador)" data-es="Andino (Colombia, Perú, Ecuador)">Andean (Colombia, Peru, Ecuador)</option>
+            <option value="spain" data-en="Spain" data-es="España">Spain</option>
           </select>
         </div>
         <div>
-          <label for="toRegion">La otra persona es de…</label>
+          <label for="toRegion" class="ui-en">The other person is from…</label>
+          <label for="toRegion" class="ui-native">La otra persona es de…</label>
           <select id="toRegion">
-            <option value="">Selecciona su región</option>
-            <option value="mexico">México y Centroamérica</option>
-            <option value="caribbean">Caribe (Cuba, PR, RD)</option>
-            <option value="rioplatense">Rioplatense (Argentina, Uruguay)</option>
-            <option value="andean">Andino (Colombia, Perú, Ecuador)</option>
-            <option value="spain">España</option>
+            <option value="" data-en="Select their region" data-es="Selecciona su región">Select their region</option>
+            <option value="mexico" data-en="Mexico & Central America" data-es="México y Centroamérica">Mexico & Central America</option>
+            <option value="caribbean" data-en="Caribbean (Cuba, PR, DR)" data-es="Caribe (Cuba, PR, RD)">Caribbean (Cuba, PR, DR)</option>
+            <option value="rioplatense" data-en="Rioplatense (Argentina, Uruguay)" data-es="Rioplatense (Argentina, Uruguay)">Rioplatense (Argentina, Uruguay)</option>
+            <option value="andean" data-en="Andean (Colombia, Peru, Ecuador)" data-es="Andino (Colombia, Perú, Ecuador)">Andean (Colombia, Peru, Ecuador)</option>
+            <option value="spain" data-en="Spain" data-es="España">Spain</option>
           </select>
         </div>
       </div>
-      <p class="picker-note">Consejo: en interpretación, adapta tu salida al registro del hablante, no al tuyo.</p>
+      <p class="picker-note ui-en">Tip: in interpreting, match your output to the speaker's register, not yours.</p>
+      <p class="picker-note ui-native">Consejo: en interpretación, adapta tu salida al registro del hablante, no al tuyo.</p>
     </div>
 
     <div id="pairResult" class="pair-result">
@@ -70,95 +95,189 @@
   </section>
 
   <section class="section" id="pronouns">
-    <h2>Pronombres y trato</h2>
-    <p class="subtitle">La diferencia más práctica entre países.</p>
+    <h2 class="ui-en">Pronouns and address</h2>
+    <h2 class="ui-native">Pronombres y trato</h2>
+    <p class="subtitle ui-en">The most practical difference between countries.</p>
+    <p class="subtitle ui-native">La diferencia más práctica entre países.</p>
     <div class="table-scroll"><table class="data">
-      <thead><tr><th>Región</th><th>Tú / vos / usted</th><th>Nota rápida</th></tr></thead>
+      <thead>
+        <tr class="ui-en"><th>Region</th><th>tú / vos / usted</th><th>Quick note</th></tr>
+        <tr class="ui-native"><th>Región</th><th>Tú / vos / usted</th><th>Nota rápida</th></tr>
+      </thead>
       <tbody>
-        <tr><td>México / Centroamérica</td><td class="mono">tú</td><td><em>usted</em> con mayores y en contextos formales. Plural: <em>ustedes</em> (no <em>vosotros</em>).</td></tr>
-        <tr><td>Caribe</td><td class="mono">tú / usted</td><td><em>Usted</em> muy extendido, incluso en familia en algunos contextos. Habla rápida, a veces se omite la -s final.</td></tr>
-        <tr><td>Rioplatense</td><td class="mono">vos</td><td><em>Vos</em> es estándar: <em>vos hablás, vos tenés</em>. <em>Tú</em> suena más formal o literario.</td></tr>
-        <tr><td>Andino</td><td class="mono">tú / usted</td><td>En Colombia, <em>usted</em> con familia y amigos es normal. No es distancia, es costumbre.</td></tr>
-        <tr><td>España</td><td class="mono">tú / vosotros</td><td>Plural informal: <em>vosotros</em>. En Latinoamérica eso no existe: siempre <em>ustedes</em>.</td></tr>
+        <tr>
+          <td class="ui-en">Mexico / Central America</td><td class="ui-native">México / Centroamérica</td>
+          <td class="mono">tú</td>
+          <td class="ui-en"><em>usted</em> with elders and formal settings. Plural: <em>ustedes</em> (not <em>vosotros</em>).</td>
+          <td class="ui-native"><em>usted</em> con mayores y en contextos formales. Plural: <em>ustedes</em> (no <em>vosotros</em>).</td>
+        </tr>
+        <tr>
+          <td class="ui-en">Caribbean</td><td class="ui-native">Caribe</td>
+          <td class="mono">tú / usted</td>
+          <td class="ui-en"><em>Usted</em> is widespread, even in family in some contexts. Fast speech; final -s often dropped.</td>
+          <td class="ui-native"><em>Usted</em> muy extendido, incluso en familia en algunos contextos. Habla rápida, a veces se omite la -s final.</td>
+        </tr>
+        <tr>
+          <td>Rioplatense</td>
+          <td class="mono">vos</td>
+          <td class="ui-en"><em>Vos</em> is standard: <em>vos hablás, vos tenés</em>. <em>Tú</em> can sound more formal or literary.</td>
+          <td class="ui-native"><em>Vos</em> es estándar: <em>vos hablás, vos tenés</em>. <em>Tú</em> suena más formal o literario.</td>
+        </tr>
+        <tr>
+          <td class="ui-en">Andean</td><td class="ui-native">Andino</td>
+          <td class="mono">tú / usted</td>
+          <td class="ui-en">In Colombia, <em>usted</em> with family and friends is normal. It is not distance; it is custom.</td>
+          <td class="ui-native">En Colombia, <em>usted</em> con familia y amigos es normal. No es distancia, es costumbre.</td>
+        </tr>
+        <tr>
+          <td class="ui-en">Spain</td><td class="ui-native">España</td>
+          <td class="mono">tú / vosotros</td>
+          <td class="ui-en">Informal plural: <em>vosotros</em>. In Latin America that form does not exist: always <em>ustedes</em>.</td>
+          <td class="ui-native">Plural informal: <em>vosotros</em>. En Latinoamérica eso no existe: siempre <em>ustedes</em>.</td>
+        </tr>
       </tbody>
-    </table></div></div></div>
+    </table></div>
     <div class="table-scroll"><table class="data">
-      <thead><tr><th>Forma</th><th>Ejemplo (hablar)</th><th>Dónde</th></tr></thead>
+      <thead>
+        <tr class="ui-en"><th>Form</th><th>Example (hablar)</th><th>Where</th></tr>
+        <tr class="ui-native"><th>Forma</th><th>Ejemplo (hablar)</th><th>Dónde</th></tr>
+      </thead>
       <tbody>
-        <tr><td>tú hablas</td><td class="mono">¿Cómo estás?</td><td>México, Caribe, Andes (varía)</td></tr>
-        <tr><td>vos hablás</td><td class="mono">¿Cómo estás? / ¿Cómo andás?</td><td>Argentina, Uruguay, partes de Centroamérica</td></tr>
-        <tr><td>usted habla</td><td class="mono">¿Cómo está usted?</td><td>Formal en casi todo el mundo; cotidiano en Colombia y Caribe</td></tr>
-        <tr><td>vosotros habláis</td><td class="mono">¿Cómo estáis?</td><td>Solo España</td></tr>
+        <tr><td>tú hablas</td><td class="mono">¿Cómo estás?</td>
+          <td class="ui-en">Mexico, Caribbean, Andes (varies)</td>
+          <td class="ui-native">México, Caribe, Andes (varía)</td>
+        </tr>
+        <tr><td>vos hablás</td><td class="mono">¿Cómo estás? / ¿Cómo andás?</td>
+          <td class="ui-en">Argentina, Uruguay, parts of Central America</td>
+          <td class="ui-native">Argentina, Uruguay, partes de Centroamérica</td>
+        </tr>
+        <tr><td>usted habla</td><td class="mono">¿Cómo está usted?</td>
+          <td class="ui-en">Formal almost everywhere; everyday in Colombia and the Caribbean</td>
+          <td class="ui-native">Formal en casi todo el mundo; cotidiano en Colombia y Caribe</td>
+        </tr>
+        <tr><td>vosotros habláis</td><td class="mono">¿Cómo estáis?</td>
+          <td class="ui-en">Spain only</td>
+          <td class="ui-native">Solo España</td>
+        </tr>
       </tbody>
-    </table>
+    </table></div>
   </section>
 
   <section class="section" id="vocab">
-    <h2>Misma cosa, distinta palabra</h2>
-    <p class="subtitle">Las equivalencias que más confunden en conversación real.</p>
+    <h2 class="ui-en">Same thing, different word</h2>
+    <h2 class="ui-native">Misma cosa, distinta palabra</h2>
+    <p class="subtitle ui-en">The equivalences that confuse people most in real conversation.</p>
+    <p class="subtitle ui-native">Las equivalencias que más confunden en conversación real.</p>
     <div class="table-scroll"><table class="data">
-      <thead><tr><th>Concepto</th><th>Variantes por región</th></tr></thead>
+      <thead>
+        <tr class="ui-en"><th>Concept</th><th>Regional variants</th></tr>
+        <tr class="ui-native"><th>Concepto</th><th>Variantes por región</th></tr>
+      </thead>
       <tbody>
-        <tr><td>Coche / auto</td><td><span class="mono">carro</span> (MX, Caribe) · <span class="mono">auto</span> (AR, UY, CL) · <span class="mono">coche</span> (ES)</td></tr>
-        <tr><td>Autobús</td><td><span class="mono">camión</span> (MX) · <span class="mono">guagua</span> (Caribe) · <span class="mono">colectivo/micro</span> (AR) · <span class="mono">autobús</span> (ES)</td></tr>
-        <tr><td>Apartamento</td><td><span class="mono">departamento</span> (MX, AR) · <span class="mono">apartamento</span> (Caribe) · <span class="mono">piso</span> (ES)</td></tr>
-        <tr><td>Ordenador</td><td><span class="mono">computadora</span> (LatAm) · <span class="mono">ordenador</span> (ES)</td></tr>
-        <tr><td>Conducir</td><td><span class="mono">manejar</span> (LatAm) · <span class="mono">conducir</span> (ES)</td></tr>
-        <tr><td>Dinero (coloquial)</td><td><span class="mono">lana/plata</span> (MX) · <span class="mono">guita</span> (AR) · <span class="mono">pasta</span> (ES)</td></tr>
-        <tr><td>Popote / pajita</td><td><span class="mono">popote</span> (MX) · <span class="mono">pajilla/pitillo</span> (varía) · <span class="mono">cañita/pajita</span> (ES/Caribe)</td></tr>
-        <tr><td>Chico / muchacho</td><td><span class="mono">chavo/chamaco</span> (MX) · <span class="mono">pibe/chico</span> (AR) · <span class="mono">chaval</span> (ES)</td></tr>
-        <tr><td>Refrigerador</td><td><span class="mono">refri/refrigerador</span> (MX) · <span class="mono">heladera</span> (AR) · <span class="mono">nevera</span> (Caribe, ES)</td></tr>
-        <tr><td>Celular</td><td><span class="mono">celular</span> (LatAm) · <span class="mono">móvil</span> (ES)</td></tr>
+        <tr><td class="ui-en">Car</td><td class="ui-native">Coche / auto</td>
+          <td><span class="mono">carro</span> (MX, Caribbean) · <span class="mono">auto</span> (AR, UY, CL) · <span class="mono">coche</span> (ES)</td></tr>
+        <tr><td class="ui-en">Bus</td><td class="ui-native">Autobús</td>
+          <td><span class="mono">camión</span> (MX) · <span class="mono">guagua</span> (Caribbean) · <span class="mono">colectivo/micro</span> (AR) · <span class="mono">autobús</span> (ES)</td></tr>
+        <tr><td class="ui-en">Apartment</td><td class="ui-native">Apartamento</td>
+          <td><span class="mono">departamento</span> (MX, AR) · <span class="mono">apartamento</span> (Caribbean) · <span class="mono">piso</span> (ES)</td></tr>
+        <tr><td class="ui-en">Computer</td><td class="ui-native">Ordenador</td>
+          <td><span class="mono">computadora</span> (LatAm) · <span class="mono">ordenador</span> (ES)</td></tr>
+        <tr><td class="ui-en">To drive</td><td class="ui-native">Conducir</td>
+          <td><span class="mono">manejar</span> (LatAm) · <span class="mono">conducir</span> (ES)</td></tr>
+        <tr><td class="ui-en">Money (colloquial)</td><td class="ui-native">Dinero (coloquial)</td>
+          <td><span class="mono">lana/plata</span> (MX) · <span class="mono">guita</span> (AR) · <span class="mono">pasta</span> (ES)</td></tr>
+        <tr><td class="ui-en">Straw</td><td class="ui-native">Popote / pajita</td>
+          <td><span class="mono">popote</span> (MX) · <span class="mono">pajilla/pitillo</span> (varies) · <span class="mono">cañita/pajita</span> (ES/Caribbean)</td></tr>
+        <tr><td class="ui-en">Kid / guy</td><td class="ui-native">Chico / muchacho</td>
+          <td><span class="mono">chavo/chamaco</span> (MX) · <span class="mono">pibe/chico</span> (AR) · <span class="mono">chaval</span> (ES)</td></tr>
+        <tr><td class="ui-en">Fridge</td><td class="ui-native">Refrigerador</td>
+          <td><span class="mono">refri/refrigerador</span> (MX) · <span class="mono">heladera</span> (AR) · <span class="mono">nevera</span> (Caribbean, ES)</td></tr>
+        <tr><td class="ui-en">Cell phone</td><td class="ui-native">Celular</td>
+          <td><span class="mono">celular</span> (LatAm) · <span class="mono">móvil</span> (ES)</td></tr>
       </tbody>
-    </table>
+    </table></div>
   </section>
 
   <section class="section" id="traps">
-    <h2>Palabras trampa</h2>
-    <p class="subtitle">Neutral en un país, problemática en otro.</p>
-    <div class="warn-box"><strong>coger</strong> — En España: tomar, agarrar (neutral). En muchos países de Latinoamérica: vulgar. Di <em>tomar el autobús</em>, no <em>coger el autobús</em>.</div>
-    <div class="warn-box"><strong>bicho</strong> — En España: insecto. En varios países caribeños: insulto o connotación sexual.</div>
-    <div class="warn-box"><strong>platicar</strong> — En México: charlar. En España casi no se usa; suena arcaico o extraño.</div>
-    <div class="warn-box"><strong>concha</strong> — Concha marina en algunos países; insulto fuerte en Rioplatense.</div>
-    <div class="warn-box"><strong>pelota</strong> — Pelota deportiva en muchos países; en México a veces significa testículo en contexto coloquial.</div>
-    <div class="warn-box"><strong>fregar</strong> — Lavar/trapear en México; en España puede sonar más fuerte o distinto según contexto.</div>
+    <h2 class="ui-en">Trap words</h2>
+    <h2 class="ui-native">Palabras trampa</h2>
+    <p class="subtitle ui-en">Neutral in one country, problematic in another.</p>
+    <p class="subtitle ui-native">Neutral en un país, problemática en otro.</p>
+    <div class="warn-box ui-en"><strong>coger</strong> — In Spain: take, grab (neutral). In much of Latin America: vulgar. Say <em>tomar el autobús</em>, not <em>coger el autobús</em>.</div>
+    <div class="warn-box ui-native"><strong>coger</strong> — En España: tomar, agarrar (neutral). En muchos países de Latinoamérica: vulgar. Di <em>tomar el autobús</em>, no <em>coger el autobús</em>.</div>
+    <div class="warn-box ui-en"><strong>bicho</strong> — In Spain: insect. In several Caribbean countries: insult or sexual connotation.</div>
+    <div class="warn-box ui-native"><strong>bicho</strong> — En España: insecto. En varios países caribeños: insulto o connotación sexual.</div>
+    <div class="warn-box ui-en"><strong>platicar</strong> — In Mexico: to chat. In Spain it is rarely used; can sound archaic or odd.</div>
+    <div class="warn-box ui-native"><strong>platicar</strong> — En México: charlar. En España casi no se usa; suena arcaico o extraño.</div>
+    <div class="warn-box ui-en"><strong>concha</strong> — Seashell in some countries; strong insult in Rioplatense Spanish.</div>
+    <div class="warn-box ui-native"><strong>concha</strong> — Concha marina en algunos países; insulto fuerte en Rioplatense.</div>
+    <div class="warn-box ui-en"><strong>pelota</strong> — Sports ball in many countries; in Mexico can mean testicle in colloquial contexts.</div>
+    <div class="warn-box ui-native"><strong>pelota</strong> — Pelota deportiva en muchos países; en México a veces significa testículo en contexto coloquial.</div>
+    <div class="warn-box ui-en"><strong>fregar</strong> — Wash / mop in Mexico; in Spain it can sound stronger or different depending on context.</div>
+    <div class="warn-box ui-native"><strong>fregar</strong> — Lavar/trapear en México; en España puede sonar más fuerte o distinto según contexto.</div>
   </section>
 
   <section class="section" id="regions">
-    <h2>Perfiles regionales</h2>
-    <p class="subtitle">Las 5 regiones a la vez, para hojear. Si solo te interesan dos, usa la herramienta de arriba.</p>
+    <h2 class="ui-en">Regional profiles</h2>
+    <h2 class="ui-native">Perfiles regionales</h2>
+    <p class="subtitle ui-en">All five regions at a glance. If you only care about two, use the tool above.</p>
+    <p class="subtitle ui-native">Las 5 regiones a la vez, para hojear. Si solo te interesan dos, usa la herramienta de arriba.</p>
 
     <div class="region-card" id="profile-mexico">
-      <div class="tag">México y Centroamérica</div>
-      <h3>México y Centroamérica</h3>
-      <p><strong>Trato:</strong> <em>tú</em> entre pares; <em>usted</em> con mayores y en servicios. <strong>Vocabulario:</strong> <em>carro, camión, celular, computadora, popote</em>. <strong>Interpretación:</strong> el español mexicano domina muchos materiales de entrenamiento; no asumas que todo el mundo dice las mismas palabras.</p>
+      <div class="tag ui-en">Mexico & Central America</div>
+      <div class="tag ui-native">México y Centroamérica</div>
+      <h3 class="ui-en">Mexico & Central America</h3>
+      <h3 class="ui-native">México y Centroamérica</h3>
+      <p class="ui-en"><strong>Address:</strong> <em>tú</em> with peers; <em>usted</em> with elders and in service settings. <strong>Vocabulary:</strong> <em>carro, camión, celular, computadora, popote</em>. <strong>Interpreting:</strong> Mexican Spanish dominates a lot of training material; don't assume everyone uses the same words.</p>
+      <p class="ui-native"><strong>Trato:</strong> <em>tú</em> entre pares; <em>usted</em> con mayores y en servicios. <strong>Vocabulario:</strong> <em>carro, camión, celular, computadora, popote</em>. <strong>Interpretación:</strong> el español mexicano domina muchos materiales de entrenamiento; no asumas que todo el mundo dice las mismas palabras.</p>
     </div>
     <div class="region-card" id="profile-caribbean">
-      <div class="tag">Caribe</div>
-      <h3>Caribe (Cuba, Puerto Rico, República Dominicana)</h3>
-      <p><strong>Trato:</strong> <em>usted</em> muy común. <strong>Habla:</strong> ritmo rápido, aspiración de -s, elisión. <strong>Vocabulario:</strong> <em>guagua, apartamento, frío</em> (nevera). <strong>Interpretación:</strong> no “corrijas” la velocidad ni la elisión; son rasgos del dialecto, no errores.</p>
+      <div class="tag ui-en">Caribbean</div>
+      <div class="tag ui-native">Caribe</div>
+      <h3 class="ui-en">Caribbean (Cuba, Puerto Rico, Dominican Republic)</h3>
+      <h3 class="ui-native">Caribe (Cuba, Puerto Rico, República Dominicana)</h3>
+      <p class="ui-en"><strong>Address:</strong> <em>usted</em> is very common. <strong>Speech:</strong> fast rhythm, aspirated -s, elision. <strong>Vocabulary:</strong> <em>guagua, apartamento, frío</em> (fridge). <strong>Interpreting:</strong> do not "correct" the speed or elision; those are dialect features, not errors.</p>
+      <p class="ui-native"><strong>Trato:</strong> <em>usted</em> muy común. <strong>Habla:</strong> ritmo rápido, aspiración de -s, elisión. <strong>Vocabulario:</strong> <em>guagua, apartamento, frío</em> (nevera). <strong>Interpretación:</strong> no “corrijas” la velocidad ni la elisión; son rasgos del dialecto, no errores.</p>
     </div>
     <div class="region-card" id="profile-rioplatense">
       <div class="tag">Rioplatense</div>
-      <h3>Argentina y Uruguay</h3>
-      <p><strong>Trato:</strong> <em>vos</em> estándar. <strong>Conjugación:</em> <em>hablás, tenés, venís</em>. <strong>Vocabulario:</strong> <em>auto, bondi/colectivo, plata, che</em>. <strong>Yeísmo rehilado:</strong> <em>yo, calle</em> suenan distinto. <strong>Interpretación:</strong> el voseo no es informal incorrecto; es la forma normal.</p>
+      <h3 class="ui-en">Argentina and Uruguay</h3>
+      <h3 class="ui-native">Argentina y Uruguay</h3>
+      <p class="ui-en"><strong>Address:</strong> <em>vos</em> is standard. <strong>Conjugation:</strong> <em>hablás, tenés, venís</em>. <strong>Vocabulary:</strong> <em>auto, bondi/colectivo, plata, che</em>. <strong>Yeísmo:</strong> <em>yo, calle</em> sound different. <strong>Interpreting:</strong> voseo is not incorrect informal speech; it is the normal form.</p>
+      <p class="ui-native"><strong>Trato:</strong> <em>vos</em> estándar. <strong>Conjugación:</strong> <em>hablás, tenés, venís</em>. <strong>Vocabulario:</strong> <em>auto, bondi/colectivo, plata, che</em>. <strong>Yeísmo rehilado:</strong> <em>yo, calle</em> suenan distinto. <strong>Interpretación:</strong> el voseo no es informal incorrecto; es la forma normal.</p>
     </div>
     <div class="region-card" id="profile-andean">
-      <div class="tag">Andino</div>
-      <h3>Colombia, Perú, Ecuador, Bolivia</h3>
-      <p><strong>Trato:</strong> en Colombia, <em>usted</em> incluso con familia. <strong>Claridad:</strong> muchos consideran el andino “claro” para aprendices, pero tiene su propio vocabulario. <strong>Vocabulario:</strong> <em>chévere, plata, celular, porfa</em>. <strong>Interpretación:</strong> respeto y cortesía pesan mucho en registro formal.</p>
+      <div class="tag ui-en">Andean</div>
+      <div class="tag ui-native">Andino</div>
+      <h3 class="ui-en">Colombia, Peru, Ecuador, Bolivia</h3>
+      <h3 class="ui-native">Colombia, Perú, Ecuador, Bolivia</h3>
+      <p class="ui-en"><strong>Address:</strong> in Colombia, <em>usted</em> even with family. <strong>Clarity:</strong> many learners call Andean Spanish "clear," but it has its own vocabulary. <strong>Vocabulary:</strong> <em>chévere, plata, celular, porfa</em>. <strong>Interpreting:</strong> respect and courtesy matter a lot in formal register.</p>
+      <p class="ui-native"><strong>Trato:</strong> en Colombia, <em>usted</em> incluso con familia. <strong>Claridad:</strong> muchos consideran el andino “claro” para aprendices, pero tiene su propio vocabulario. <strong>Vocabulario:</strong> <em>chévere, plata, celular, porfa</em>. <strong>Interpretación:</strong> respeto y cortesía pesan mucho en registro formal.</p>
     </div>
     <div class="region-card" id="profile-spain">
-      <div class="tag">España</div>
-      <h3>España</h3>
-      <p><strong>Trato:</strong> <em>tú</em> amplio; <em>vosotros</em> para plural informal. <strong>Vocabulario:</strong> <em>coche, ordenador, móvil, conducir, piso</em>. <strong>Interpretación:</strong> <em>coger</em> es neutral en España; evítalo al interpretar hacia Latinoamérica si el contexto es ambiguo.</p>
+      <div class="tag ui-en">Spain</div>
+      <div class="tag ui-native">España</div>
+      <h3 class="ui-en">Spain</h3>
+      <h3 class="ui-native">España</h3>
+      <p class="ui-en"><strong>Address:</strong> <em>tú</em> is wide; <em>vosotros</em> for informal plural. <strong>Vocabulary:</strong> <em>coche, ordenador, móvil, conducir, piso</em>. <strong>Interpreting:</strong> <em>coger</em> is neutral in Spain; avoid it when interpreting toward Latin America if the context is ambiguous.</p>
+      <p class="ui-native"><strong>Trato:</strong> <em>tú</em> amplio; <em>vosotros</em> para plural informal. <strong>Vocabulario:</strong> <em>coche, ordenador, móvil, conducir, piso</em>. <strong>Interpretación:</strong> <em>coger</em> es neutral en España; evítalo al interpretar hacia Latinoamérica si el contexto es ambiguo.</p>
     </div>
   </section>
 
   <section class="section" id="dont-correct">
-    <h2>No corrijas esto</h2>
-    <p class="subtitle">En interpretación, tu trabajo es transmitir, no estandarizar.</p>
-    <ul class="bullet-list">
+    <h2 class="ui-en">Don't correct this</h2>
+    <h2 class="ui-native">No corrijas esto</h2>
+    <p class="subtitle ui-en">In interpreting, your job is to convey meaning, not to standardize.</p>
+    <p class="subtitle ui-native">En interpretación, tu trabajo es transmitir, no estandarizar.</p>
+    <ul class="bullet-list ui-en">
+      <li><strong>Voseo</strong> is not an error. It is the standard form across much of the Southern Cone.</li>
+      <li><strong>Usted with family</strong> in Colombia and the Caribbean is not excessive distance.</li>
+      <li><strong>Dropped -s</strong> in the Caribbean is not "bad Spanish."</li>
+      <li><strong>Vosotros</strong> does not exist in Latin America. Do not expect people to use it.</li>
+      <li><strong>Regional vocabulary</strong> (<em>guagua, auto, carro</em>) is not incorrect; it is lexical variation.</li>
+      <li>If the speaker is a native and consistent, <strong>do not swap their word for yours</strong> when interpreting unless meaning requires it.</li>
+    </ul>
+    <ul class="bullet-list ui-native">
       <li><strong>Voseo</strong> no es un error. Es la forma estándar en gran parte del Cono Sur.</li>
       <li><strong>Usted con familia</strong> en Colombia y el Caribe no es distancia excesiva.</li>
       <li><strong>Omisión de -s</strong> en el Caribe no es “español mal hablado”.</li>
@@ -170,10 +289,11 @@
 </main>
 </div>
 
-
 <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeMobileNav()"></div>
-<button class="mobile-nav-btn" type="button" onclick="toggleMobileNav()">☰ Menú</button>
-<button class="back-btn" type="button" onclick="window.parent.postMessage('closeGuide', '*')">Volver al diario</button>
+<button class="mobile-nav-btn ui-en" type="button" onclick="toggleMobileNav()">☰ Contents</button>
+<button class="mobile-nav-btn ui-native" type="button" onclick="toggleMobileNav()">☰ Menú</button>
+<button class="back-btn ui-en" type="button" onclick="window.parent.postMessage('closeGuide', '*')">Back to Journal</button>
+<button class="back-btn ui-native" type="button" onclick="window.parent.postMessage('closeGuide', '*')">Volver al diario</button>
 <script>
 function toggleMobileNav() {
   document.querySelector('.sidebar').classList.toggle('mobile-open');
@@ -190,81 +310,184 @@ document.querySelectorAll('.nav-item').forEach(item => {
     closeMobileNav();
   });
 });
+
+function applyGuideEnv(ui, theme) {
+  const useNative = ui === 'es';
+  document.body.setAttribute('data-guide-ui', useNative ? 'native' : 'en');
+  document.documentElement.lang = useNative ? 'es' : 'en';
+  if (theme === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    document.body.classList.add('dark');
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+    document.body.classList.remove('dark');
+  }
+  document.querySelectorAll('select option[data-en]').forEach(opt => {
+    opt.textContent = useNative ? (opt.dataset.es || opt.dataset.en) : opt.dataset.en;
+  });
+  document.querySelectorAll('.lang-switch a').forEach(a => {
+    const url = new URL(a.getAttribute('href'), location.href);
+    url.searchParams.set('ui', useNative ? 'es' : 'en');
+    url.searchParams.set('theme', theme === 'dark' ? 'dark' : 'light');
+    a.setAttribute('href', url.pathname.split('/').pop() + '?' + url.searchParams.toString());
+  });
+  document.title = useNative ? 'Guía de dialectos — Español' : 'Regional Guide — Spanish';
+}
+
+(function initGuideEnv() {
+  const params = new URLSearchParams(location.search);
+  applyGuideEnv(params.get('ui') || 'en', params.get('theme') || 'light');
+  window.addEventListener('message', (e) => {
+    if (e.data && e.data.type === 'parlanceGuideEnv') {
+      applyGuideEnv(e.data.ui || 'en', e.data.theme || 'light');
+    }
+  });
+})();
 </script>
 <script>
 const PAIR_INSIGHTS = {
-  'mexico|rioplatense': [
-    'Tú vs vos: en Argentina/Uruguay espera «vos hablás», no «tú hablas».',
-    'Carro (MX) → auto (AR). Camión (MX) → colectivo/bondi (AR).',
-    'Plata (ambos) pero guita es muy argentino.',
-    'No corrijas el voseo. Es estándar, no es informal incorrecto.',
-  ],
-  'mexico|spain': [
-    'Carro → coche. Computadora → ordenador. Celular → móvil.',
-    'Manejar → conducir. Ustedes (MX) vs vosotros (ES) en plural informal.',
-    'Evita «coger» al hablar con mexicanos si puedes decir «tomar» o «agarrar».',
-    'Popote (MX) no se entiende en España; di «pajita» o «cañita».',
-  ],
-  'mexico|caribbean': [
-    'Usted más extendido en el Caribe, incluso en contextos que en México serían tú.',
-    'Camión (MX) = autobús; guagua (Caribe) = autobús.',
-    'Ritmo más rápido y elisión de -s en el Caribe. No es «mala pronunciación».',
-    'Apartamento (Caribe) vs departamento (MX): misma idea, distinta palabra.',
-  ],
-  'mexico|andean': [
-    'En Colombia, usted con familia es normal. No lo interpretes como frialdad.',
-    'Chévere, bacano, parce (Colombia) son cotidianos.',
-    'Vocabulario muy parecido al mexicano en lo general, pero ojo con falsos amigos locales.',
-  ],
-  'rioplatense|spain': [
-    'Vos vs tú/vosotros: sistemas pronominales distintos.',
-    'Auto vs coche. Celular vs móvil.',
-    'Concha: cuidado con contexto (insulto en Rioplatense).',
-    'Yeísmo rehilado argentino puede sonar unfamiliar para oídos peninsulares.',
-  ],
-  'rioplatense|caribbean': [
-    'Vos (AR) vs tú/usted (Caribe): diferencia grande en trato.',
-    'Guagua (Caribe) vs bondi/colectivo (AR).',
-    'Ritmo y elisión caribeña vs entonación rioplatense.',
-  ],
-  'rioplatense|andean': [
-    'Vos (AR) vs tú/usted (Andes, especialmente Colombia con usted familiar).',
-    'Registro: Colombia muy cortés en formal; Argentina más directa en comparación.',
-    'Plata en ambos; vocabulario local distinto (che vs parce/chévere).',
-  ],
-  'caribbean|spain': [
-    'Guagua (Caribe) no existe en España; autobús.',
-    'Usted muy frecuente en Caribe vs tú en España.',
-    'Velocidad y elisión caribeña vs articulación más plena en muchos contextos peninsulares.',
-  ],
-  'caribbean|andean': [
-    'Usted en ambos, pero por razones distintas (costumbre caribeña vs cortesía andina).',
-    'Vocabulario compartido en muchas zonas pero ritmo diferente.',
-  ],
-  'andean|spain': [
-    'Usted extendido en Colombia puede sorprender a hablantes peninsulares.',
-    'Celular vs móvil. Carro vs coche.',
-    'Formalidad andina alta en contextos profesionales.',
-  ],
-  'spain|mexico': null,
+  en: {
+    'mexico|rioplatense': [
+      'tú vs vos: in Argentina/Uruguay expect «vos hablás», not «tú hablas».',
+      'carro (MX) → auto (AR). camión (MX) → colectivo/bondi (AR).',
+      'plata (both) but guita is very Argentine.',
+      'Do not correct voseo. It is standard, not incorrect informal speech.',
+    ],
+    'mexico|spain': [
+      'carro → coche. computadora → ordenador. celular → móvil.',
+      'manejar → conducir. ustedes (MX) vs vosotros (ES) for informal plural.',
+      'Avoid «coger» with Mexicans if you can say «tomar» or «agarrar».',
+      'popote (MX) is not understood in Spain; say «pajita» or «cañita».',
+    ],
+    'mexico|caribbean': [
+      'usted is more common in the Caribbean, even where Mexico would use tú.',
+      'camión (MX) = bus; guagua (Caribbean) = bus.',
+      'Faster rhythm and dropped -s in the Caribbean. Not "bad pronunciation."',
+      'apartamento (Caribbean) vs departamento (MX): same idea, different word.',
+    ],
+    'mexico|andean': [
+      'In Colombia, usted with family is normal. Do not read it as coldness.',
+      'chévere, bacano, parce (Colombia) are everyday.',
+      'Vocabulary often feels close to Mexican, but watch local false friends.',
+    ],
+    'rioplatense|spain': [
+      'vos vs tú/vosotros: different pronoun systems.',
+      'auto vs coche. celular vs móvil.',
+      'concha: watch context (strong insult in Rioplatense).',
+      'Argentine yeísmo can sound unfamiliar to Peninsular ears.',
+    ],
+    'rioplatense|caribbean': [
+      'vos (AR) vs tú/usted (Caribbean): big address difference.',
+      'guagua (Caribbean) vs bondi/colectivo (AR).',
+      'Caribbean rhythm/elision vs Rioplatense intonation.',
+    ],
+    'rioplatense|andean': [
+      'vos (AR) vs tú/usted (Andes, especially Colombia with familiar usted).',
+      'Register: Colombia often more polite in formal settings; Argentina more direct by comparison.',
+      'plata in both; local vocab differs (che vs parce/chévere).',
+    ],
+    'caribbean|spain': [
+      'guagua (Caribbean) does not exist in Spain; use autobús.',
+      'usted very frequent in Caribbean vs tú in Spain.',
+      'Caribbean speed/elision vs fuller articulation in many Peninsular contexts.',
+    ],
+    'caribbean|andean': [
+      'usted in both, for different reasons (Caribbean habit vs Andean courtesy).',
+      'Shared vocabulary in many areas, but different rhythm.',
+    ],
+    'andean|spain': [
+      'Extended usted in Colombia can surprise Peninsular speakers.',
+      'celular vs móvil. carro vs coche.',
+      'High Andean formality in professional contexts.',
+    ],
+  },
+  es: {
+    'mexico|rioplatense': [
+      'Tú vs vos: en Argentina/Uruguay espera «vos hablás», no «tú hablas».',
+      'Carro (MX) → auto (AR). Camión (MX) → colectivo/bondi (AR).',
+      'Plata (ambos) pero guita es muy argentino.',
+      'No corrijas el voseo. Es estándar, no es informal incorrecto.',
+    ],
+    'mexico|spain': [
+      'Carro → coche. Computadora → ordenador. Celular → móvil.',
+      'Manejar → conducir. Ustedes (MX) vs vosotros (ES) en plural informal.',
+      'Evita «coger» al hablar con mexicanos si puedes decir «tomar» o «agarrar».',
+      'Popote (MX) no se entiende en España; di «pajita» o «cañita».',
+    ],
+    'mexico|caribbean': [
+      'Usted más extendido en el Caribe, incluso en contextos que en México serían tú.',
+      'Camión (MX) = autobús; guagua (Caribe) = autobús.',
+      'Ritmo más rápido y elisión de -s en el Caribe. No es «mala pronunciación».',
+      'Apartamento (Caribe) vs departamento (MX): misma idea, distinta palabra.',
+    ],
+    'mexico|andean': [
+      'En Colombia, usted con familia es normal. No lo interpretes como frialdad.',
+      'Chévere, bacano, parce (Colombia) son cotidianos.',
+      'Vocabulario muy parecido al mexicano en lo general, pero ojo con falsos amigos locales.',
+    ],
+    'rioplatense|spain': [
+      'Vos vs tú/vosotros: sistemas pronominales distintos.',
+      'Auto vs coche. Celular vs móvil.',
+      'Concha: cuidado con contexto (insulto en Rioplatense).',
+      'Yeísmo rehilado argentino puede sonar unfamiliar para oídos peninsulares.',
+    ],
+    'rioplatense|caribbean': [
+      'Vos (AR) vs tú/usted (Caribe): diferencia grande en trato.',
+      'Guagua (Caribe) vs bondi/colectivo (AR).',
+      'Ritmo y elisión caribeña vs entonación rioplatense.',
+    ],
+    'rioplatense|andean': [
+      'Vos (AR) vs tú/usted (Andes, especialmente Colombia con usted familiar).',
+      'Registro: Colombia muy cortés en formal; Argentina más directa en comparación.',
+      'Plata en ambos; vocabulario local distinto (che vs parce/chévere).',
+    ],
+    'caribbean|spain': [
+      'Guagua (Caribe) no existe en España; autobús.',
+      'Usted muy frecuente en Caribe vs tú en España.',
+      'Velocidad y elisión caribeña vs articulación más plena en muchos contextos peninsulares.',
+    ],
+    'caribbean|andean': [
+      'Usted en ambos, pero por razones distintas (costumbre caribeña vs cortesía andina).',
+      'Vocabulario compartido en muchas zonas pero ritmo diferente.',
+    ],
+    'andean|spain': [
+      'Usted extendido en Colombia puede sorprender a hablantes peninsulares.',
+      'Celular vs móvil. Carro vs coche.',
+      'Formalidad andina alta en contextos profesionales.',
+    ],
+  },
 };
+
+const REGION_NAMES = {
+  en: {
+    mexico: 'Mexico & Central America',
+    caribbean: 'Caribbean',
+    rioplatense: 'Rioplatense',
+    andean: 'Andean',
+    spain: 'Spain',
+  },
+  es: {
+    mexico: 'México y Centroamérica',
+    caribbean: 'Caribe',
+    rioplatense: 'Rioplatense',
+    andean: 'Andino',
+    spain: 'España',
+  },
+};
+
+function guideLang() {
+  return document.body.getAttribute('data-guide-ui') === 'native' ? 'es' : 'en';
+}
 
 function pairKey(a, b) {
   if (!a || !b || a === b) return null;
   const k1 = `${a}|${b}`;
   const k2 = `${b}|${a}`;
-  if (PAIR_INSIGHTS[k1]) return { key: k1, reverse: false };
-  if (PAIR_INSIGHTS[k2]) return { key: k2, reverse: true };
+  const pack = PAIR_INSIGHTS[guideLang()];
+  if (pack[k1]) return { key: k1, reverse: false };
+  if (pack[k2]) return { key: k2, reverse: true };
   return { key: k1, reverse: false, fallback: true };
 }
-
-const REGION_NAMES = {
-  mexico: 'México y Centroamérica',
-  caribbean: 'Caribe',
-  rioplatense: 'Rioplatense',
-  andean: 'Andino',
-  spain: 'España',
-};
 
 const fromSel = document.getElementById('fromRegion');
 const toSel = document.getElementById('toRegion');
@@ -275,27 +498,38 @@ const list = document.getElementById('pairList');
 function updatePair() {
   const from = fromSel.value;
   const to = toSel.value;
+  const lang = guideLang();
+  const names = REGION_NAMES[lang];
   if (!from || !to) {
     result.classList.remove('visible');
     return;
   }
   if (from === to) {
-    title.textContent = `Ambos hablan como en ${REGION_NAMES[from]}`;
-    list.innerHTML = '<li>Misma región: el vocabulario y el trato suelen coincidir. Revisa «Palabras trampa» si hay generación o país específico dentro de la zona.</li>';
+    title.textContent = lang === 'es'
+      ? `Ambos hablan como en ${names[from]}`
+      : `Both speak like people from ${names[from]}`;
+    list.innerHTML = lang === 'es'
+      ? '<li>Misma región: el vocabulario y el trato suelen coincidir. Revisa «Palabras trampa» si hay generación o país específico dentro de la zona.</li>'
+      : '<li>Same region: vocabulary and address usually align. Check Trap words if a specific country inside the zone matters.</li>';
     result.classList.add('visible');
     return;
   }
   const pk = pairKey(from, to);
-  let items = PAIR_INSIGHTS[pk.key];
+  let items = PAIR_INSIGHTS[lang][pk.key];
   if (!items || pk.fallback) {
-    items = [
-      `Contraste ${REGION_NAMES[from]} ↔ ${REGION_NAMES[to]}: revisa las tablas de pronombres y vocabulario.`,
+    items = lang === 'es' ? [
+      `Contraste ${names[from]} ↔ ${names[to]}: revisa las tablas de pronombres y vocabulario.`,
       'Compara «carro/auto/coche», «camión/guagua/colectivo», y tú/vos/usted.',
       'En duda, adapta tu salida al registro del hablante, no al tuyo.',
       'Consulta «Palabras trampa» antes de usar palabras que pueden sonar neutras en tu país.',
+    ] : [
+      `Contrast ${names[from]} ↔ ${names[to]}: check the pronoun and vocabulary tables.`,
+      'Compare carro/auto/coche, camión/guagua/colectivo, and tú/vos/usted.',
+      'When unsure, match your output to the speaker\'s register, not yours.',
+      'Check Trap words before using a word that feels neutral in your country.',
     ];
   }
-  title.textContent = `${REGION_NAMES[from]} → ${REGION_NAMES[to]}`;
+  title.textContent = `${names[from]} → ${names[to]}`;
   list.innerHTML = items.map(i => `<li>${i}</li>`).join('');
   result.classList.add('visible');
 }
