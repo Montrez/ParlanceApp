@@ -138,12 +138,6 @@ Feedback infers the sentence’s CEFR level (A1–C2) when the model is confiden
 
 ---
 
-## Adding a language
-
-See [ADDING_A_LANGUAGE.md](ADDING_A_LANGUAGE.md) — one documented system
-(a scaffold script + a shared theme + a shared component stylesheet) for
-adding a new practice language, instead of hand-copying an existing one.
-
 ## Roadmap
 
 Active work is tracked as GitHub issues, grouped into epics:
