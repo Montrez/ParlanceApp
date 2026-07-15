@@ -17,6 +17,7 @@
 		E778CF132F9E327000296847 /* PrivacyPolicyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E778CF122F9E327000296847 /* PrivacyPolicyView.swift */; };
 		547F896FA6263A8D95B9640E /* LanguageRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E532F21C3E862E57082D386 /* LanguageRegistry.swift */; };
 		E778CF172F9E3AF800296847 /* styles.css in Resources */ = {isa = PBXBuildFile; fileRef = E778CF162F9E3AF800296847 /* styles.css */; };
+		E178EA5FAF294FD995B2250E /* theme.css in Resources */ = {isa = PBXBuildFile; fileRef = A463845C556249D6A0B89D6A /* theme.css */; };
 		E778CF192F9E3AF800296847 /* guide-es.html in Resources */ = {isa = PBXBuildFile; fileRef = E778CF182F9E3AF800296847 /* guide-es.html */; };
 		E778CF1B2F9E3AF800296847 /* guide-fr.html in Resources */ = {isa = PBXBuildFile; fileRef = E778CF1A2F9E3AF800296847 /* guide-fr.html */; };
 		E7DIAL012F9E500000296847 /* dialect-guide.css in Resources */ = {isa = PBXBuildFile; fileRef = E7DIAL022F9E500000296847 /* dialect-guide.css */; };
@@ -27,6 +28,7 @@
 		E778CF212F9E46DF00296847 /* OnDeviceAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E778CF202F9E46DF00296847 /* OnDeviceAnalyzer.swift */; };
 		E7924DC62FA115DE002A93FF /* rag-knowledge.js in Resources */ = {isa = PBXBuildFile; fileRef = E7924DC52FA115DE002A93FF /* rag-knowledge.js */; };
 		D3CE4862509CA3F6C34F893A /* languages.js in Resources */ = {isa = PBXBuildFile; fileRef = 174B51703D7FCC6A370B4073 /* languages.js */; };
+		DF7A313037314D04BAB614CC /* locales in Resources */ = {isa = PBXBuildFile; fileRef = 7D64C0421C1B42F0BE5EA5A2 /* locales */; };
 		E7AI0001 /* AIProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7AI0002 /* AIProvider.swift */; };
 		E7AI0003 /* AISettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7AI0004 /* AISettingsView.swift */; };
 		E7AI0005 /* ExternalAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7AI0006 /* ExternalAnalyzer.swift */; };
@@ -71,6 +73,7 @@
 		E778CF122F9E327000296847 /* PrivacyPolicyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyPolicyView.swift; sourceTree = "<group>"; };
 		6E532F21C3E862E57082D386 /* LanguageRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageRegistry.swift; sourceTree = "<group>"; };
 		E778CF162F9E3AF800296847 /* styles.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = styles.css; sourceTree = "<group>"; };
+		A463845C556249D6A0B89D6A /* theme.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = "theme.css"; sourceTree = "<group>"; };
 		E778CF182F9E3AF800296847 /* guide-es.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "guide-es.html"; sourceTree = "<group>"; };
 		E778CF1A2F9E3AF800296847 /* guide-fr.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "guide-fr.html"; sourceTree = "<group>"; };
 		E7DIAL022F9E500000296847 /* dialect-guide.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = "dialect-guide.css"; sourceTree = "<group>"; };
@@ -81,6 +84,7 @@
 		E778CF202F9E46DF00296847 /* OnDeviceAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnDeviceAnalyzer.swift; sourceTree = "<group>"; };
 		E7924DC52FA115DE002A93FF /* rag-knowledge.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "rag-knowledge.js"; sourceTree = "<group>"; };
 		174B51703D7FCC6A370B4073 /* languages.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "languages.js"; sourceTree = "<group>"; };
+		7D64C0421C1B42F0BE5EA5A2 /* locales */ = {isa = PBXFileReference; lastKnownFileType = folder; path = locales; sourceTree = "<group>"; };
 		E7AI0002 /* AIProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIProvider.swift; sourceTree = "<group>"; };
 		E7AI0004 /* AISettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AISettingsView.swift; sourceTree = "<group>"; };
 		E7AI0006 /* ExternalAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalAnalyzer.swift; sourceTree = "<group>"; };
@@ -189,6 +193,7 @@
 			isa = PBXGroup;
 			children = (
 				E778CF162F9E3AF800296847 /* styles.css */,
+				A463845C556249D6A0B89D6A /* theme.css */,
 				E778CF1C2F9E3B5300296847 /* journal.js */,
 				E778CF1E2F9E3B7000296847 /* index.html */,
 				E778CF182F9E3AF800296847 /* guide-es.html */,
@@ -198,7 +203,7 @@
 				E7DIAL022F9E500000296847 /* dialect-guide.css */,
 				E7924DC52FA115DE002A93FF /* rag-knowledge.js */,
 				174B51703D7FCC6A370B4073 /* languages.js */,
-				E7DE265F2FBFEEC70066F0F5 /* locales 2 */,
+				7D64C0421C1B42F0BE5EA5A2 /* locales */,
 				E7DE26602FBFEED80066F0F5 /* i18n.js */,
 				E7WEB0010 /* feedback-sanitize.js */,
 				E7WEB0012 /* coach-rules-es.js */,
@@ -206,23 +211,8 @@
 				E7WEB0016 /* coach-standard-es.js */,
 				E7WEB0018 /* coach-standard.js */,
 				E7WEB0020 /* coach-standard-fr.js */,
-				E7DE26622FBFF01C0066F0F5 /* locales 2 */,
 			);
 			path = web;
-			sourceTree = "<group>";
-		};
-		E7DE265F2FBFEEC70066F0F5 /* locales 2 */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = "locales 2";
-			sourceTree = "<group>";
-		};
-		E7DE26622FBFF01C0066F0F5 /* locales 2 */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = "locales 2";
 			sourceTree = "<group>";
 		};
 		E7SLM0040 /* Models */ = {
@@ -312,7 +302,9 @@
 				A1000004 /* Assets.xcassets in Resources */,
 				E7924DC62FA115DE002A93FF /* rag-knowledge.js in Resources */,
 				D3CE4862509CA3F6C34F893A /* languages.js in Resources */,
+				DF7A313037314D04BAB614CC /* locales in Resources */,
 				E778CF172F9E3AF800296847 /* styles.css in Resources */,
+				E178EA5FAF294FD995B2250E /* theme.css in Resources */,
 				E778CF192F9E3AF800296847 /* guide-es.html in Resources */,
 				E7DIAL032F9E500000296847 /* dialect-es.html in Resources */,
 				E7DIAL052F9E500000296847 /* dialect-fr.html in Resources */,
