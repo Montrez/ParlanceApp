@@ -660,12 +660,15 @@ Done. Remaining manual steps for '{code}' ({name}):
      bundle the MLX weights, add a row to Parlance/LanguageRegistry.swift,
      flip hasOnDeviceModel to true in languages.js, and follow #15's
      training pipeline plan.
-  7. Content HTML files (guide-{code}.html, dialect-{code}.html,
-     coach-standard-{code}.js{', coach-rules-' + code + '.js' if args.with_rules else ''})
-     need to be added as bundled resources in Parlance.xcodeproj/project.pbxproj
-     for the native app to load them from WKWebView — this project uses
-     explicit PBXFileReference entries, not synchronized folders, so this is
-     still a manual pbxproj edit (see #14's Xcode-automation half; not yet scripted).
+  7. Wire the new content files into Xcode so the native app can load them
+     from WKWebView (this project uses explicit PBXFileReference entries, not
+     synchronized folders):
+
+         python3 scripts/xcode_add_web_resources.py guide-{code}.html dialect-{code}.html \\
+             coach-standard-{code}.js{' coach-rules-' + code + '.js' if args.with_rules else ''}
+
+     Then sanity-check with `xcodebuild -list -project Parlance.xcodeproj`
+     and a real build before committing.
 """)
     return 0
 
