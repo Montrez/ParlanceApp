@@ -61,5 +61,11 @@
   "prompts_fr_4": "Describe an important person in your life.",
   "prompts_fr_5": "What are your professional goals for this year?",
   "prompts_fr_6": "Write about a French cultural tradition you find interesting.",
-  "prompts_fr_7": "What do you think about the importance of languages in today's world?"
+  "prompts_fr_7": "What do you think about the importance of languages in today's world?",
+  "aiSettings": "AI",
+  "aiSettingsTitle": "AI settings",
+  "interfaceLangTitle": "App language (menus and guides)",
+  "practiceLangTitle": "Practice language (what you write)",
+  "toggleTheme": "Toggle theme",
+  "guideReadLangLabel": "Read guide in"
 }

@@ -6,7 +6,7 @@
   "wordCount_one": "{n} mot",
   "wordCount_other": "{n} mots",
   "addSentence": "Ajouter un autre paragraphe",
-  "getFeedback": "Feedback",
+  "getFeedback": "Analyser",
   "analyzeHint": "Écrivez librement — les paragraphes sont bienvenus. ⌘Entrée / Ctrl+Entrée pour le retour.",
   "saveEntry": "Sauvegarder l'entrée",
   "feedback": "Retour",
@@ -61,5 +61,11 @@
   "prompts_fr_4": "Décrivez une personne importante dans votre vie.",
   "prompts_fr_5": "Quels sont vos objectifs professionnels pour cette année ?",
   "prompts_fr_6": "Écrivez sur une tradition culturelle française que vous trouvez intéressante.",
-  "prompts_fr_7": "Que pensez-vous de l'importance des langues dans le monde actuel ?"
+  "prompts_fr_7": "Que pensez-vous de l'importance des langues dans le monde actuel ?",
+  "aiSettings": "IA",
+  "aiSettingsTitle": "Réglages IA",
+  "interfaceLangTitle": "Langue de l'app (menus et guides)",
+  "practiceLangTitle": "Langue de pratique (ce que vous écrivez)",
+  "toggleTheme": "Changer le thème",
+  "guideReadLangLabel": "Lire le guide en"
 }

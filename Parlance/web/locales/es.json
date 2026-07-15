@@ -6,7 +6,7 @@
   "wordCount_one": "{n} palabra",
   "wordCount_other": "{n} palabras",
   "addSentence": "Agregar otro párrafo",
-  "getFeedback": "Feedback",
+  "getFeedback": "Analizar",
   "analyzeHint": "Escribe con libertad — los párrafos están bien. ⌘Enter / Ctrl+Enter para feedback.",
   "saveEntry": "Guardar entrada",
   "feedback": "Retroalimentación",
@@ -61,5 +61,11 @@
   "prompts_fr_4": "Describe a una persona importante en tu vida.",
   "prompts_fr_5": "¿Cuáles son tus metas profesionales para este año?",
   "prompts_fr_6": "Escribe sobre una tradición cultural francesa que te parezca interesante.",
-  "prompts_fr_7": "¿Qué opinas sobre la importancia de los idiomas en el mundo actual?"
+  "prompts_fr_7": "¿Qué opinas sobre la importancia de los idiomas en el mundo actual?",
+  "aiSettings": "IA",
+  "aiSettingsTitle": "Ajustes de IA",
+  "interfaceLangTitle": "Idioma de la app (menús y guías)",
+  "practiceLangTitle": "Idioma de práctica (lo que escribes)",
+  "toggleTheme": "Cambiar tema",
+  "guideReadLangLabel": "Leer guía en"
 }

@@ -6,7 +6,7 @@
 <title>Regional Guide — French</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="content-theme.css?v=1">
-<link rel="stylesheet" href="content-guide.css?v=1">
+<link rel="stylesheet" href="content-guide.css?v=2">
 <style>
   [data-guide-ui="native"] .ui-en { display: none !important; }
   [data-guide-ui="en"] .ui-native { display: none !important; }
@@ -20,6 +20,14 @@
     <h1 class="ui-native">🌍 Dialectes</h1>
     <p class="ui-en">For fluent speakers and interpreters</p>
     <p class="ui-native">Pour locuteurs natifs et interprètes</p>
+  </div>
+  <div class="guide-lang-switch">
+    <div class="nav-section-label ui-en">Read guide in</div>
+    <div class="nav-section-label ui-native">Lire le guide en</div>
+    <div class="guide-lang-btns">
+      <button type="button" class="guide-lang-btn" data-guide-read="en" onclick="setGuideReadLang('en')">EN</button>
+      <button type="button" class="guide-lang-btn" data-guide-read="native" onclick="setGuideReadLang('native')">FR</button>
+    </div>
   </div>
   <div class="nav-section-label ui-en">Tool</div>
   <div class="nav-section-label ui-native">Outil</div>
@@ -311,12 +319,25 @@ window.applyGuideEnv = function applyGuideEnv(ui, theme) {
     url.searchParams.set('theme', theme === 'dark' ? 'dark' : 'light');
     a.setAttribute('href', url.pathname.split('/').pop() + '?' + url.searchParams.toString());
   });
+  document.querySelectorAll('.guide-lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.guideRead === (useNative ? 'native' : 'en'));
+  });
   document.title = useNative ? 'Guide des dialectes — Français' : 'Regional Guide — French';
 }
+
+window.setGuideReadLang = function setGuideReadLang(mode) {
+  const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  const ui = mode === 'native' ? 'fr' : 'en';
+  applyGuideEnv(ui, theme);
+  try { localStorage.setItem('parlance_guide_read_fr', ui); } catch (_) {}
+};
 
 (function initGuideEnv() {
   const params = new URLSearchParams(location.search);
   let ui = params.get('ui');
+  if (!ui) {
+    try { ui = localStorage.getItem('parlance_guide_read_fr'); } catch (_) {}
+  }
   if (!ui) {
     try { ui = localStorage.getItem('parlance_ui_lang'); } catch (_) {}
   }

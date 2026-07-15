@@ -118,6 +118,45 @@ body.lang-fr .nav-item.active {
   line-height: 1.5;
 }
 
+.guide-lang-switch {
+  padding: 0 1.25rem 0.85rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.5rem;
+}
+.guide-lang-switch .nav-section-label {
+  padding-left: 0;
+  padding-right: 0;
+}
+.guide-lang-btns {
+  display: flex;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+.guide-lang-btn {
+  flex: 1;
+  background: var(--tag-bg);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 0.35rem 0.4rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.guide-lang-btn:hover { color: var(--text); border-color: var(--muted); }
+.guide-lang-btn.active {
+  background: var(--red-bg);
+  border-color: var(--red);
+  color: var(--red);
+}
+body.lang-fr .guide-lang-btn.active {
+  background: var(--blue-bg);
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
 /* CONTENT */
 .content {
   flex: 1;

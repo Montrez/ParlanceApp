@@ -1092,9 +1092,44 @@ async function analyzeWithAI(sentence, language, progressCallback) {
 // HTML elements use data-i18n attributes for declarative binding.
 // To add a language: create locales/xx.json and add an <option> to #uiLangSelect.
 
+function updateDateBadge() {
+  const locale = (typeof i18n !== 'undefined' && i18n.getLocale) ? i18n.getLocale() : 'en';
+  const localeTag = locale === 'es' ? 'es' : locale === 'fr' ? 'fr' : 'en-US';
+  document.getElementById('dateBadge').textContent = new Date()
+    .toLocaleDateString(localeTag, { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function refreshOpenGuideLanguage() {
+  const overlay = document.getElementById('guideOverlay');
+  const frame = document.getElementById('guideFrame');
+  if (!overlay || overlay.style.display === 'none' || !frame?.src) return;
+  const ui = document.getElementById('uiLangSelect')?.value
+    || ((typeof i18n !== 'undefined' && i18n.getLocale) ? i18n.getLocale() : 'en');
+  const theme = document.documentElement.getAttribute('data-theme') || 'light';
+  try {
+    frame.contentWindow?.postMessage({ type: 'parlanceGuideEnv', ui, theme }, '*');
+    if (typeof frame.contentWindow?.applyGuideEnv === 'function') {
+      frame.contentWindow.applyGuideEnv(ui, theme);
+    }
+  } catch (_) { /* ignore */ }
+}
+
 function onUILangChange() {
   const lang = document.getElementById('uiLangSelect').value;
-  i18n.load(lang).then(() => { updateCounts(); renderPrompts(); });
+  i18n.load(lang).then(() => {
+    updateCounts();
+    renderPrompts();
+    updateDateBadge();
+    // Re-apply dynamic Feedback buttons created after initial load
+    document.querySelectorAll('.analyze-btn').forEach(btn => {
+      btn.textContent = i18n.t('getFeedback');
+    });
+    document.querySelectorAll('.sentence-input').forEach(ta => {
+      const hint = i18n.t('analyzeHint');
+      if (hint && hint !== 'analyzeHint') ta.title = hint;
+    });
+    refreshOpenGuideLanguage();
+  });
 }
 
 // ── DARK MODE ────────────────────────────────────────────────────
@@ -1333,9 +1368,7 @@ async function init() {
   await ensureFirebaseReady().catch(() => {});
   updateFirebaseAuthUI();
   document.getElementById('uiLangSelect').value = i18n.getLocale();
-
-  document.getElementById('dateBadge').textContent = new Date()
-    .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  updateDateBadge();
 
   const savedLang = localStorage.getItem('parlance_language') || 'es';
   state.currentLanguage = savedLang;
