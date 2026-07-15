@@ -324,6 +324,9 @@ body.dark,
   --muted: #a8a098;
   --tag-bg: #2e2e34;
   --highlight: #2a2618;
+  --gold: #d4a04e;
+  --accent2: #5cb88a;
+  --accent3: #6ba3d6;
 }
 
 body.dark .nav-item.active,
@@ -334,6 +337,30 @@ body.dark .nav-item.active,
 body.dark.dialect-fr .nav-item.active,
 [data-theme="dark"] body.dialect.dialect-fr .nav-item.active {
   background: #1e2838;
+}
+
+/* .warn-box uses a hardcoded (non-token) pastel background per language,
+   so it needs its own dark variant rather than inheriting from --surface. */
+body.dark .warn-box,
+[data-theme="dark"] body.dialect .warn-box {
+  background: rgba(224, 112, 112, 0.12);
+  border-color: #5a3a38;
+}
+
+body.dark .warn-box strong,
+[data-theme="dark"] body.dialect .warn-box strong {
+  color: #e07070;
+}
+
+body.dark.dialect-fr .warn-box,
+[data-theme="dark"] body.dialect.dialect-fr .warn-box {
+  background: rgba(107, 163, 214, 0.12);
+  border-color: #2e4258;
+}
+
+body.dark.dialect-fr .warn-box strong,
+[data-theme="dark"] body.dialect.dialect-fr .warn-box strong {
+  color: #6ba3d6;
 }
 
 @media (max-width: 760px) {
