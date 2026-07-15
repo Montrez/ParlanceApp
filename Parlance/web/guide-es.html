@@ -1,441 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Spanish A1→C2 Deep Guide</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<style>
-:root {
-  --bg: #faf8f4;
-  --surface: #fff;
-  --border: #e2ddd6;
-  --text: #1a1714;
-  --muted: #8a8278;
-  --accent: #c0392b;
-  --accent2: #2e6b4a;
-  --accent3: #1a5c99;
-  --gold: #a0742a;
-  --lavender: #6b4f9e;
-  --tag-bg: #f0ece5;
-  --highlight: #fff8e8;
-}
-* { margin:0; padding:0; box-sizing:border-box; }
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'IBM Plex Sans', sans-serif;
-  font-size: 15px;
-  line-height: 1.7;
-}
-a { color: inherit; text-decoration: none; }
-
-/* LAYOUT */
-.layout { display: flex; min-height: 100vh; }
-
-/* SIDEBAR */
-.sidebar {
-  width: 260px;
-  flex-shrink: 0;
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-  padding: 1.5rem 0;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  overflow-y: auto;
-}
-.sidebar-logo {
-  padding: 0 1.25rem 1.25rem;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 1rem;
-}
-.sidebar-logo h1 {
-  font-family: 'Lora', serif;
-  font-size: 1.3rem;
-  color: var(--accent);
-}
-.sidebar-logo p { font-size: 0.75rem; color: var(--muted); margin-top: 0.1rem; }
-.nav-section-label {
-  padding: 0.5rem 1.25rem 0.2rem;
-  font-size: 0.68rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--muted);
-  font-weight: 600;
-}
-.nav-item {
-  display: block;
-  padding: 0.35rem 1.25rem;
-  font-size: 0.82rem;
-  color: var(--muted);
-  cursor: pointer;
-  border-left: 2px solid transparent;
-  transition: all 0.15s;
-}
-.nav-item:hover { color: var(--text); background: var(--tag-bg); }
-.nav-item.active { color: var(--accent); border-left-color: var(--accent); background: #fdf0ee; font-weight: 500; }
-.nav-badge {
-  display: inline-block;
-  font-size: 0.6rem;
-  padding: 1px 5px;
-  border-radius: 3px;
-  background: var(--tag-bg);
-  color: var(--muted);
-  margin-left: 4px;
-  vertical-align: middle;
-}
-.b2-nav-badge { background: #fdecea; color: var(--accent); }
-.c1-nav-badge { background: #f0eafa; color: var(--lavender); }
-.c2-nav-badge { background: #e8f0fb; color: var(--accent3); }
-
-/* CONTENT */
-.content { flex: 1; max-width: 820px; margin: 0 auto; padding: 2.5rem 2rem 5rem; }
-
-/* TENSE SECTION */
-.tense-section { margin-bottom: 4rem; scroll-margin-top: 2rem; }
-.tense-header-row {
-  display: flex;
-  align-items: baseline;
-  gap: 0.75rem;
-  margin-bottom: 0.25rem;
-}
-.tense-title {
-  font-family: 'Lora', serif;
-  font-size: 1.7rem;
-  color: var(--text);
-}
-.level-pill {
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 20px;
-  background: var(--tag-bg);
-  color: var(--muted);
-  letter-spacing: 0.05em;
-}
-.b2-pill { background: #fdecea; color: var(--accent); }
-.c1-pill { background: #f0eafa; color: var(--lavender); }
-.c2-pill { background: #e8f0fb; color: var(--accent3); }
-.b1-pill { background: #eaf3ee; color: var(--accent2); }
-.a1-pill { background: #e8f5e9; color: #2e7d32; }
-.a2-pill { background: #fff3e0; color: #e65100; }
-.a1-nav-badge { background: #e8f5e9; color: #2e7d32; }
-.a2-nav-badge { background: #fff3e0; color: #e65100; }
-.tense-nickname {
-  font-size: 0.85rem;
-  color: var(--muted);
-  margin-bottom: 1.25rem;
-  font-style: italic;
-}
-
-/* RULE BOX */
-.rule-box {
-  background: var(--highlight);
-  border: 1px solid #e8d89a;
-  border-left: 4px solid var(--gold);
-  border-radius: 0 8px 8px 0;
-  padding: 1rem 1.25rem;
-  margin-bottom: 1.25rem;
-}
-.rule-box-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold); font-weight: 600; margin-bottom: 0.4rem; }
-.rule-box p { font-size: 0.9rem; }
-.rule-box ul { padding-left: 1.2rem; font-size: 0.9rem; }
-.rule-box li { margin-bottom: 0.2rem; }
-
-/* CONJUGATION GRID */
-.conj-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem; }
-.conj-block {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  overflow: hidden;
-}
-.conj-block-header {
-  background: var(--tag-bg);
-  padding: 0.4rem 0.75rem;
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--muted);
-  font-weight: 600;
-  border-bottom: 1px solid var(--border);
-}
-.conj-table { width: 100%; border-collapse: collapse; }
-.conj-table tr:last-child td { border-bottom: none; }
-.conj-table td { padding: 0.35rem 0.75rem; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
-.conj-table td:first-child { color: var(--muted); width: 42%; font-size: 0.8rem; }
-.conj-table td:last-child { font-family: 'IBM Plex Mono', monospace; font-weight: 500; }
-.conj-table tr:hover { background: var(--tag-bg); }
-.irreg { color: var(--accent); }
-
-/* IRREGULARS TABLE */
-.irreg-table-wrap { margin-bottom: 1.25rem; overflow-x: auto; }
-.irreg-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-.irreg-table th {
-  background: var(--tag-bg);
-  border: 1px solid var(--border);
-  padding: 0.4rem 0.75rem;
-  text-align: left;
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-  font-weight: 600;
-}
-.irreg-table td { border: 1px solid var(--border); padding: 0.4rem 0.75rem; }
-.irreg-table td:first-child { font-family: 'IBM Plex Mono', monospace; font-weight: 500; color: var(--accent); }
-.irreg-table tr:hover { background: var(--tag-bg); }
-
-/* WHEN TO USE */
-.when-grid { display: grid; grid-template-columns: 1fr; gap: 0.6rem; margin-bottom: 1.25rem; }
-.when-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.85rem 1rem;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0 0.75rem;
-  align-items: start;
-}
-.when-icon { font-size: 1.1rem; margin-top: 1px; }
-.when-rule { font-size: 0.88rem; font-weight: 600; margin-bottom: 0.15rem; }
-.when-example-es { font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; color: var(--accent3); margin-bottom: 0.1rem; }
-.when-example-en { font-size: 0.78rem; color: var(--muted); }
-.when-keywords {
-  grid-column: 1 / -1;
-  margin-top: 0.5rem;
-  display: flex; flex-wrap: wrap; gap: 0.3rem;
-}
-.kw {
-  background: var(--tag-bg);
-  border-radius: 4px;
-  padding: 1px 7px;
-  font-size: 0.72rem;
-  font-family: 'IBM Plex Mono', monospace;
-  color: var(--muted);
-}
-
-/* CONTRAST BOX */
-.contrast-box {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  overflow: hidden;
-  margin-bottom: 1.25rem;
-}
-.contrast-title {
-  background: var(--tag-bg);
-  padding: 0.5rem 1rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--muted);
-  border-bottom: 1px solid var(--border);
-}
-.contrast-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  border-bottom: 1px solid var(--border);
-}
-.contrast-row:last-child { border-bottom: none; }
-.contrast-cell { padding: 0.6rem 1rem; font-size: 0.85rem; }
-.contrast-cell:first-child { border-right: 1px solid var(--border); background: #f7fcf9; }
-.contrast-cell strong { font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; display: block; margin-bottom: 0.1rem; }
-.contrast-cell em { color: var(--muted); font-size: 0.75rem; font-style: normal; }
-.contrast-header { background: var(--tag-bg) !important; font-weight: 600; color: var(--muted); font-size: 0.75rem; }
-
-/* SECTION DIVIDER */
-.sec-divider { border: none; border-top: 2px solid var(--border); margin: 3rem 0; }
-
-/* TRIGGER WORDS */
-.trigger-box {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.85rem 1rem;
-  margin-bottom: 1.25rem;
-}
-.trigger-box-title { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin-bottom: 0.5rem; }
-.trigger-list { display: flex; flex-wrap: wrap; gap: 0.35rem; }
-.trigger { background: #eaf3ee; color: var(--accent2); border-radius: 4px; padding: 2px 9px; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; }
-.trigger.red { background: #fdecea; color: var(--accent); }
-.trigger.blue { background: #e8f0fb; color: var(--accent3); }
-.trigger.purple { background: #f0eafa; color: var(--lavender); }
-
-/* TIPS */
-.tip {
-  background: #f0eafa;
-  border: 1px solid #d4c4f0;
-  border-left: 4px solid var(--lavender);
-  border-radius: 0 8px 8px 0;
-  padding: 0.75rem 1rem;
-  font-size: 0.87rem;
-  margin-bottom: 1rem;
-}
-.tip-label { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--lavender); margin-bottom: 0.2rem; }
-
-/* PAGE INTRO */
-.intro-box {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 1.25rem 1.5rem;
-  margin-bottom: 2.5rem;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 1rem;
-  align-items: center;
-}
-.intro-flag { font-size: 2.5rem; }
-.intro-title { font-family: 'Lora', serif; font-size: 1.25rem; margin-bottom: 0.15rem; }
-.intro-desc { font-size: 0.85rem; color: var(--muted); }
-
-/* SECTION LABEL */
-.section-chapter {
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--muted);
-  margin-bottom: 0.3rem;
-}
-
-/* BACK BUTTON */
-.back-btn {
-  position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 0.6rem 1.2rem;
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  z-index: 100;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-}
-.back-btn:hover { opacity: 0.9; }
-
-/* MOBILE NAV */
-.mobile-nav-btn {
-  display: none;
-  position: fixed;
-  bottom: 4.5rem;
-  right: 1.5rem;
-  background: var(--accent2);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 0.55rem 1rem;
-  font-family: 'IBM Plex Sans', sans-serif;
-  font-size: 0.82rem;
-  font-weight: 500;
-  cursor: pointer;
-  z-index: 100;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-}
-.mobile-nav-btn:hover { opacity: 0.9; }
-.sidebar-backdrop {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 150;
-  background: rgba(0,0,0,0.4);
-}
-.sidebar-backdrop.open { display: block; }
-
-@media (max-width: 680px) {
-  .sidebar { display: none; }
-  .sidebar.mobile-open {
-    display: block;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 280px;
-    height: 100vh;
-    z-index: 200;
-    box-shadow: 4px 0 20px rgba(0,0,0,0.15);
-  }
-  .mobile-nav-btn { display: block; }
-  .content { max-width: 100%; padding: 1.5rem 1.2rem 4rem; }
-  .conj-grid { grid-template-columns: 1fr; }
-  .contrast-row { grid-template-columns: 1fr; }
-}
-
-/* DARK MODE */
-/* Redefining the root tokens (rather than only overriding body/table/etc.
-   individually) means every component built on var(--surface)/var(--border)/
-   var(--tag-bg)/var(--highlight) — sidebar, intro-box, rule-box, conj-block,
-   when-card, contrast-box, trigger-box, irreg-table — goes dark automatically,
-   matching the pattern already used in dialect-guide.css. */
-[data-theme="dark"] body, body.dark {
-  --bg: #1a1a1e;
-  --surface: #242428;
-  --border: #3a3a40;
-  --text: #e8e0d0;
-  --muted: #a8a098;
-  --tag-bg: #2e2e34;
-  --highlight: #2a2618;
-  --accent2: #5cb88a;
-  --accent3: #6ba3d6;
-  --gold: #d4a04e;
-  --lavender: #c4aae8;
-}
-[data-theme="dark"] .nav-item.active, body.dark .nav-item.active {
-  background: #2a2220;
-}
-[data-theme="dark"] table, body.dark table {
-  border-color: #3a3a40;
-}
-[data-theme="dark"] .tip, body.dark .tip {
-  background: rgba(196,170,232,0.1);
-  border-color: #6b4f9e;
-}
-[data-theme="dark"] code, body.dark code {
-  background: #242428;
-  color: #3db8e8;
-}
-[data-theme="dark"] .back-btn, body.dark .back-btn {
-  background: #242428;
-  color: #e8e0d0;
-  border-color: #3a3a40;
-}
-[data-theme="dark"] .contrast-cell:first-child, body.dark .contrast-cell:first-child {
-  background: rgba(92,184,138,0.08);
-}
-[data-theme="dark"] .b2-pill, body.dark .b2-pill,
-[data-theme="dark"] .b2-nav-badge, body.dark .b2-nav-badge,
-[data-theme="dark"] .trigger.red, body.dark .trigger.red {
-  background: rgba(224,112,112,0.12); color: #e07070;
-}
-[data-theme="dark"] .c1-pill, body.dark .c1-pill,
-[data-theme="dark"] .c1-nav-badge, body.dark .c1-nav-badge,
-[data-theme="dark"] .trigger.purple, body.dark .trigger.purple {
-  background: rgba(196,170,232,0.12); color: #c4aae8;
-}
-[data-theme="dark"] .c2-pill, body.dark .c2-pill,
-[data-theme="dark"] .c2-nav-badge, body.dark .c2-nav-badge,
-[data-theme="dark"] .trigger.blue, body.dark .trigger.blue {
-  background: rgba(107,163,214,0.12); color: #6ba3d6;
-}
-[data-theme="dark"] .b1-pill, body.dark .b1-pill,
-[data-theme="dark"] .a1-pill, body.dark .a1-pill,
-[data-theme="dark"] .a1-nav-badge, body.dark .a1-nav-badge,
-[data-theme="dark"] .trigger, body.dark .trigger {
-  background: rgba(92,184,138,0.12); color: #5cb88a;
-}
-[data-theme="dark"] .a2-pill, body.dark .a2-pill,
-[data-theme="dark"] .a2-nav-badge, body.dark .a2-nav-badge {
-  background: rgba(212,160,78,0.12); color: #d4a04e;
-}
-</style>
+<link rel="stylesheet" href="content-theme.css?v=1">
+<link rel="stylesheet" href="content-guide.css?v=1">
 </head>
-<body>
+<body class="guide lang-es">
 <div class="layout">
 
 <!-- SIDEBAR -->
@@ -582,7 +155,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">🔁</div>
       <div>
         <div class="when-rule">Daily routines</div>
-        <div class="when-example-es">Cada mañana desayuno café con leche.</div>
+        <div class="when-example-native">Cada mañana desayuno café con leche.</div>
         <div class="when-example-en">Every morning I have coffee with milk.</div>
       </div>
     </div>
@@ -590,7 +163,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">🌍</div>
       <div>
         <div class="when-rule">General truths</div>
-        <div class="when-example-es">El sol sale por el este.</div>
+        <div class="when-example-native">El sol sale por el este.</div>
         <div class="when-example-en">The sun rises in the east.</div>
       </div>
     </div>
@@ -598,7 +171,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">📖</div>
       <div>
         <div class="when-rule">Current actions</div>
-        <div class="when-example-es">Ahora estudio español en mi casa.</div>
+        <div class="when-example-native">Ahora estudio español en mi casa.</div>
         <div class="when-example-en">Now I'm studying Spanish at home.</div>
       </div>
     </div>
@@ -606,7 +179,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">📅</div>
       <div>
         <div class="when-rule">Near future with present</div>
-        <div class="when-example-es">Mañana trabajo desde casa.</div>
+        <div class="when-example-native">Mañana trabajo desde casa.</div>
         <div class="when-example-en">Tomorrow I work from home.</div>
       </div>
     </div>
@@ -661,7 +234,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">🪪</div>
       <div>
         <div class="when-rule">SER — Identity</div>
-        <div class="when-example-es">Soy estudiante de español.</div>
+        <div class="when-example-native">Soy estudiante de español.</div>
         <div class="when-example-en">I am a Spanish student.</div>
       </div>
     </div>
@@ -669,7 +242,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">🌎</div>
       <div>
         <div class="when-rule">SER — Origin</div>
-        <div class="when-example-es">Ella es de Colombia.</div>
+        <div class="when-example-native">Ella es de Colombia.</div>
         <div class="when-example-en">She is from Colombia.</div>
       </div>
     </div>
@@ -677,7 +250,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">✨</div>
       <div>
         <div class="when-rule">SER — Characteristics</div>
-        <div class="when-example-es">Mi hermano es alto y simpático.</div>
+        <div class="when-example-native">Mi hermano es alto y simpático.</div>
         <div class="when-example-en">My brother is tall and nice.</div>
       </div>
     </div>
@@ -685,7 +258,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">📍</div>
       <div>
         <div class="when-rule">ESTAR — Location</div>
-        <div class="when-example-es">Estoy en la biblioteca.</div>
+        <div class="when-example-native">Estoy en la biblioteca.</div>
         <div class="when-example-en">I am in the library.</div>
       </div>
     </div>
@@ -693,7 +266,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">😊</div>
       <div>
         <div class="when-rule">ESTAR — Emotions/states</div>
-        <div class="when-example-es">Hoy estoy muy cansado.</div>
+        <div class="when-example-native">Hoy estoy muy cansado.</div>
         <div class="when-example-en">Today I am very tired.</div>
       </div>
     </div>
@@ -701,7 +274,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">🌡️</div>
       <div>
         <div class="when-rule">ESTAR — Temporary conditions</div>
-        <div class="when-example-es">La sopa está caliente.</div>
+        <div class="when-example-native">La sopa está caliente.</div>
         <div class="when-example-en">The soup is hot.</div>
       </div>
     </div>
@@ -792,7 +365,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">😴</div>
       <div>
         <div class="when-rule">o→ue in action</div>
-        <div class="when-example-es">Siempre duermo ocho horas.</div>
+        <div class="when-example-native">Siempre duermo ocho horas.</div>
         <div class="when-example-en">I always sleep eight hours.</div>
       </div>
     </div>
@@ -800,7 +373,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">☕</div>
       <div>
         <div class="when-rule">e→ie in action</div>
-        <div class="when-example-es">¿Qué prefieres, café o té?</div>
+        <div class="when-example-native">¿Qué prefieres, café o té?</div>
         <div class="when-example-en">What do you prefer, coffee or tea?</div>
       </div>
     </div>
@@ -808,7 +381,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">🧾</div>
       <div>
         <div class="when-rule">e→i in action</div>
-        <div class="when-example-es">Ella pide la cuenta.</div>
+        <div class="when-example-native">Ella pide la cuenta.</div>
         <div class="when-example-en">She asks for the check.</div>
       </div>
     </div>
@@ -863,7 +436,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">🌅</div>
       <div>
         <div class="when-rule">Daily routines</div>
-        <div class="when-example-es">Me despierto a las siete y me ducho.</div>
+        <div class="when-example-native">Me despierto a las siete y me ducho.</div>
         <div class="when-example-en">I wake up at seven and shower.</div>
       </div>
     </div>
@@ -871,7 +444,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">😊</div>
       <div>
         <div class="when-rule">Emotions</div>
-        <div class="when-example-es">Me siento feliz hoy.</div>
+        <div class="when-example-native">Me siento feliz hoy.</div>
         <div class="when-example-en">I feel happy today.</div>
       </div>
     </div>
@@ -879,7 +452,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">📞</div>
       <div>
         <div class="when-rule">Reciprocal actions</div>
-        <div class="when-example-es">Nos llamamos todos los días.</div>
+        <div class="when-example-native">Nos llamamos todos los días.</div>
         <div class="when-example-en">We call each other every day.</div>
       </div>
     </div>
@@ -933,7 +506,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">📋</div>
       <div>
         <div class="when-rule">Plans</div>
-        <div class="when-example-es">Voy a estudiar español esta noche.</div>
+        <div class="when-example-native">Voy a estudiar español esta noche.</div>
         <div class="when-example-en">I'm going to study Spanish tonight.</div>
       </div>
     </div>
@@ -941,7 +514,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">✈️</div>
       <div>
         <div class="when-rule">Intentions</div>
-        <div class="when-example-es">Vamos a viajar a México el próximo año.</div>
+        <div class="when-example-native">Vamos a viajar a México el próximo año.</div>
         <div class="when-example-en">We're going to travel to Mexico next year.</div>
       </div>
     </div>
@@ -949,7 +522,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">🌧️</div>
       <div>
         <div class="when-rule">Predictions</div>
-        <div class="when-example-es">Va a llover esta tarde.</div>
+        <div class="when-example-native">Va a llover esta tarde.</div>
         <div class="when-example-en">It's going to rain this afternoon.</div>
       </div>
     </div>
@@ -1015,7 +588,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">☕</div>
       <div>
         <div class="when-rule">Singular — one thing</div>
-        <div class="when-example-es">Me gusta el café.</div>
+        <div class="when-example-native">Me gusta el café.</div>
         <div class="when-example-en">I like coffee.</div>
       </div>
     </div>
@@ -1023,7 +596,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">📚</div>
       <div>
         <div class="when-rule">Plural — multiple things</div>
-        <div class="when-example-es">Me gustan los libros de historia.</div>
+        <div class="when-example-native">Me gustan los libros de historia.</div>
         <div class="when-example-en">I like history books.</div>
       </div>
     </div>
@@ -1031,7 +604,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">✈️</div>
       <div>
         <div class="when-rule">Infinitive — an activity</div>
-        <div class="when-example-es">Nos gusta viajar en verano.</div>
+        <div class="when-example-native">Nos gusta viajar en verano.</div>
         <div class="when-example-en">We like traveling in summer.</div>
       </div>
     </div>
@@ -1039,7 +612,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">🎵</div>
       <div>
         <div class="when-rule">Encantar — to love (stronger)</div>
-        <div class="when-example-es">A mi hermana le encanta la música.</div>
+        <div class="when-example-native">A mi hermana le encanta la música.</div>
         <div class="when-example-en">My sister loves music.</div>
       </div>
     </div>
@@ -1123,7 +696,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">✅</div>
       <div>
         <div class="when-rule">A specific completed event</div>
-        <div class="when-example-es">Ayer comí pizza con mis amigos.</div>
+        <div class="when-example-native">Ayer comí pizza con mis amigos.</div>
         <div class="when-example-en">Yesterday I ate pizza with my friends.</div>
       </div>
     </div>
@@ -1131,7 +704,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">✅</div>
       <div>
         <div class="when-rule">A series of sequential past events</div>
-        <div class="when-example-es">Me levanté, me duché y salí de casa.</div>
+        <div class="when-example-native">Me levanté, me duché y salí de casa.</div>
         <div class="when-example-en">I got up, showered and left the house. (step by step)</div>
       </div>
     </div>
@@ -1139,7 +712,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">✅</div>
       <div>
         <div class="when-rule">An event that interrupted an ongoing situation</div>
-        <div class="when-example-es">Leía cuando sonó el teléfono.</div>
+        <div class="when-example-native">Leía cuando sonó el teléfono.</div>
         <div class="when-example-en">I was reading when the phone rang. (sonó = Indefinido, leía = Imperfecto)</div>
       </div>
     </div>
@@ -1147,7 +720,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">✅</div>
       <div>
         <div class="when-rule">An action repeated a specific number of times</div>
-        <div class="when-example-es">Fui al gimnasio tres veces la semana pasada.</div>
+        <div class="when-example-native">Fui al gimnasio tres veces la semana pasada.</div>
         <div class="when-example-en">I went to the gym three times last week.</div>
       </div>
     </div>
@@ -1219,7 +792,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">🔁</div>
       <div>
         <div class="when-rule">Habitual/repeated actions (used to)</div>
-        <div class="when-example-es">De niño, siempre jugaba en el parque.</div>
+        <div class="when-example-native">De niño, siempre jugaba en el parque.</div>
         <div class="when-example-en">As a child, I always used to play in the park.</div>
       </div>
     </div>
@@ -1227,7 +800,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">🎨</div>
       <div>
         <div class="when-rule">Describing background conditions / states</div>
-        <div class="when-example-es">El restaurante era pequeño y hacía mucho calor.</div>
+        <div class="when-example-native">El restaurante era pequeño y hacía mucho calor.</div>
         <div class="when-example-en">The restaurant was small and it was very hot.</div>
       </div>
     </div>
@@ -1235,7 +808,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">⏳</div>
       <div>
         <div class="when-rule">Action in progress when something else happened</div>
-        <div class="when-example-es">Dormía cuando llegó mi hermano.</div>
+        <div class="when-example-native">Dormía cuando llegó mi hermano.</div>
         <div class="when-example-en">I was sleeping when my brother arrived. (Dormía = ongoing, llegó = interruption)</div>
       </div>
     </div>
@@ -1243,7 +816,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">🕐</div>
       <div>
         <div class="when-rule">Telling the time or age in the past</div>
-        <div class="when-example-es">Eran las tres de la tarde. Tenía doce años.</div>
+        <div class="when-example-native">Eran las tres de la tarde. Tenía doce años.</div>
         <div class="when-example-en">It was three in the afternoon. I was twelve years old.</div>
       </div>
     </div>
@@ -1267,9 +840,9 @@ a { color: inherit; text-decoration: none; }
 
   <div class="contrast-box">
     <div class="contrast-title">Side-by-Side Contrasts</div>
-    <div class="contrast-row">
-      <div class="contrast-cell contrast-header">Imperfecto (background/habit)</div>
-      <div class="contrast-cell contrast-header">Indefinido (event/completion)</div>
+    <div class="contrast-row contrast-header">
+      <div class="contrast-cell">Imperfecto (background/habit)</div>
+      <div class="contrast-cell">Indefinido (event/completion)</div>
     </div>
     <div class="contrast-row">
       <div class="contrast-cell"><strong>Vivía en Madrid.</strong><em>I used to live / I was living in Madrid. (no defined end)</em></div>
@@ -1357,7 +930,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">📅</div>
       <div>
         <div class="when-rule">Actions within a time frame still in progress</div>
-        <div class="when-example-es">Esta semana he trabajado mucho.</div>
+        <div class="when-example-native">Esta semana he trabajado mucho.</div>
         <div class="when-example-en">This week I have worked a lot. (the week isn't over)</div>
       </div>
     </div>
@@ -1365,7 +938,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">🌍</div>
       <div>
         <div class="when-rule">Life experiences (ever/never)</div>
-        <div class="when-example-es">¿Has visitado alguna vez Japón?</div>
+        <div class="when-example-native">¿Has visitado alguna vez Japón?</div>
         <div class="when-example-en">Have you ever visited Japan?</div>
       </div>
     </div>
@@ -1373,7 +946,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">🔗</div>
       <div>
         <div class="when-rule">Past action with present consequence</div>
-        <div class="when-example-es">He perdido las llaves. (so I can't get in now)</div>
+        <div class="when-example-native">He perdido las llaves. (so I can't get in now)</div>
         <div class="when-example-en">I have lost my keys.</div>
       </div>
     </div>
@@ -1437,7 +1010,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">📅</div>
       <div>
         <div class="when-rule">Future plans or predictions</div>
-        <div class="when-example-es">El próximo año viviremos en París.</div>
+        <div class="when-example-native">El próximo año viviremos en París.</div>
         <div class="when-example-en">Next year we will live in Paris.</div>
       </div>
     </div>
@@ -1445,7 +1018,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">🤔</div>
       <div>
         <div class="when-rule">Probability / speculation about the present (B2!)</div>
-        <div class="when-example-es">¿Dónde estará Juan? — Estará en el trabajo.</div>
+        <div class="when-example-native">¿Dónde estará Juan? — Estará en el trabajo.</div>
         <div class="when-example-en">Where could Juan be? — He's probably at work.</div>
       </div>
     </div>
@@ -1453,7 +1026,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">⚠️</div>
       <div>
         <div class="when-rule">Note: ir a + infinitive is more common in speech</div>
-        <div class="when-example-es">Voy a llamarte mañana. (more natural in conversation)</div>
+        <div class="when-example-native">Voy a llamarte mañana. (more natural in conversation)</div>
         <div class="when-example-en">I'm going to call you tomorrow.</div>
       </div>
     </div>
@@ -1510,7 +1083,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">💡</div>
       <div>
         <div class="when-rule">Hypothetical consequences (the "then" in if/then)</div>
-        <div class="when-example-es">Si tuviera dinero, compraría una casa.</div>
+        <div class="when-example-native">Si tuviera dinero, compraría una casa.</div>
         <div class="when-example-en">If I had money, I would buy a house.</div>
       </div>
     </div>
@@ -1518,7 +1091,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">🤝</div>
       <div>
         <div class="when-rule">Polite requests (softer than present tense)</div>
-        <div class="when-example-es">¿Podrías ayudarme? / Me gustaría reservar una mesa.</div>
+        <div class="when-example-native">¿Podrías ayudarme? / Me gustaría reservar una mesa.</div>
         <div class="when-example-en">Could you help me? / I would like to reserve a table.</div>
       </div>
     </div>
@@ -1526,7 +1099,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">💬</div>
       <div>
         <div class="when-rule">Reported speech (what someone said they "would" do)</div>
-        <div class="when-example-es">Dijo que vendría a las ocho.</div>
+        <div class="when-example-native">Dijo que vendría a las ocho.</div>
         <div class="when-example-en">He said he would come at eight.</div>
       </div>
     </div>
@@ -1534,7 +1107,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">🤔</div>
       <div>
         <div class="when-rule">Probability in the past (B2)</div>
-        <div class="when-example-es">Serían las tres cuando llegó.</div>
+        <div class="when-example-native">Serían las tres cuando llegó.</div>
         <div class="when-example-en">It was probably three o'clock when he arrived.</div>
       </div>
     </div>
@@ -1594,7 +1167,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">🙏</div>
       <div>
         <div class="when-rule">Wishes and desires (querer que, desear que, esperar que)</div>
-        <div class="when-example-es">Quiero que vengas conmigo.</div>
+        <div class="when-example-native">Quiero que vengas conmigo.</div>
         <div class="when-example-en">I want you to come with me. (two different subjects = subjunctive)</div>
       </div>
     </div>
@@ -1602,7 +1175,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">😊</div>
       <div>
         <div class="when-rule">Emotions about others' actions (alegrarse de que, temer que)</div>
-        <div class="when-example-es">Me alegra que estés bien.</div>
+        <div class="when-example-native">Me alegra que estés bien.</div>
         <div class="when-example-en">I'm glad that you're well.</div>
       </div>
     </div>
@@ -1610,7 +1183,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">🤨</div>
       <div>
         <div class="when-rule">Doubt or denial (no creer que, dudar que)</div>
-        <div class="when-example-es">No creo que tenga razón.</div>
+        <div class="when-example-native">No creo que tenga razón.</div>
         <div class="when-example-en">I don't think she's right.</div>
       </div>
     </div>
@@ -1618,7 +1191,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">⚖️</div>
       <div>
         <div class="when-rule">Recommendations and necessity (es necesario que, es mejor que)</div>
-        <div class="when-example-es">Es importante que llegues a tiempo.</div>
+        <div class="when-example-native">Es importante que llegues a tiempo.</div>
         <div class="when-example-en">It's important that you arrive on time.</div>
       </div>
     </div>
@@ -1626,7 +1199,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">🔮</div>
       <div>
         <div class="when-rule">Future time clauses (cuando, en cuanto, hasta que, antes de que)</div>
-        <div class="when-example-es">Te llamo cuando llegue a casa.</div>
+        <div class="when-example-native">Te llamo cuando llegue a casa.</div>
         <div class="when-example-en">I'll call you when I get home. (not "cuando llego" — it's in the future!)</div>
       </div>
     </div>
@@ -1634,7 +1207,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">🔍</div>
       <div>
         <div class="when-rule">Indefinite/hypothetical antecedent</div>
-        <div class="when-example-es">Busco un piso que tenga dos baños. (vs. "que tiene" — I know which one)</div>
+        <div class="when-example-native">Busco un piso que tenga dos baños. (vs. "que tiene" — I know which one)</div>
         <div class="when-example-en">I'm looking for a flat that has two bathrooms (any one that does).</div>
       </div>
     </div>
@@ -1687,7 +1260,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">⏮️</div>
       <div>
         <div class="when-rule">Action completed before another past action</div>
-        <div class="when-example-es">Cuando llegué, ella ya había salido.</div>
+        <div class="when-example-native">Cuando llegué, ella ya había salido.</div>
         <div class="when-example-en">When I arrived, she had already left. (she left first, then I arrived)</div>
       </div>
     </div>
@@ -1695,7 +1268,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">😮</div>
       <div>
         <div class="when-rule">Reporting something someone hadn't done yet</div>
-        <div class="when-example-es">Me dijo que nunca había visitado España.</div>
+        <div class="when-example-native">Me dijo que nunca había visitado España.</div>
         <div class="when-example-en">He told me he had never visited Spain.</div>
       </div>
     </div>
@@ -1703,7 +1276,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">📖</div>
       <div>
         <div class="when-rule">In narratives — setting up backstory</div>
-        <div class="when-example-es">No reconocí el lugar. Todo había cambiado.</div>
+        <div class="when-example-native">No reconocí el lugar. Todo había cambiado.</div>
         <div class="when-example-en">I didn't recognise the place. Everything had changed.</div>
       </div>
     </div>
@@ -1760,7 +1333,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">🔀</div>
       <div>
         <div class="when-rule">If-clauses with unreal/hypothetical present situations (Si + Imp. Subj. → Conditional)</div>
-        <div class="when-example-es">Si tuviera más tiempo, aprendería el piano.</div>
+        <div class="when-example-native">Si tuviera más tiempo, aprendería el piano.</div>
         <div class="when-example-en">If I had more time (but I don't), I would learn the piano.</div>
       </div>
     </div>
@@ -1768,7 +1341,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">⏪</div>
       <div>
         <div class="when-rule">Wishes/emotions/doubt expressed in the past (Sequence of Tenses)</div>
-        <div class="when-example-es">Quería que vinieras a la reunión.</div>
+        <div class="when-example-native">Quería que vinieras a la reunión.</div>
         <div class="when-example-en">I wanted you to come to the meeting.</div>
       </div>
     </div>
@@ -1776,7 +1349,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">😔</div>
       <div>
         <div class="when-rule">Wishes about the present (Ojalá + Imp. Subj.)</div>
-        <div class="when-example-es">Ojalá pudiera ir contigo. (but I can't)</div>
+        <div class="when-example-native">Ojalá pudiera ir contigo. (but I can't)</div>
         <div class="when-example-en">I wish I could go with you.</div>
       </div>
     </div>
@@ -1784,7 +1357,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">🙏</div>
       <div>
         <div class="when-rule">Polite requests (quisiera = softer version of quiero)</div>
-        <div class="when-example-es">Quisiera una mesa para dos, por favor.</div>
+        <div class="when-example-native">Quisiera una mesa para dos, por favor.</div>
         <div class="when-example-en">I would like a table for two, please. (very polite)</div>
       </div>
     </div>
@@ -1792,7 +1365,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">💬</div>
       <div>
         <div class="when-rule">como si (as if) — always triggers Imp. Subj.</div>
-        <div class="when-example-es">Habla como si supiera todo.</div>
+        <div class="when-example-native">Habla como si supiera todo.</div>
         <div class="when-example-en">He talks as if he knew everything.</div>
       </div>
     </div>
@@ -1813,9 +1386,9 @@ a { color: inherit; text-decoration: none; }
 
   <div class="contrast-box">
     <div class="contrast-title">The Three Si Clause Patterns</div>
-    <div class="contrast-row">
-      <div class="contrast-cell contrast-header">Si clause (condition)</div>
-      <div class="contrast-cell contrast-header">Result clause (consequence)</div>
+    <div class="contrast-row contrast-header">
+      <div class="contrast-cell">Si clause (condition)</div>
+      <div class="contrast-cell">Result clause (consequence)</div>
     </div>
     <div class="contrast-row">
       <div class="contrast-cell">
@@ -1990,7 +1563,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">😔</div>
       <div>
         <div class="when-rule">Impossible past wishes (Ojalá + Pluscuam. Subj.)</div>
-        <div class="when-example-es">Ojalá hubiera estudiado más en la universidad.</div>
+        <div class="when-example-native">Ojalá hubiera estudiado más en la universidad.</div>
         <div class="when-example-en">I wish I had studied more at university. (but I didn't — too late)</div>
       </div>
     </div>
@@ -1998,7 +1571,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">🔀</div>
       <div>
         <div class="when-rule">Type 3 si clauses — the impossible past condition</div>
-        <div class="when-example-es">Si hubiera llegado a tiempo, habría conseguido el trabajo.</div>
+        <div class="when-example-native">Si hubiera llegado a tiempo, habría conseguido el trabajo.</div>
         <div class="when-example-en">If I had arrived on time, I would have gotten the job.</div>
       </div>
     </div>
@@ -2006,7 +1579,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">😊</div>
       <div>
         <div class="when-rule">Emotions about past events (me alegró que, lamenté que)</div>
-        <div class="when-example-es">Me alegré de que hubieras venido a la reunión.</div>
+        <div class="when-example-native">Me alegré de que hubieras venido a la reunión.</div>
         <div class="when-example-en">I was glad that you had come to the meeting.</div>
       </div>
     </div>
@@ -2014,7 +1587,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">💬</div>
       <div>
         <div class="when-rule">como si + past unreal (as if something had happened)</div>
-        <div class="when-example-es">Habló como si no hubiera pasado nada.</div>
+        <div class="when-example-native">Habló como si no hubiera pasado nada.</div>
         <div class="when-example-en">He spoke as if nothing had happened.</div>
       </div>
     </div>
@@ -2046,9 +1619,9 @@ a { color: inherit; text-decoration: none; }
 
   <div class="contrast-box">
     <div class="contrast-title">Key Perífrasis for Interpreters</div>
-    <div class="contrast-row">
-      <div class="contrast-cell contrast-header">Perífrasis</div>
-      <div class="contrast-cell contrast-header">Meaning & Example</div>
+    <div class="contrast-row contrast-header">
+      <div class="contrast-cell">Perífrasis</div>
+      <div class="contrast-cell">Meaning & Example</div>
     </div>
     <div class="contrast-row">
       <div class="contrast-cell"><strong>llevar + gerundio</strong><em>duration up to now</em></div>
@@ -2110,9 +1683,9 @@ a { color: inherit; text-decoration: none; }
 
   <div class="contrast-box">
     <div class="contrast-title">Common Anglicisms to Avoid</div>
-    <div class="contrast-row">
-      <div class="contrast-cell contrast-header">Anglicism (avoid)</div>
-      <div class="contrast-cell contrast-header">Correct Spanish</div>
+    <div class="contrast-row contrast-header">
+      <div class="contrast-cell">Anglicism (avoid)</div>
+      <div class="contrast-cell">Correct Spanish</div>
     </div>
     <div class="contrast-row">
       <div class="contrast-cell"><strong>aplicar para un trabajo</strong><em>calque from "apply for"</em></div>
@@ -2138,9 +1711,9 @@ a { color: inherit; text-decoration: none; }
 
   <div class="contrast-box">
     <div class="contrast-title">Register Elevation: Informal → Professional</div>
-    <div class="contrast-row">
-      <div class="contrast-cell contrast-header">Everyday (B2)</div>
-      <div class="contrast-cell contrast-header">Professional register (C1)</div>
+    <div class="contrast-row contrast-header">
+      <div class="contrast-cell">Everyday (B2)</div>
+      <div class="contrast-cell">Professional register (C1)</div>
     </div>
     <div class="contrast-row">
       <div class="contrast-cell"><strong>Creo que es un buen plan.</strong></div>
@@ -2253,7 +1826,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">⚖️</div>
       <div>
         <div class="when-rule">Legal conditions — "whoever / if someone should"</div>
-        <div class="when-example-es">El que infringiere esta ley será sancionado.</div>
+        <div class="when-example-native">El que infringiere esta ley será sancionado.</div>
         <div class="when-example-en">Whoever violates this law shall be sanctioned.</div>
       </div>
     </div>
@@ -2261,7 +1834,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">📜</div>
       <div>
         <div class="when-rule">Famous proverbs and set phrases</div>
-        <div class="when-example-es">Donde fueres, haz lo que vieres.</div>
+        <div class="when-example-native">Donde fueres, haz lo que vieres.</div>
         <div class="when-example-en">When in Rome, do as the Romans do. (lit: wherever you go, do what you see)</div>
       </div>
     </div>
@@ -2269,7 +1842,7 @@ a { color: inherit; text-decoration: none; }
       <div class="when-icon">🏛️</div>
       <div>
         <div class="when-rule">Constitutional and legislative language</div>
-        <div class="when-example-es">Si el cargo quedare vacante, se procederá a nueva elección.</div>
+        <div class="when-example-native">Si el cargo quedare vacante, se procederá a nueva elección.</div>
         <div class="when-example-en">If the position should become vacant, a new election shall proceed.</div>
       </div>
     </div>
@@ -2301,9 +1874,9 @@ a { color: inherit; text-decoration: none; }
 
   <div class="contrast-box">
     <div class="contrast-title">Nuanced Word Choice</div>
-    <div class="contrast-row">
-      <div class="contrast-cell contrast-header">Generic (correct but flat)</div>
-      <div class="contrast-cell contrast-header">Precise (native-sounding)</div>
+    <div class="contrast-row contrast-header">
+      <div class="contrast-cell">Generic (correct but flat)</div>
+      <div class="contrast-cell">Precise (native-sounding)</div>
     </div>
     <div class="contrast-row">
       <div class="contrast-cell"><strong>hacer un discurso</strong><em>make a speech</em></div>
@@ -2329,9 +1902,9 @@ a { color: inherit; text-decoration: none; }
 
   <div class="contrast-box">
     <div class="contrast-title">Advanced Discourse Connectors</div>
-    <div class="contrast-row">
-      <div class="contrast-cell contrast-header">Function</div>
-      <div class="contrast-cell contrast-header">Connectors</div>
+    <div class="contrast-row contrast-header">
+      <div class="contrast-cell">Function</div>
+      <div class="contrast-cell">Connectors</div>
     </div>
     <div class="contrast-row">
       <div class="contrast-cell"><strong>Adding</strong><em>moreover, furthermore</em></div>

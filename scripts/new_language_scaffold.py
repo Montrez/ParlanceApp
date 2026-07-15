@@ -299,15 +299,19 @@ def build_coach_rules_stub(code: str, name: str) -> str:
 
 
 def build_guide_html(template_text: str, code: str, name: str, coach_role: str) -> str:
-    body_start = template_text.index("<body>")
+    body_open_start = template_text.index("<body")
+    body_start = template_text.index(">", body_open_start) + 1
     nav_start = template_text.index("<nav class=\"sidebar\">", body_start)
     content_start = template_text.index('<div class="content">', nav_start)
     content_end = template_text.index("</div><!-- /content -->", content_start) + len("</div><!-- /content -->")
 
-    head = template_text[:body_start]
+    head = template_text[:body_open_start]
     head = re.sub(r"<title>.*?</title>", f"<title>{name} A1\u2192C2 Deep Guide (TODO)</title>", head, count=1)
-    # guide-es.html/guide-fr.html both have `lang="en"` on <html> (a known bug,
-    # tracked separately in #21) — set it correctly here instead of copying that forward.
+    # guide-es.html/guide-fr.html both used to have `lang="en"` on <html> (a
+    # known bug, fixed for #21) — set it correctly here instead of copying
+    # that forward. head/content colors and structure both come from the
+    # shared content-theme.css/content-guide.css links already in this head;
+    # do not add a per-language <style> block here.
     head = re.sub(r'<html lang="[a-z]{2}">', f'<html lang="{code}">', head, count=1)
 
     tail = template_text[content_end:]
@@ -316,7 +320,7 @@ def build_guide_html(template_text: str, code: str, name: str, coach_role: str) 
         f'  <a class="nav-item" href="#todo-{lvl.lower()}">TODO: {lvl} topic <span class="nav-badge">{lvl}</span></a>'
         for lvl in CEFR_LEVELS
     )
-    nav = f"""<body>
+    nav = f"""<body class="guide lang-{code}">
 <div class="layout">
 
 <!-- SIDEBAR -->
@@ -376,13 +380,14 @@ def build_dialect_html(template_text: str, code: str, name: str) -> str:
 
     tail = template_text[body_end:]
 
-    body_open = f'<body class="dialect dialect-{code}">\n<div class="layout">\n<nav class="sidebar">\n'
+    body_open = f'<body class="dialect lang-{code}">\n<div class="layout">\n<nav class="sidebar">\n'
     nav_body = """  <div class="sidebar-logo">
     <h1>\U0001F30E TODO: Dialects</h1>
     <p>TODO: tagline for native speakers & interpreters</p>
   </div>
-  <div class="nav-label">TODO: nav label</div>
+  <div class="nav-section-label">TODO: tool</div>
   <a class="nav-item active" href="#picker">TODO: your region &rarr; theirs</a>
+  <div class="nav-section-label">TODO: quick reference</div>
   <a class="nav-item" href="#pronouns">TODO: pronouns</a>
   <a class="nav-item" href="#vocab">TODO: vocabulary</a>
   <a class="nav-item" href="#traps">TODO: trap words</a>
@@ -392,6 +397,14 @@ def build_dialect_html(template_text: str, code: str, name: str) -> str:
 </nav>
 
 <main class="content">
+  <div class="rule-box">
+    <strong>TODO: "How to use this guide" intro</strong> — explain, in one or
+    two sentences, that this page has one interactive TOOL (the region-pair
+    picker below) plus several REFERENCE sections in the sidebar menu (see
+    docs/adding-a-language.md for why this box exists — it's here to prevent
+    the exact "I don't know what's used for what" confusion issue #21 fixed).
+  </div>
+
   <section class="section" id="picker">
     <h2>TODO: your region &rarr; theirs</h2>
     <p class="subtitle">TODO: picker description.</p>
@@ -422,10 +435,6 @@ def build_dialect_html(template_text: str, code: str, name: str) -> str:
       <h3 id="pairTitle"></h3>
       <ul id="pairList"></ul>
     </div>
-
-    <div class="rule-box">
-      TODO: this guide does not teach basic grammar; it assumes fluency and focuses on avoiding misunderstandings between variants.
-    </div>
   </section>
 
   <section class="section" id="pronouns">
@@ -445,7 +454,7 @@ def build_dialect_html(template_text: str, code: str, name: str) -> str:
 
   <section class="section" id="regions">
     <h2>TODO: regional profiles</h2>
-    <p class="subtitle">TODO</p>
+    <p class="subtitle">TODO: all regions at a glance, to browse. If you only care about two, use the tool above.</p>
   </section>
 
   <section class="section" id="dont-correct">

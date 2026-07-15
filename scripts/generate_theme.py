@@ -22,7 +22,21 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 THEME_JSON = REPO_ROOT / "design" / "theme.json"
 WEB_OUTPUTS = [REPO_ROOT / "Parlance" / "web" / "theme.css", REPO_ROOT / "docs" / "theme.css"]
+CONTENT_WEB_OUTPUTS = [
+    REPO_ROOT / "Parlance" / "web" / "content-theme.css",
+    REPO_ROOT / "docs" / "content-theme.css",
+]
 ASSETS_DIR = REPO_ROOT / "Parlance" / "Assets.xcassets"
+
+CONTENT_VAR_NAMES = {
+    "bg": "--bg",
+    "surface": "--surface",
+    "border": "--border",
+    "text": "--text",
+    "muted": "--muted",
+    "tagBg": "--tag-bg",
+    "highlight": "--highlight",
+}
 
 CSS_VAR_NAMES = {
     "ink": "--ink",
@@ -87,6 +101,38 @@ def build_css(theme: dict) -> str:
     return "\n".join(out)
 
 
+def build_content_css(theme: dict) -> str:
+    tokens = theme["content_tokens"]
+    hues = tokens["hues"]
+
+    def block(mode: str) -> list[str]:
+        lines = []
+        for key, var_name in CONTENT_VAR_NAMES.items():
+            lines.append(f"  {var_name}: {tokens[key][mode]};")
+        for hue_name, hue in hues.items():
+            if hue_name.startswith("$"):
+                continue
+            lines.append(f"  --{hue_name}: {hue['text'][mode]};")
+            lines.append(f"  --{hue_name}-bg: {hue['bg'][mode]};")
+        return lines
+
+    out = []
+    out.append("/* GENERATED FILE — do not edit by hand.")
+    out.append("   Source of truth: design/theme.json (content_tokens)")
+    out.append("   Regenerate with: python3 scripts/generate_theme.py")
+    out.append("   Used by the standalone reference pages: guide-*.html, dialect-*.html.")
+    out.append("   Load this BEFORE content-guide.css. */")
+    out.append(":root {")
+    out.extend(block("light"))
+    out.append("}")
+    out.append("")
+    out.append('[data-theme="dark"] body, body.dark {')
+    out.extend(block("dark"))
+    out.append("}")
+    out.append("")
+    return "\n".join(out)
+
+
 def component(value: int) -> str:
     return f"{value / 255:.3f}"
 
@@ -144,9 +190,11 @@ def main() -> int:
 
     theme = json.loads(THEME_JSON.read_text())
     css = build_css(theme)
+    content_css = build_content_css(theme)
     native_outputs = build_native_assets(theme)
 
     all_outputs: dict[Path, str] = {path: css for path in WEB_OUTPUTS}
+    all_outputs.update({path: content_css for path in CONTENT_WEB_OUTPUTS})
     all_outputs.update(native_outputs)
 
     changed = []

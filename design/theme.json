@@ -32,6 +32,24 @@
       "tint_alpha": { "light": 0.08, "dark": 0.12 }
     }
   },
+  "content_tokens": {
+    "$comment": "Tokens for the standalone reference pages (guide-*.html, dialect-*.html). Generates Parlance/web/content-theme.css + docs/content-theme.css. These pages use a brighter, pastel-card look distinct from the app-shell tokens above, but must still come from this single file — never hand-copy these values into a page's own <style> block.",
+    "bg": { "light": "#faf8f4", "dark": "#1a1a1e" },
+    "surface": { "light": "#ffffff", "dark": "#242428" },
+    "border": { "light": "#e2ddd6", "dark": "#3a3a40" },
+    "text": { "light": "#1a1714", "dark": "#e8e0d0" },
+    "muted": { "light": "#8a8278", "dark": "#a8a098" },
+    "tagBg": { "light": "#f0ece5", "dark": "#2e2e34" },
+    "highlight": { "light": "#fff8e8", "dark": "#2a2618" },
+    "hues": {
+      "$comment": "Each hue drives a nav-badge/level-pill/trigger-chip color family. text = saturated accent color, bg = the pastel chip background behind it.",
+      "red": { "text": { "light": "#c0392b", "dark": "#e07070" }, "bg": { "light": "#fdecea", "dark": "rgba(224,112,112,0.12)" } },
+      "green": { "text": { "light": "#2e6b4a", "dark": "#5cb88a" }, "bg": { "light": "#eaf3ee", "dark": "rgba(92,184,138,0.12)" } },
+      "blue": { "text": { "light": "#1a5c99", "dark": "#6ba3d6" }, "bg": { "light": "#e8f0fb", "dark": "rgba(107,163,214,0.12)" } },
+      "gold": { "text": { "light": "#a0742a", "dark": "#d4a04e" }, "bg": { "light": "#fdf0d9", "dark": "rgba(212,160,78,0.12)" } },
+      "lavender": { "text": { "light": "#6b4f9e", "dark": "#c4aae8" }, "bg": { "light": "#f0eafa", "dark": "rgba(196,170,232,0.12)" } }
+    }
+  },
   "raw_css": {
     "shadow": {
       "light": "0 2px 24px rgba(28,25,23,0.08)",

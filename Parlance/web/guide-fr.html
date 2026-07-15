@@ -5,434 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>French A1→C2 Conjugation Guide</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<style>
-:root {
-  --bg: #faf8f4;
-  --surface: #fff;
-  --card: #fff;
-  --border: #e2ddd6;
-  --text: #1a1714;
-  --muted: #8a8278;
-  --accent: #1a5c99;
-  --blue: #1a5c99;
-  --red: #c0392b;
-  --green: #2e6b4a;
-  --lavender: #6b4f9e;
-  --tag-bg: #f0ece5;
-  --highlight: #fff8e8;
-}
-
-* { margin:0; padding:0; box-sizing:border-box; }
-
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'IBM Plex Sans', sans-serif;
-  font-size: 15px;
-  line-height: 1.7;
-  min-height: 100vh;
-}
-
-.layout { display: flex; min-height: 100vh; }
-
-.sidebar {
-  width: 255px;
-  flex-shrink: 0;
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-  padding: 1.5rem 0 3rem;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  overflow-y: auto;
-  scrollbar-width: thin;
-}
-.sidebar-logo {
-  padding: 0 1.2rem 1.2rem;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 1rem;
-}
-.flag-row { font-size: 1.5rem; margin-bottom: 0.4rem; }
-.sidebar-logo h1 {
-  font-family: 'Lora', serif;
-  font-size: 1.3rem;
-  color: var(--accent);
-  letter-spacing: 0.01em;
-}
-.sidebar-logo p { font-size: 0.75rem; color: var(--muted); margin-top: 0.1rem; letter-spacing: 0.05em; }
-
-.nav-label {
-  padding: 0.6rem 1.2rem 0.2rem;
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--muted);
-  font-weight: 600;
-}
-.nav-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.32rem 1.2rem;
-  font-size: 0.81rem;
-  color: var(--muted);
-  cursor: pointer;
-  border-left: 2px solid transparent;
-  transition: all 0.15s;
-  text-decoration: none;
-}
-.nav-item:hover { color: var(--text); background: var(--tag-bg); }
-.nav-item.active { color: var(--accent); border-left-color: var(--accent); background: #e8f0fb; font-weight: 500; }
-.nbadge {
-  font-size: 0.58rem;
-  padding: 1px 5px;
-  border-radius: 3px;
-  background: var(--tag-bg);
-  color: var(--muted);
-  letter-spacing: 0.04em;
-  flex-shrink: 0;
-}
-.b2b { background: #fdecea; color: var(--red); }
-.b1b { background: #e8f0fb; color: var(--blue); }
-.a1b { background: #e8f5e9; color: #2e7d32; }
-.a2b { background: #fff3e0; color: #e65100; }
-
-.content {
-  flex: 1;
-  max-width: 840px;
-  margin: 0 auto;
-  padding: 2.5rem 2.2rem 6rem;
-}
-
-.intro-band {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1.4rem 1.6rem;
-  margin-bottom: 2.8rem;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 1.2rem;
-  align-items: center;
-}
-.intro-flag { font-size: 2.8rem; }
-.intro-title {
-  font-family: 'Lora', serif;
-  font-size: 1.25rem;
-  color: var(--text);
-  margin-bottom: 0.15rem;
-}
-.intro-sub { font-size: 0.83rem; color: var(--muted); }
-
-.tense-section { margin-bottom: 4.5rem; scroll-margin-top: 1.5rem; }
-.section-chapter {
-  font-size: 0.65rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--muted);
-  margin-bottom: 0.3rem;
-}
-.tense-header-row {
-  display: flex; align-items: baseline; gap: 0.7rem; flex-wrap: wrap;
-  margin-bottom: 0.2rem;
-}
-.tense-title {
-  font-family: 'Lora', serif;
-  font-size: 1.7rem;
-  color: var(--text);
-}
-.level-pill {
-  font-size: 0.65rem; font-weight: 600; padding: 2px 8px; border-radius: 20px;
-  letter-spacing: 0.05em; flex-shrink: 0;
-}
-.a1-pill { background: #e8f5e9; color: #2e7d32; }
-.a2-pill { background: #fff3e0; color: #e65100; }
-.pill-b1 { background: #eaf3ee; color: var(--green); }
-.pill-b2 { background: #fdecea; color: var(--red); }
-.pill-both { background: var(--tag-bg); color: var(--muted); }
-.pill-c1 { background: #f0eafa; color: var(--lavender); }
-.pill-c2 { background: #e8f0fb; color: var(--blue); }
-.c1b { background: #f0eafa; color: var(--lavender); }
-.c2b { background: #e8f0fb; color: var(--blue); }
-.tense-subtitle { font-size: 0.85rem; color: var(--muted); font-style: italic; margin-bottom: 1.3rem; }
-
-.rule-box {
-  background: var(--highlight);
-  border: 1px solid #e8d89a;
-  border-left: 4px solid #a0742a;
-  border-radius: 0 8px 8px 0;
-  padding: 1rem 1.25rem;
-  margin-bottom: 1.2rem;
-}
-.rule-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: #a0742a; font-weight: 600; margin-bottom: 0.4rem; }
-.rule-box p { font-size: 0.9rem; line-height: 1.7; }
-
-.conj-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.2rem; }
-.conj-block {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  overflow: hidden;
-}
-.conj-block-head {
-  background: var(--tag-bg);
-  padding: 0.38rem 0.8rem;
-  font-size: 0.68rem;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--muted);
-  font-weight: 600;
-  border-bottom: 1px solid var(--border);
-}
-.conj-table { width: 100%; border-collapse: collapse; }
-.conj-table td { padding: 0.32rem 0.8rem; border-bottom: 1px solid var(--border); font-size: 0.86rem; }
-.conj-table tr:last-child td { border-bottom: none; }
-.conj-table td:first-child { color: var(--muted); width: 40%; font-size: 0.77rem; }
-.conj-table td:last-child { font-family: 'IBM Plex Mono', monospace; font-weight: 500; }
-.conj-table tr:hover { background: var(--tag-bg); }
-.irreg { color: var(--red); }
-.note-cell { color: var(--muted) !important; font-family: 'IBM Plex Sans', sans-serif !important; font-size: 0.75rem !important; font-style: italic; }
-
-.irreg-wrap { overflow-x: auto; margin-bottom: 1.2rem; }
-.irreg-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; border-radius: 8px; overflow: hidden; }
-.irreg-table th {
-  background: var(--tag-bg); border: 1px solid var(--border); padding: 0.38rem 0.7rem;
-  text-align: left; font-size: 0.67rem; text-transform: uppercase; letter-spacing: 0.07em;
-  color: var(--muted); font-weight: 600;
-}
-.irreg-table td { border: 1px solid var(--border); padding: 0.38rem 0.7rem; }
-.irreg-table td:first-child { font-family: 'IBM Plex Mono', monospace; font-weight: 500; color: var(--accent); }
-.irreg-table tr:hover { background: var(--tag-bg); }
-
-.trigger-box {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.85rem 1rem;
-  margin-bottom: 1.2rem;
-}
-.trigger-label { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 0.5rem; }
-.trigger-list { display: flex; flex-wrap: wrap; gap: 0.35rem; }
-.tw {
-  border-radius: 4px; padding: 2px 9px; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem;
-}
-.tw-blue { background: #e8f0fb; color: var(--blue); }
-.tw-red { background: #fdecea; color: var(--red); }
-.tw-gold { background: #eaf3ee; color: var(--green); }
-.tw-green { background: #eaf3ee; color: var(--green); }
-.tw-purple { background: #f0eafa; color: var(--lavender); }
-
-.when-grid { display: grid; gap: 0.6rem; margin-bottom: 1.2rem; }
-.when-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.85rem 1rem;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0 0.75rem;
-  align-items: start;
-}
-.wi { font-size: 1.1rem; margin-top: 2px; }
-.when-rule { font-size: 0.87rem; font-weight: 600; margin-bottom: 0.15rem; }
-.when-fr { font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; color: var(--blue); margin-bottom: 0.1rem; }
-.when-en { font-size: 0.77rem; color: var(--muted); }
-
-.contrast-box {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  overflow: hidden;
-  margin-bottom: 1.2rem;
-}
-.contrast-title {
-  background: var(--tag-bg);
-  padding: 0.45rem 1rem;
-  font-size: 0.67rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  border-bottom: 1px solid var(--border);
-}
-.contrast-row { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--border); }
-.contrast-row:last-child { border-bottom: none; }
-.contrast-cell { padding: 0.65rem 1rem; font-size: 0.84rem; }
-.contrast-cell:first-child { border-right: 1px solid var(--border); }
-.contrast-cell strong { font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; display: block; margin-bottom: 0.1rem; }
-.contrast-cell:first-child { border-right: 1px solid var(--border); background: #f7fcf9; }
-.contrast-cell em { color: var(--muted); font-size: 0.75rem; font-style: normal; }
-.ch { background: var(--tag-bg) !important; }
-.ch .contrast-cell { color: var(--muted); font-size: 0.75rem; font-weight: 600; background: var(--tag-bg); }
-
-.tip {
-  background: #f0eafa;
-  border: 1px solid #d4c4f0;
-  border-left: 4px solid var(--lavender);
-  border-radius: 0 8px 8px 0;
-  padding: 0.75rem 1rem;
-  font-size: 0.87rem;
-  margin-bottom: 1rem;
-  line-height: 1.6;
-}
-.tip-label { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--lavender); margin-bottom: 0.2rem; }
-
-.danger {
-  background: #fdecea;
-  border: 1px solid #f0c4be;
-  border-left: 4px solid var(--red);
-  border-radius: 0 8px 8px 0;
-  padding: 0.75rem 1rem;
-  font-size: 0.87rem;
-  margin-bottom: 1rem;
-}
-.danger-label { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--red); margin-bottom: 0.2rem; }
-
-.divider { border: none; border-top: 1px solid var(--border); margin: 3rem 0; }
-
-.si-table { width: 100%; border-collapse: collapse; margin-bottom: 1.2rem; font-size: 0.84rem; }
-.si-table th { background: var(--tag-bg); border: 1px solid var(--border); padding: 0.45rem 0.8rem; text-align: left; font-size: 0.67rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); font-weight: 600; }
-.si-table td { border: 1px solid var(--border); padding: 0.55rem 0.8rem; vertical-align: top; }
-.si-table td:first-child { color: #a0742a; font-weight: 600; font-size: 0.8rem; width: 20%; }
-.si-table td:nth-child(2) { font-family: 'IBM Plex Mono', monospace; color: var(--blue); width: 25%; }
-.si-table td:nth-child(3) { font-family: 'IBM Plex Mono', monospace; color: var(--green); width: 25%; }
-.si-table td:last-child { color: var(--muted); font-size: 0.8rem; }
-.si-table tr:hover { background: var(--tag-bg); }
-
-.back-btn {
-  position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
-  background: var(--red);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 0.6rem 1.2rem;
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  z-index: 100;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-}
-.back-btn:hover { opacity: 0.9; }
-
-/* MOBILE NAV */
-.mobile-nav-btn {
-  display: none;
-  position: fixed;
-  bottom: 4.5rem;
-  right: 1.5rem;
-  background: var(--green);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 0.55rem 1rem;
-  font-family: 'IBM Plex Sans', sans-serif;
-  font-size: 0.82rem;
-  font-weight: 500;
-  cursor: pointer;
-  z-index: 100;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-}
-.mobile-nav-btn:hover { opacity: 0.9; }
-.sidebar-backdrop {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 150;
-  background: rgba(0,0,0,0.4);
-}
-.sidebar-backdrop.open { display: block; }
-
-@media (max-width: 700px) {
-  .sidebar { display: none; }
-  .sidebar.mobile-open {
-    display: block;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 280px;
-    height: 100vh;
-    z-index: 200;
-    box-shadow: 4px 0 20px rgba(0,0,0,0.15);
-  }
-  .mobile-nav-btn { display: block; }
-  .content { max-width: 100%; padding: 1.5rem 1.2rem 4rem; }
-  .conj-grid { grid-template-columns: 1fr; }
-  .contrast-row { grid-template-columns: 1fr; }
-  .contrast-cell:first-child { border-right: none; border-bottom: 1px solid var(--border); }
-}
-
-/* DARK MODE */
-/* Redefining the root tokens (rather than only overriding body/table/etc.
-   individually) means every component built on var(--surface)/var(--card)/
-   var(--border)/var(--tag-bg)/var(--highlight) — sidebar, intro-box,
-   rule-box, conj-block, when-card, contrast-box, trigger-box, irreg-table —
-   goes dark automatically, matching the pattern used in dialect-guide.css. */
-[data-theme="dark"] body, body.dark {
-  --bg: #1a1a1e;
-  --surface: #242428;
-  --card: #242428;
-  --border: #3a3a40;
-  --text: #e8e0d0;
-  --muted: #a8a098;
-  --tag-bg: #2e2e34;
-  --highlight: #2a2618;
-  --green: #5cb88a;
-  --blue: #6ba3d6;
-  --lavender: #c4aae8;
-}
-[data-theme="dark"] .nav-item.active, body.dark .nav-item.active {
-  background: #1e2838;
-}
-[data-theme="dark"] table, body.dark table {
-  border-color: #3a3a40;
-}
-[data-theme="dark"] .tip, body.dark .tip {
-  background: rgba(196,170,232,0.1);
-  border-color: #6b4f9e;
-}
-[data-theme="dark"] code, body.dark code {
-  background: #242428;
-  color: #3db8e8;
-}
-[data-theme="dark"] .back-btn, body.dark .back-btn {
-  background: #242428;
-  color: #e8e0d0;
-  border-color: #3a3a40;
-}
-[data-theme="dark"] .contrast-cell:first-child, body.dark .contrast-cell:first-child {
-  background: rgba(92,184,138,0.08);
-}
-[data-theme="dark"] .b2b, body.dark .b2b,
-[data-theme="dark"] .pill-b2, body.dark .pill-b2,
-[data-theme="dark"] .tw-red, body.dark .tw-red {
-  background: rgba(224,112,112,0.12); color: #e07070;
-}
-[data-theme="dark"] .c1b, body.dark .c1b,
-[data-theme="dark"] .pill-c1, body.dark .pill-c1,
-[data-theme="dark"] .tw-purple, body.dark .tw-purple {
-  background: rgba(196,170,232,0.12); color: #c4aae8;
-}
-[data-theme="dark"] .b1b, body.dark .b1b,
-[data-theme="dark"] .c2b, body.dark .c2b,
-[data-theme="dark"] .pill-c2, body.dark .pill-c2,
-[data-theme="dark"] .tw-blue, body.dark .tw-blue {
-  background: rgba(107,163,214,0.12); color: #6ba3d6;
-}
-[data-theme="dark"] .pill-b1, body.dark .pill-b1,
-[data-theme="dark"] .a1b, body.dark .a1b,
-[data-theme="dark"] .tw-gold, body.dark .tw-gold,
-[data-theme="dark"] .tw-green, body.dark .tw-green {
-  background: rgba(92,184,138,0.12); color: #5cb88a;
-}
-[data-theme="dark"] .a2b, body.dark .a2b {
-  background: rgba(212,160,78,0.12); color: #d4a04e;
-}
-</style>
+<link rel="stylesheet" href="content-theme.css?v=1">
+<link rel="stylesheet" href="content-guide.css?v=1">
 </head>
-<body>
+<body class="guide lang-fr">
 <div class="layout">
 
 <nav class="sidebar">
@@ -442,51 +18,51 @@ body {
     <p>A1 → C2 Deep Reference</p>
   </div>
 
-  <div class="nav-label">A1 Foundations</div>
-  <a class="nav-item" href="#present"><span>Présent de l'indicatif</span> <span class="nbadge a1b">A1</span></a>
-  <a class="nav-item" href="#etre-avoir"><span>Être et Avoir</span> <span class="nbadge a1b">A1</span></a>
-  <a class="nav-item" href="#stem-changes-a1"><span>Verbes à Radical Variable</span> <span class="nbadge a1b">A1</span></a>
+  <div class="nav-section-label">A1 Foundations</div>
+  <a class="nav-item" href="#present"><span>Présent de l'indicatif</span> <span class="nav-badge a1-nav-badge">A1</span></a>
+  <a class="nav-item" href="#etre-avoir"><span>Être et Avoir</span> <span class="nav-badge a1-nav-badge">A1</span></a>
+  <a class="nav-item" href="#stem-changes-a1"><span>Verbes à Radical Variable</span> <span class="nav-badge a1-nav-badge">A1</span></a>
 
-  <div class="nav-label" style="margin-top:0.5rem">A2 Building Blocks</div>
-  <a class="nav-item" href="#reflexifs"><span>Verbes Pronominaux</span> <span class="nbadge a2b">A2</span></a>
-  <a class="nav-item" href="#futur-proche"><span>Futur Proche</span> <span class="nbadge a2b">A2</span></a>
-  <a class="nav-item" href="#partitifs"><span>Articles Partitifs</span> <span class="nbadge a2b">A2</span></a>
+  <div class="nav-section-label" style="margin-top:0.5rem">A2 Building Blocks</div>
+  <a class="nav-item" href="#reflexifs"><span>Verbes Pronominaux</span> <span class="nav-badge a2-nav-badge">A2</span></a>
+  <a class="nav-item" href="#futur-proche"><span>Futur Proche</span> <span class="nav-badge a2-nav-badge">A2</span></a>
+  <a class="nav-item" href="#partitifs"><span>Articles Partitifs</span> <span class="nav-badge a2-nav-badge">A2</span></a>
 
-  <div class="nav-label" style="margin-top:0.5rem">B1 Tenses</div>
-  <a class="nav-item active" href="#passe-compose">Passé Composé <span class="nbadge b1b">B1</span></a>
-  <a class="nav-item" href="#imparfait">Imparfait <span class="nbadge b1b">B1</span></a>
-  <a class="nav-item" href="#futur-simple">Futur Simple <span class="nbadge b1b">B1</span></a>
-  <a class="nav-item" href="#conditionnel">Conditionnel Présent <span class="nbadge">B1/B2</span></a>
-  <a class="nav-item" href="#subjonctif-pres">Subjonctif Présent <span class="nbadge">B1/B2</span></a>
+  <div class="nav-section-label" style="margin-top:0.5rem">B1 Tenses</div>
+  <a class="nav-item active" href="#passe-compose">Passé Composé <span class="nav-badge b1-nav-badge">B1</span></a>
+  <a class="nav-item" href="#imparfait">Imparfait <span class="nav-badge b1-nav-badge">B1</span></a>
+  <a class="nav-item" href="#futur-simple">Futur Simple <span class="nav-badge b1-nav-badge">B1</span></a>
+  <a class="nav-item" href="#conditionnel">Conditionnel Présent <span class="nav-badge">B1/B2</span></a>
+  <a class="nav-item" href="#subjonctif-pres">Subjonctif Présent <span class="nav-badge">B1/B2</span></a>
 
-  <div class="nav-label" style="margin-top:0.5rem">B2 Tenses</div>
-  <a class="nav-item" href="#plus-que-parfait">Plus-que-parfait <span class="nbadge b2b">B2</span></a>
-  <a class="nav-item" href="#futur-anterieur">Futur Antérieur <span class="nbadge b2b">B2</span></a>
-  <a class="nav-item" href="#conditionnel-passe">Conditionnel Passé <span class="nbadge b2b">B2</span></a>
-  <a class="nav-item" href="#subjonctif-passe">Subjonctif Passé <span class="nbadge b2b">B2</span></a>
+  <div class="nav-section-label" style="margin-top:0.5rem">B2 Tenses</div>
+  <a class="nav-item" href="#plus-que-parfait">Plus-que-parfait <span class="nav-badge b2-nav-badge">B2</span></a>
+  <a class="nav-item" href="#futur-anterieur">Futur Antérieur <span class="nav-badge b2-nav-badge">B2</span></a>
+  <a class="nav-item" href="#conditionnel-passe">Conditionnel Passé <span class="nav-badge b2-nav-badge">B2</span></a>
+  <a class="nav-item" href="#subjonctif-passe">Subjonctif Passé <span class="nav-badge b2-nav-badge">B2</span></a>
 
-  <div class="nav-label" style="margin-top:0.5rem">C1 Tenses</div>
-  <a class="nav-item" href="#passe-simple">Passé Simple <span class="nbadge c1b">C1</span></a>
-  <a class="nav-item" href="#subj-imparfait">Subjonctif Imparfait <span class="nbadge c1b">C1</span></a>
-  <a class="nav-item" href="#registre">Registre Professionnel <span class="nbadge c1b">C1</span></a>
+  <div class="nav-section-label" style="margin-top:0.5rem">C1 Tenses</div>
+  <a class="nav-item" href="#passe-simple">Passé Simple <span class="nav-badge c1-nav-badge">C1</span></a>
+  <a class="nav-item" href="#subj-imparfait">Subjonctif Imparfait <span class="nav-badge c1-nav-badge">C1</span></a>
+  <a class="nav-item" href="#registre">Registre Professionnel <span class="nav-badge c1-nav-badge">C1</span></a>
 
-  <div class="nav-label" style="margin-top:0.5rem">C2 Mastery</div>
-  <a class="nav-item" href="#passe-anterieur">Passé Antérieur <span class="nbadge c2b">C2</span></a>
-  <a class="nav-item" href="#subj-pqp">Subjonctif Plus-que-parfait <span class="nbadge c2b">C2</span></a>
-  <a class="nav-item" href="#style-maitrise">Style et Nuance <span class="nbadge c2b">C2</span></a>
+  <div class="nav-section-label" style="margin-top:0.5rem">C2 Mastery</div>
+  <a class="nav-item" href="#passe-anterieur">Passé Antérieur <span class="nav-badge c2-nav-badge">C2</span></a>
+  <a class="nav-item" href="#subj-pqp">Subjonctif Plus-que-parfait <span class="nav-badge c2-nav-badge">C2</span></a>
+  <a class="nav-item" href="#style-maitrise">Style et Nuance <span class="nav-badge c2-nav-badge">C2</span></a>
 
-  <div class="nav-label" style="margin-top:0.5rem">Key Contrasts</div>
+  <div class="nav-section-label" style="margin-top:0.5rem">Key Contrasts</div>
   <a class="nav-item" href="#pc-vs-imp">Passé Composé vs Imparfait</a>
   <a class="nav-item" href="#si-clauses">Si Clauses (If/Then)</a>
 </nav>
 
 <div class="content">
 
-<div class="intro-band">
+<div class="intro-box">
   <div class="intro-flag">📖</div>
   <div>
     <div class="intro-title">A1 → C2 French Conjugation Guide</div>
-    <div class="intro-sub">Full rules, irregular verbs, trigger words, and real examples. Use the sidebar to navigate between tenses.</div>
+    <div class="intro-desc">Full rules, irregular verbs, trigger words, and real examples. Use the sidebar to navigate between tenses.</div>
   </div>
 </div>
 
@@ -499,16 +75,16 @@ body {
     <h2 class="tense-title">Présent de l'indicatif</h2>
     <span class="level-pill a1-pill">A1</span>
   </div>
-  <p class="tense-subtitle">"The present tense" — what you do, what's happening now, general truths</p>
+  <p class="tense-nickname">"The present tense" — what you do, what's happening now, general truths</p>
 
   <div class="rule-box">
-    <div class="rule-label">The Core Rule</div>
+    <div class="rule-box-title">The Core Rule</div>
     <p>The present tense describes <strong>current actions, daily routines, and general truths</strong>. French has three regular verb groups: <strong>-ER</strong> (the largest), <strong>-IR</strong>, and <strong>-RE</strong>. Each group follows a predictable pattern of endings. Many of the most common verbs are irregular and must be memorized.</p>
   </div>
 
   <div class="conj-grid">
     <div class="conj-block">
-      <div class="conj-block-head">-ER → parler (to speak)</div>
+      <div class="conj-block-header">-ER → parler (to speak)</div>
       <table class="conj-table">
         <tr><td>je</td><td>parl<strong>e</strong></td></tr>
         <tr><td>tu</td><td>parl<strong>es</strong></td></tr>
@@ -519,7 +95,7 @@ body {
       </table>
     </div>
     <div class="conj-block">
-      <div class="conj-block-head">-IR → finir (to finish)</div>
+      <div class="conj-block-header">-IR → finir (to finish)</div>
       <table class="conj-table">
         <tr><td>je</td><td>fin<strong>is</strong></td></tr>
         <tr><td>tu</td><td>fin<strong>is</strong></td></tr>
@@ -533,7 +109,7 @@ body {
 
   <div class="conj-grid">
     <div class="conj-block">
-      <div class="conj-block-head">-RE → vendre (to sell)</div>
+      <div class="conj-block-header">-RE → vendre (to sell)</div>
       <table class="conj-table">
         <tr><td>je</td><td>vend<strong>s</strong></td></tr>
         <tr><td>tu</td><td>vend<strong>s</strong></td></tr>
@@ -545,8 +121,8 @@ body {
     </div>
   </div>
 
-  <div class="irreg-wrap">
-    <div class="conj-block-head" style="padding:0.38rem 0.8rem;background:var(--tag-bg);border:1px solid var(--border);border-bottom:none;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);font-weight:600">Key Irregular Verbs — Present Tense</div>
+  <div class="irreg-table-wrap">
+    <div class="conj-block-header" style="padding:0.38rem 0.8rem;background:var(--tag-bg);border:1px solid var(--border);border-bottom:none;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);font-weight:600">Key Irregular Verbs — Present Tense</div>
     <table class="irreg-table">
       <tr><th>Infinitive</th><th>je</th><th>il/elle</th><th>Infinitive</th><th>je</th><th>il/elle</th></tr>
       <tr><td>être</td><td>suis</td><td>est</td><td>avoir</td><td>ai</td><td>a</td></tr>
@@ -558,57 +134,57 @@ body {
   </div>
 
   <div class="trigger-box">
-    <div class="trigger-label">Trigger Expressions → Présent</div>
+    <div class="trigger-box-title">Trigger Expressions → Présent</div>
     <div class="trigger-list">
-      <span class="tw tw-green">maintenant</span>
-      <span class="tw tw-green">aujourd'hui</span>
-      <span class="tw tw-green">toujours</span>
-      <span class="tw tw-green">normalement</span>
-      <span class="tw tw-green">chaque jour</span>
-      <span class="tw tw-green">tous les jours</span>
-      <span class="tw tw-green">parfois</span>
-      <span class="tw tw-green">en général</span>
-      <span class="tw tw-green">souvent</span>
+      <span class="trigger">maintenant</span>
+      <span class="trigger">aujourd'hui</span>
+      <span class="trigger">toujours</span>
+      <span class="trigger">normalement</span>
+      <span class="trigger">chaque jour</span>
+      <span class="trigger">tous les jours</span>
+      <span class="trigger">parfois</span>
+      <span class="trigger">en général</span>
+      <span class="trigger">souvent</span>
     </div>
   </div>
 
   <div class="when-grid">
     <div class="when-card">
-      <div class="wi">☕</div>
+      <div class="when-icon">☕</div>
       <div>
         <div class="when-rule">Daily routines</div>
-        <div class="when-fr">Chaque matin, je prends un café.</div>
-        <div class="when-en">Every morning I have a coffee.</div>
+        <div class="when-example-native">Chaque matin, je prends un café.</div>
+        <div class="when-example-en">Every morning I have a coffee.</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">🌍</div>
+      <div class="when-icon">🌍</div>
       <div>
         <div class="when-rule">General truths</div>
-        <div class="when-fr">La Terre tourne autour du Soleil.</div>
-        <div class="when-en">The Earth revolves around the Sun.</div>
+        <div class="when-example-native">La Terre tourne autour du Soleil.</div>
+        <div class="when-example-en">The Earth revolves around the Sun.</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">📖</div>
+      <div class="when-icon">📖</div>
       <div>
         <div class="when-rule">Current actions</div>
-        <div class="when-fr">Maintenant, j'étudie le français.</div>
-        <div class="when-en">Now I'm studying French.</div>
+        <div class="when-example-native">Maintenant, j'étudie le français.</div>
+        <div class="when-example-en">Now I'm studying French.</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">📅</div>
+      <div class="when-icon">📅</div>
       <div>
         <div class="when-rule">Near future with present</div>
-        <div class="when-fr">Demain, je travaille de chez moi.</div>
-        <div class="when-en">Tomorrow I work from home.</div>
+        <div class="when-example-native">Demain, je travaille de chez moi.</div>
+        <div class="when-example-en">Tomorrow I work from home.</div>
       </div>
     </div>
   </div>
 </section>
 
-<hr class="divider">
+<hr class="sec-divider">
 
 <!-- ÊTRE ET AVOIR -->
 <section class="tense-section" id="etre-avoir">
@@ -617,16 +193,16 @@ body {
     <h2 class="tense-title">Être et Avoir</h2>
     <span class="level-pill a1-pill">A1</span>
   </div>
-  <p class="tense-subtitle">"The two most essential verbs" — être (to be) and avoir (to have) are irregular and used everywhere</p>
+  <p class="tense-nickname">"The two most essential verbs" — être (to be) and avoir (to have) are irregular and used everywhere</p>
 
   <div class="rule-box">
-    <div class="rule-label">The Core Rule</div>
+    <div class="rule-box-title">The Core Rule</div>
     <p><strong>Être</strong> (to be) and <strong>avoir</strong> (to have) are the two most important verbs in French. They are both irregular and must be memorized completely. They serve as auxiliary verbs for compound tenses and appear in countless everyday expressions.</p>
   </div>
 
   <div class="conj-grid">
     <div class="conj-block">
-      <div class="conj-block-head">être (to be)</div>
+      <div class="conj-block-header">être (to be)</div>
       <table class="conj-table">
         <tr><td>je</td><td><strong>suis</strong></td></tr>
         <tr><td>tu</td><td><strong>es</strong></td></tr>
@@ -637,7 +213,7 @@ body {
       </table>
     </div>
     <div class="conj-block">
-      <div class="conj-block-head">avoir (to have)</div>
+      <div class="conj-block-header">avoir (to have)</div>
       <table class="conj-table">
         <tr><td>je / j'</td><td><strong>ai</strong></td></tr>
         <tr><td>tu</td><td><strong>as</strong></td></tr>
@@ -651,65 +227,65 @@ body {
 
   <div class="when-grid">
     <div class="when-card">
-      <div class="wi">🪪</div>
+      <div class="when-icon">🪪</div>
       <div>
         <div class="when-rule">Être — Identity</div>
-        <div class="when-fr">Je suis étudiant.</div>
-        <div class="when-en">I am a student.</div>
+        <div class="when-example-native">Je suis étudiant.</div>
+        <div class="when-example-en">I am a student.</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">📍</div>
+      <div class="when-icon">📍</div>
       <div>
         <div class="when-rule">Être — Origin</div>
-        <div class="when-fr">Elle est de Paris.</div>
-        <div class="when-en">She is from Paris.</div>
+        <div class="when-example-native">Elle est de Paris.</div>
+        <div class="when-example-en">She is from Paris.</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">🎨</div>
+      <div class="when-icon">🎨</div>
       <div>
         <div class="when-rule">Être — Description</div>
-        <div class="when-fr">Mon frère est grand et sympathique.</div>
-        <div class="when-en">My brother is tall and nice.</div>
+        <div class="when-example-native">Mon frère est grand et sympathique.</div>
+        <div class="when-example-en">My brother is tall and nice.</div>
       </div>
     </div>
   </div>
 
   <div class="when-grid">
     <div class="when-card">
-      <div class="wi">🐱</div>
+      <div class="when-icon">🐱</div>
       <div>
         <div class="when-rule">Avoir — Possession</div>
-        <div class="when-fr">J'ai un chat.</div>
-        <div class="when-en">I have a cat.</div>
+        <div class="when-example-native">J'ai un chat.</div>
+        <div class="when-example-en">I have a cat.</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">🎂</div>
+      <div class="when-icon">🎂</div>
       <div>
         <div class="when-rule">Avoir — Age (French uses avoir!)</div>
-        <div class="when-fr">J'ai vingt-cinq ans.</div>
-        <div class="when-en">I am twenty-five years old.</div>
+        <div class="when-example-native">J'ai vingt-cinq ans.</div>
+        <div class="when-example-en">I am twenty-five years old.</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">🌡️</div>
+      <div class="when-icon">🌡️</div>
       <div>
         <div class="when-rule">Avoir — Expressions</div>
-        <div class="when-fr">J'ai faim / J'ai soif / J'ai froid.</div>
-        <div class="when-en">I'm hungry / thirsty / cold.</div>
+        <div class="when-example-native">J'ai faim / J'ai soif / J'ai froid.</div>
+        <div class="when-example-en">I'm hungry / thirsty / cold.</div>
       </div>
     </div>
   </div>
 
   <div class="rule-box">
-    <div class="rule-label">Avoir Expressions — Watch Out!</div>
+    <div class="rule-box-title">Avoir Expressions — Watch Out!</div>
     <p>Unlike English, French uses <strong>AVOIR</strong> (to have) for: age (<em>avoir ... ans</em>), hunger (<em>avoir faim</em>), thirst (<em>avoir soif</em>), hot/cold (<em>avoir chaud/froid</em>), fear (<em>avoir peur</em>), need (<em>avoir besoin de</em>).</p>
   </div>
 </section>
 
-<hr class="divider">
+<hr class="sec-divider">
 
 <!-- VERBES À RADICAL VARIABLE -->
 <section class="tense-section" id="stem-changes-a1">
@@ -718,16 +294,16 @@ body {
     <h2 class="tense-title">Verbes à Radical Variable</h2>
     <span class="level-pill a1-pill">A1</span>
   </div>
-  <p class="tense-subtitle">"Stem-changing verbs" — some -ER verbs change spelling in certain forms to preserve pronunciation</p>
+  <p class="tense-nickname">"Stem-changing verbs" — some -ER verbs change spelling in certain forms to preserve pronunciation</p>
 
   <div class="rule-box">
-    <div class="rule-label">The Core Rule</div>
+    <div class="rule-box-title">The Core Rule</div>
     <p>Certain <strong>-ER verbs</strong> undergo a spelling change in the stem when the ending is silent (je, tu, il/elle, ils/elles forms). The nous and vous forms keep the original spelling. There are three main patterns: <strong>e→è</strong>, <strong>double consonant</strong>, and <strong>é→è</strong>.</p>
   </div>
 
   <div class="conj-grid">
     <div class="conj-block">
-      <div class="conj-block-head">e→è : acheter (to buy)</div>
+      <div class="conj-block-header">e→è : acheter (to buy)</div>
       <table class="conj-table">
         <tr><td>je</td><td>ach<strong>è</strong>te</td></tr>
         <tr><td>tu</td><td>ach<strong>è</strong>tes</td></tr>
@@ -739,7 +315,7 @@ body {
       </table>
     </div>
     <div class="conj-block">
-      <div class="conj-block-head">Double consonant : appeler (to call)</div>
+      <div class="conj-block-header">Double consonant : appeler (to call)</div>
       <table class="conj-table">
         <tr><td>je</td><td>appe<strong>ll</strong>e</td></tr>
         <tr><td>tu</td><td>appe<strong>ll</strong>es</td></tr>
@@ -754,7 +330,7 @@ body {
 
   <div class="conj-grid">
     <div class="conj-block">
-      <div class="conj-block-head">é→è : préférer (to prefer)</div>
+      <div class="conj-block-header">é→è : préférer (to prefer)</div>
       <table class="conj-table">
         <tr><td>je</td><td>préf<strong>è</strong>re</td></tr>
         <tr><td>tu</td><td>préf<strong>è</strong>res</td></tr>
@@ -769,33 +345,33 @@ body {
 
   <div class="when-grid">
     <div class="when-card">
-      <div class="wi">🥖</div>
+      <div class="when-icon">🥖</div>
       <div>
         <div class="when-rule">e→è pattern</div>
-        <div class="when-fr">J'achète du pain tous les matins.</div>
-        <div class="when-en">I buy bread every morning.</div>
+        <div class="when-example-native">J'achète du pain tous les matins.</div>
+        <div class="when-example-en">I buy bread every morning.</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">👋</div>
+      <div class="when-icon">👋</div>
       <div>
         <div class="when-rule">Double consonant pattern</div>
-        <div class="when-fr">Comment tu t'appelles ?</div>
-        <div class="when-en">What's your name?</div>
+        <div class="when-example-native">Comment tu t'appelles ?</div>
+        <div class="when-example-en">What's your name?</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">☕</div>
+      <div class="when-icon">☕</div>
       <div>
         <div class="when-rule">é→è pattern</div>
-        <div class="when-fr">Je préfère le thé au café.</div>
-        <div class="when-en">I prefer tea to coffee.</div>
+        <div class="when-example-native">Je préfère le thé au café.</div>
+        <div class="when-example-en">I prefer tea to coffee.</div>
       </div>
     </div>
   </div>
 </section>
 
-<hr class="divider">
+<hr class="sec-divider">
 
 <!-- ═══════════════════════════════════════════ A2 ═══════════════════════════════════════════ -->
 
@@ -806,16 +382,16 @@ body {
     <h2 class="tense-title">Verbes Pronominaux</h2>
     <span class="level-pill a2-pill">A2</span>
   </div>
-  <p class="tense-subtitle">"Reflexive verbs" — the action reflects back on the subject using me, te, se, nous, vous, se</p>
+  <p class="tense-nickname">"Reflexive verbs" — the action reflects back on the subject using me, te, se, nous, vous, se</p>
 
   <div class="rule-box">
-    <div class="rule-label">The Core Rule</div>
+    <div class="rule-box-title">The Core Rule</div>
     <p>Pronominal verbs use a <strong>reflexive pronoun</strong> (me, te, se, nous, vous, se) — the action reflects back on the subject. The pronoun always matches the subject and comes <strong>before the conjugated verb</strong>. In the infinitive form, the pronoun is <em>se</em> (se lever, se coucher).</p>
   </div>
 
   <div class="conj-grid">
     <div class="conj-block">
-      <div class="conj-block-head">se lever (to get up)</div>
+      <div class="conj-block-header">se lever (to get up)</div>
       <table class="conj-table">
         <tr><td>je</td><td><strong>me</strong> lève</td></tr>
         <tr><td>tu</td><td><strong>te</strong> lèves</td></tr>
@@ -828,50 +404,50 @@ body {
   </div>
 
   <div class="trigger-box">
-    <div class="trigger-label">Common Reflexive Verbs</div>
+    <div class="trigger-box-title">Common Reflexive Verbs</div>
     <div class="trigger-list">
-      <span class="tw tw-blue">se réveiller</span>
-      <span class="tw tw-blue">se doucher</span>
-      <span class="tw tw-blue">s'habiller</span>
-      <span class="tw tw-blue">se coucher</span>
-      <span class="tw tw-blue">se sentir</span>
-      <span class="tw tw-blue">s'appeler</span>
-      <span class="tw tw-blue">s'en aller</span>
-      <span class="tw tw-blue">s'asseoir</span>
-      <span class="tw tw-blue">s'amuser</span>
-      <span class="tw tw-blue">s'inquiéter</span>
+      <span class="trigger blue">se réveiller</span>
+      <span class="trigger blue">se doucher</span>
+      <span class="trigger blue">s'habiller</span>
+      <span class="trigger blue">se coucher</span>
+      <span class="trigger blue">se sentir</span>
+      <span class="trigger blue">s'appeler</span>
+      <span class="trigger blue">s'en aller</span>
+      <span class="trigger blue">s'asseoir</span>
+      <span class="trigger blue">s'amuser</span>
+      <span class="trigger blue">s'inquiéter</span>
     </div>
   </div>
 
   <div class="when-grid">
     <div class="when-card">
-      <div class="wi">🌅</div>
+      <div class="when-icon">🌅</div>
       <div>
         <div class="when-rule">Daily routines</div>
-        <div class="when-fr">Je me réveille à sept heures et je me douche.</div>
-        <div class="when-en">I wake up at seven and shower.</div>
+        <div class="when-example-native">Je me réveille à sept heures et je me douche.</div>
+        <div class="when-example-en">I wake up at seven and shower.</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">😊</div>
+      <div class="when-icon">😊</div>
       <div>
         <div class="when-rule">Emotions</div>
-        <div class="when-fr">Je me sens heureux aujourd'hui.</div>
-        <div class="when-en">I feel happy today.</div>
+        <div class="when-example-native">Je me sens heureux aujourd'hui.</div>
+        <div class="when-example-en">I feel happy today.</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">📞</div>
+      <div class="when-icon">📞</div>
       <div>
         <div class="when-rule">Reciprocal</div>
-        <div class="when-fr">Nous nous appelons tous les jours.</div>
-        <div class="when-en">We call each other every day.</div>
+        <div class="when-example-native">Nous nous appelons tous les jours.</div>
+        <div class="when-example-en">We call each other every day.</div>
       </div>
     </div>
   </div>
 </section>
 
-<hr class="divider">
+<hr class="sec-divider">
 
 <!-- FUTUR PROCHE -->
 <section class="tense-section" id="futur-proche">
@@ -880,16 +456,16 @@ body {
     <h2 class="tense-title">Futur Proche</h2>
     <span class="level-pill a2-pill">A2</span>
   </div>
-  <p class="tense-subtitle">"The near future" — what you're going to do. Use aller (conjugated) + infinitive</p>
+  <p class="tense-nickname">"The near future" — what you're going to do. Use aller (conjugated) + infinitive</p>
 
   <div class="rule-box">
-    <div class="rule-label">The Core Rule</div>
+    <div class="rule-box-title">The Core Rule</div>
     <p>The futur proche is formed with <strong>aller (conjugated in present tense) + infinitive</strong>. It expresses what you are <strong>going to do</strong> — plans, intentions, and near-future events. This is the most common way to talk about the future in everyday spoken French.</p>
   </div>
 
   <div class="conj-grid">
     <div class="conj-block">
-      <div class="conj-block-head">aller + infinitive</div>
+      <div class="conj-block-header">aller + infinitive</div>
       <table class="conj-table">
         <tr><td>je</td><td><strong>vais</strong> parler</td></tr>
         <tr><td>tu</td><td><strong>vas</strong> manger</td></tr>
@@ -902,48 +478,48 @@ body {
   </div>
 
   <div class="trigger-box">
-    <div class="trigger-label">Trigger Expressions → Futur Proche</div>
+    <div class="trigger-box-title">Trigger Expressions → Futur Proche</div>
     <div class="trigger-list">
-      <span class="tw tw-green">demain</span>
-      <span class="tw tw-green">ce soir</span>
-      <span class="tw tw-green">lundi prochain</span>
-      <span class="tw tw-green">la semaine prochaine</span>
-      <span class="tw tw-green">ce week-end</span>
-      <span class="tw tw-green">après</span>
-      <span class="tw tw-green">bientôt</span>
-      <span class="tw tw-green">plus tard</span>
+      <span class="trigger">demain</span>
+      <span class="trigger">ce soir</span>
+      <span class="trigger">lundi prochain</span>
+      <span class="trigger">la semaine prochaine</span>
+      <span class="trigger">ce week-end</span>
+      <span class="trigger">après</span>
+      <span class="trigger">bientôt</span>
+      <span class="trigger">plus tard</span>
     </div>
   </div>
 
   <div class="when-grid">
     <div class="when-card">
-      <div class="wi">📚</div>
+      <div class="when-icon">📚</div>
       <div>
         <div class="when-rule">Plans</div>
-        <div class="when-fr">Je vais étudier le français ce soir.</div>
-        <div class="when-en">I'm going to study French tonight.</div>
+        <div class="when-example-native">Je vais étudier le français ce soir.</div>
+        <div class="when-example-en">I'm going to study French tonight.</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">✈️</div>
+      <div class="when-icon">✈️</div>
       <div>
         <div class="when-rule">Intentions</div>
-        <div class="when-fr">Nous allons voyager en France l'année prochaine.</div>
-        <div class="when-en">We're going to travel to France next year.</div>
+        <div class="when-example-native">Nous allons voyager en France l'année prochaine.</div>
+        <div class="when-example-en">We're going to travel to France next year.</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">🌧️</div>
+      <div class="when-icon">🌧️</div>
       <div>
         <div class="when-rule">Predictions</div>
-        <div class="when-fr">Il va pleuvoir cet après-midi.</div>
-        <div class="when-en">It's going to rain this afternoon.</div>
+        <div class="when-example-native">Il va pleuvoir cet après-midi.</div>
+        <div class="when-example-en">It's going to rain this afternoon.</div>
       </div>
     </div>
   </div>
 </section>
 
-<hr class="divider">
+<hr class="sec-divider">
 
 <!-- ARTICLES PARTITIFS -->
 <section class="tense-section" id="partitifs">
@@ -952,16 +528,16 @@ body {
     <h2 class="tense-title">Articles Partitifs</h2>
     <span class="level-pill a2-pill">A2</span>
   </div>
-  <p class="tense-subtitle">"Partitive articles" — du, de la, de l', des express an unspecified quantity: "some" or "any"</p>
+  <p class="tense-nickname">"Partitive articles" — du, de la, de l', des express an unspecified quantity: "some" or "any"</p>
 
   <div class="rule-box">
-    <div class="rule-label">The Core Rule</div>
+    <div class="rule-box-title">The Core Rule</div>
     <p>Partitive articles express an <strong>unspecified quantity</strong> of something — "some" or "any." Choose the article based on the gender and number of the noun: <strong>du</strong> (masculine singular), <strong>de la</strong> (feminine singular), <strong>de l'</strong> (before a vowel or silent h), <strong>des</strong> (plural).</p>
   </div>
 
   <div class="conj-grid">
     <div class="conj-block">
-      <div class="conj-block-head">Partitive Articles</div>
+      <div class="conj-block-header">Partitive Articles</div>
       <table class="conj-table">
         <tr><td>Masc. singular</td><td><strong>du</strong> (du pain)</td></tr>
         <tr><td>Fem. singular</td><td><strong>de la</strong> (de la confiture)</td></tr>
@@ -978,41 +554,41 @@ body {
 
   <div class="when-grid">
     <div class="when-card">
-      <div class="wi">🥖</div>
+      <div class="when-icon">🥖</div>
       <div>
         <div class="when-rule">Food</div>
-        <div class="when-fr">Je mange du pain et de la confiture.</div>
-        <div class="when-en">I eat (some) bread and jam.</div>
+        <div class="when-example-native">Je mange du pain et de la confiture.</div>
+        <div class="when-example-en">I eat (some) bread and jam.</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">💭</div>
+      <div class="when-icon">💭</div>
       <div>
         <div class="when-rule">Abstract</div>
-        <div class="when-fr">Il faut de la patience.</div>
-        <div class="when-en">You need (some) patience.</div>
+        <div class="when-example-native">Il faut de la patience.</div>
+        <div class="when-example-en">You need (some) patience.</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">🚫</div>
+      <div class="when-icon">🚫</div>
       <div>
         <div class="when-rule">Negative</div>
-        <div class="when-fr">Je ne bois pas de café.</div>
-        <div class="when-en">I don't drink (any) coffee.</div>
+        <div class="when-example-native">Je ne bois pas de café.</div>
+        <div class="when-example-en">I don't drink (any) coffee.</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">📏</div>
+      <div class="when-icon">📏</div>
       <div>
         <div class="when-rule">After quantity expressions</div>
-        <div class="when-fr">Beaucoup de travail / un peu de lait.</div>
-        <div class="when-en">A lot of work / a little milk.</div>
+        <div class="when-example-native">Beaucoup de travail / un peu de lait.</div>
+        <div class="when-example-en">A lot of work / a little milk.</div>
       </div>
     </div>
   </div>
 </section>
 
-<hr class="divider">
+<hr class="sec-divider">
 
 <!-- ═══════════════════════════════════════════ B1 ═══════════════════════════════════════════ -->
 
@@ -1021,18 +597,18 @@ body {
   <div class="section-chapter">Past Tense · B1</div>
   <div class="tense-header-row">
     <h2 class="tense-title">Passé Composé</h2>
-    <span class="level-pill pill-b1">B1</span>
+    <span class="level-pill b1-pill">B1</span>
   </div>
-  <p class="tense-subtitle">"The completed past" — what happened, what you did</p>
+  <p class="tense-nickname">"The completed past" — what happened, what you did</p>
 
   <div class="rule-box">
-    <div class="rule-label">The Core Rule</div>
+    <div class="rule-box-title">The Core Rule</div>
     <p>Formed with <strong>avoir or être (present tense) + past participle</strong>. Use it for completed actions in the past — things that happened and are done. This is the everyday past tense in spoken French. Two auxiliary verbs: most verbs use <em>avoir</em>, but a specific group uses <em>être</em> (and all reflexive verbs use être).</p>
   </div>
 
   <div class="conj-grid">
     <div class="conj-block">
-      <div class="conj-block-head">With avoir → parler</div>
+      <div class="conj-block-header">With avoir → parler</div>
       <table class="conj-table">
         <tr><td>je</td><td>ai parlé</td></tr>
         <tr><td>tu</td><td>as parlé</td></tr>
@@ -1043,7 +619,7 @@ body {
       </table>
     </div>
     <div class="conj-block">
-      <div class="conj-block-head">With être → aller (DR MRS VANDERTRAMPP)</div>
+      <div class="conj-block-header">With être → aller (DR MRS VANDERTRAMPP)</div>
       <table class="conj-table">
         <tr><td>je</td><td>suis allé(e)</td></tr>
         <tr><td>tu</td><td>es allé(e)</td></tr>
@@ -1060,8 +636,8 @@ body {
     <strong>D</strong>escendre, <strong>R</strong>entrer · <strong>M</strong>onter, <strong>R</strong>ester · <strong>S</strong>ortir · <strong>V</strong>enir, <strong>A</strong>ller, <strong>N</strong>aître, <strong>D</strong>evenir, <strong>E</strong>ntrer, <strong>R</strong>etourner · <strong>T</strong>omber, <strong>R</strong>evenir, <strong>A</strong>rriver, <strong>M</strong>ourir, <strong>P</strong>artir, <strong>P</strong>asser · Plus <strong>all reflexive verbs</strong> (se lever, se coucher…). With être verbs, the past participle <strong>agrees</strong> with the subject in gender and number.
   </div>
 
-  <div class="irreg-wrap">
-    <div class="conj-block-head" style="padding:0.38rem 0.8rem;background:var(--tag-bg);border:1px solid var(--border);border-bottom:none;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);font-weight:600">Key Irregular Past Participles</div>
+  <div class="irreg-table-wrap">
+    <div class="conj-block-header" style="padding:0.38rem 0.8rem;background:var(--tag-bg);border:1px solid var(--border);border-bottom:none;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);font-weight:600">Key Irregular Past Participles</div>
     <table class="irreg-table">
       <tr><th>Infinitive</th><th>Participle</th><th>Infinitive</th><th>Participle</th></tr>
       <tr><td>avoir</td><td>eu</td><td>être</td><td>été</td></tr>
@@ -1076,53 +652,53 @@ body {
   </div>
 
   <div class="trigger-box">
-    <div class="trigger-label">Trigger Expressions → Passé Composé</div>
+    <div class="trigger-box-title">Trigger Expressions → Passé Composé</div>
     <div class="trigger-list">
-      <span class="tw tw-blue">hier</span>
-      <span class="tw tw-blue">avant-hier</span>
-      <span class="tw tw-blue">la semaine dernière</span>
-      <span class="tw tw-blue">le mois dernier</span>
-      <span class="tw tw-blue">l'année dernière</span>
-      <span class="tw tw-blue">il y a 3 jours/ans</span>
-      <span class="tw tw-blue">lundi dernier</span>
-      <span class="tw tw-blue">soudain</span>
-      <span class="tw tw-blue">tout à coup</span>
-      <span class="tw tw-blue">finalement</span>
-      <span class="tw tw-blue">d'abord… ensuite… puis</span>
+      <span class="trigger blue">hier</span>
+      <span class="trigger blue">avant-hier</span>
+      <span class="trigger blue">la semaine dernière</span>
+      <span class="trigger blue">le mois dernier</span>
+      <span class="trigger blue">l'année dernière</span>
+      <span class="trigger blue">il y a 3 jours/ans</span>
+      <span class="trigger blue">lundi dernier</span>
+      <span class="trigger blue">soudain</span>
+      <span class="trigger blue">tout à coup</span>
+      <span class="trigger blue">finalement</span>
+      <span class="trigger blue">d'abord… ensuite… puis</span>
     </div>
   </div>
 
   <div class="when-grid">
     <div class="when-card">
-      <div class="wi">✅</div>
+      <div class="when-icon">✅</div>
       <div>
         <div class="when-rule">A single completed past event</div>
-        <div class="when-fr">Hier, j'ai mangé au restaurant.</div>
-        <div class="when-en">Yesterday, I ate at a restaurant.</div>
+        <div class="when-example-native">Hier, j'ai mangé au restaurant.</div>
+        <div class="when-example-en">Yesterday, I ate at a restaurant.</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">🔢</div>
+      <div class="when-icon">🔢</div>
       <div>
         <div class="when-rule">A sequence of events (one after another)</div>
-        <div class="when-fr">Je me suis levé, j'ai pris une douche et je suis parti.</div>
-        <div class="when-en">I got up, showered, and left. (step by step)</div>
+        <div class="when-example-native">Je me suis levé, j'ai pris une douche et je suis parti.</div>
+        <div class="when-example-en">I got up, showered, and left. (step by step)</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">⚡</div>
+      <div class="when-icon">⚡</div>
       <div>
         <div class="when-rule">An event that interrupted an ongoing action</div>
-        <div class="when-fr">Je lisais quand le téléphone a sonné.</div>
-        <div class="when-en">I was reading when the phone rang. (a sonné = PC; lisais = Imparfait)</div>
+        <div class="when-example-native">Je lisais quand le téléphone a sonné.</div>
+        <div class="when-example-en">I was reading when the phone rang. (a sonné = PC; lisais = Imparfait)</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">🔢</div>
+      <div class="when-icon">🔢</div>
       <div>
         <div class="when-rule">Repeated action a specific number of times</div>
-        <div class="when-fr">J'ai appelé trois fois sans réponse.</div>
-        <div class="when-en">I called three times with no answer.</div>
+        <div class="when-example-native">J'ai appelé trois fois sans réponse.</div>
+        <div class="when-example-en">I called three times with no answer.</div>
       </div>
     </div>
   </div>
@@ -1133,25 +709,25 @@ body {
   </div>
 </section>
 
-<hr class="divider">
+<hr class="sec-divider">
 
 <!-- IMPARFAIT -->
 <section class="tense-section" id="imparfait">
   <div class="section-chapter">Past Tense · B1</div>
   <div class="tense-header-row">
     <h2 class="tense-title">Imparfait</h2>
-    <span class="level-pill pill-b1">B1</span>
+    <span class="level-pill b1-pill">B1</span>
   </div>
-  <p class="tense-subtitle">"The background past" — what was ongoing, habitual, or descriptive</p>
+  <p class="tense-nickname">"The background past" — what was ongoing, habitual, or descriptive</p>
 
   <div class="rule-box">
-    <div class="rule-label">How to Form It</div>
+    <div class="rule-box-title">How to Form It</div>
     <p>Take the <strong>nous form of the present tense</strong>, drop <em>-ons</em>, and add the imparfait endings: <strong>-ais, -ais, -ait, -ions, -iez, -aient</strong>. This works for almost every verb. The only exception is être: its stem is <strong>ét-</strong>.</p>
   </div>
 
   <div class="conj-grid">
     <div class="conj-block">
-      <div class="conj-block-head">parler (nous parlons → parl-)</div>
+      <div class="conj-block-header">parler (nous parlons → parl-)</div>
       <table class="conj-table">
         <tr><td>je</td><td>parl<strong>ais</strong></td></tr>
         <tr><td>tu</td><td>parl<strong>ais</strong></td></tr>
@@ -1162,7 +738,7 @@ body {
       </table>
     </div>
     <div class="conj-block">
-      <div class="conj-block-head">être (only irregular — stem: ét-)</div>
+      <div class="conj-block-header">être (only irregular — stem: ét-)</div>
       <table class="conj-table">
         <tr><td>je</td><td>ét<strong>ais</strong></td></tr>
         <tr><td>tu</td><td>ét<strong>ais</strong></td></tr>
@@ -1180,67 +756,67 @@ body {
   </div>
 
   <div class="trigger-box">
-    <div class="trigger-label">Trigger Expressions → Imparfait</div>
+    <div class="trigger-box-title">Trigger Expressions → Imparfait</div>
     <div class="trigger-list">
-      <span class="tw tw-gold">toujours</span>
-      <span class="tw tw-gold">souvent</span>
-      <span class="tw tw-gold">d'habitude</span>
-      <span class="tw tw-gold">normalement</span>
-      <span class="tw tw-gold">tous les jours/soirs</span>
-      <span class="tw tw-gold">chaque semaine</span>
-      <span class="tw tw-gold">quand j'étais jeune</span>
-      <span class="tw tw-gold">autrefois</span>
-      <span class="tw tw-gold">à cette époque</span>
-      <span class="tw tw-gold">pendant que</span>
-      <span class="tw tw-gold">tandis que</span>
+      <span class="trigger gold">toujours</span>
+      <span class="trigger gold">souvent</span>
+      <span class="trigger gold">d'habitude</span>
+      <span class="trigger gold">normalement</span>
+      <span class="trigger gold">tous les jours/soirs</span>
+      <span class="trigger gold">chaque semaine</span>
+      <span class="trigger gold">quand j'étais jeune</span>
+      <span class="trigger gold">autrefois</span>
+      <span class="trigger gold">à cette époque</span>
+      <span class="trigger gold">pendant que</span>
+      <span class="trigger gold">tandis que</span>
     </div>
   </div>
 
   <div class="when-grid">
     <div class="when-card">
-      <div class="wi">🔁</div>
+      <div class="when-icon">🔁</div>
       <div>
         <div class="when-rule">Habitual / repeated past actions ("used to")</div>
-        <div class="when-fr">Quand j'étais enfant, je lisais tous les soirs.</div>
-        <div class="when-en">When I was a child, I used to read every evening.</div>
+        <div class="when-example-native">Quand j'étais enfant, je lisais tous les soirs.</div>
+        <div class="when-example-en">When I was a child, I used to read every evening.</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">🎨</div>
+      <div class="when-icon">🎨</div>
       <div>
         <div class="when-rule">Descriptions and background scenes</div>
-        <div class="when-fr">Il faisait froid et les rues étaient vides.</div>
-        <div class="when-en">It was cold and the streets were empty.</div>
+        <div class="when-example-native">Il faisait froid et les rues étaient vides.</div>
+        <div class="when-example-en">It was cold and the streets were empty.</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">⏳</div>
+      <div class="when-icon">⏳</div>
       <div>
         <div class="when-rule">Ongoing action when something else happened</div>
-        <div class="when-fr">Elle dormait quand l'alarme a retenti.</div>
-        <div class="when-en">She was sleeping when the alarm went off. (dormait = ongoing background)</div>
+        <div class="when-example-native">Elle dormait quand l'alarme a retenti.</div>
+        <div class="when-example-en">She was sleeping when the alarm went off. (dormait = ongoing background)</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">🕐</div>
+      <div class="when-icon">🕐</div>
       <div>
         <div class="when-rule">States of mind / emotions / conditions in the past</div>
-        <div class="when-fr">Il avait peur. Elle ne savait pas quoi faire.</div>
-        <div class="when-en">He was afraid. She didn't know what to do.</div>
+        <div class="when-example-native">Il avait peur. Elle ne savait pas quoi faire.</div>
+        <div class="when-example-en">He was afraid. She didn't know what to do.</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">🤝</div>
+      <div class="when-icon">🤝</div>
       <div>
         <div class="when-rule">Polite softening (imparfait de politesse)</div>
-        <div class="when-fr">Je voulais vous demander quelque chose.</div>
-        <div class="when-en">I wanted to ask you something. (softer than "je veux")</div>
+        <div class="when-example-native">Je voulais vous demander quelque chose.</div>
+        <div class="when-example-en">I wanted to ask you something. (softer than "je veux")</div>
       </div>
     </div>
   </div>
 </section>
 
-<hr class="divider">
+<hr class="sec-divider">
 
 <!-- PC vs IMPARFAIT -->
 <section class="tense-section" id="pc-vs-imp">
@@ -1248,16 +824,16 @@ body {
   <div class="tense-header-row">
     <h2 class="tense-title">Passé Composé vs. Imparfait</h2>
   </div>
-  <p class="tense-subtitle">The most important distinction in B1 French — master this and your past tense becomes natural</p>
+  <p class="tense-nickname">The most important distinction in B1 French — master this and your past tense becomes natural</p>
 
   <div class="rule-box">
-    <div class="rule-label">The Movie Metaphor</div>
+    <div class="rule-box-title">The Movie Metaphor</div>
     <p>The <strong>Imparfait</strong> is the continuous background footage of a film — the scene that was already running (weather, emotions, ongoing actions). The <strong>Passé Composé</strong> is the cut — the specific event that happens, interrupts, or advances the story. Both appear together constantly in narrative French.</p>
   </div>
 
   <div class="contrast-box">
     <div class="contrast-title">Side-by-Side Contrasts</div>
-    <div class="contrast-row ch">
+    <div class="contrast-row contrast-header">
       <div class="contrast-cell">Imparfait (background/state/habit)</div>
       <div class="contrast-cell">Passé Composé (event/action/completion)</div>
     </div>
@@ -1285,25 +861,25 @@ body {
   </div>
 </section>
 
-<hr class="divider">
+<hr class="sec-divider">
 
 <!-- FUTUR SIMPLE -->
 <section class="tense-section" id="futur-simple">
   <div class="section-chapter">Future Tense · B1</div>
   <div class="tense-header-row">
     <h2 class="tense-title">Futur Simple</h2>
-    <span class="level-pill pill-b1">B1</span>
+    <span class="level-pill b1-pill">B1</span>
   </div>
-  <p class="tense-subtitle">"Will do" — predictions, promises, and future facts</p>
+  <p class="tense-nickname">"Will do" — predictions, promises, and future facts</p>
 
   <div class="rule-box">
-    <div class="rule-label">How to Form It</div>
+    <div class="rule-box-title">How to Form It</div>
     <p>Add the endings <strong>-ai, -as, -a, -ons, -ez, -ont</strong> directly to the infinitive. For -re verbs, drop the final 'e' first (prendre → prendr-). Irregular verbs have special stems but use the same endings.</p>
   </div>
 
   <div class="conj-grid">
     <div class="conj-block">
-      <div class="conj-block-head">Regular → parler / finir / prendre</div>
+      <div class="conj-block-header">Regular → parler / finir / prendre</div>
       <table class="conj-table">
         <tr><td>je</td><td>parler<strong>ai</strong> / finir<strong>ai</strong> / prendr<strong>ai</strong></td></tr>
         <tr><td>tu</td><td>parler<strong>as</strong></td></tr>
@@ -1314,7 +890,7 @@ body {
       </table>
     </div>
     <div class="conj-block">
-      <div class="conj-block-head">Irregular stems (same endings apply)</div>
+      <div class="conj-block-header">Irregular stems (same endings apply)</div>
       <table class="conj-table">
         <tr><td>être</td><td>ser- → serai</td></tr>
         <tr><td>avoir</td><td>aur- → aurai</td></tr>
@@ -1331,45 +907,45 @@ body {
   </div>
 
   <div class="trigger-box">
-    <div class="trigger-label">Trigger Expressions → Futur Simple</div>
+    <div class="trigger-box-title">Trigger Expressions → Futur Simple</div>
     <div class="trigger-list">
-      <span class="tw tw-green">demain</span>
-      <span class="tw tw-green">après-demain</span>
-      <span class="tw tw-green">la semaine prochaine</span>
-      <span class="tw tw-green">l'année prochaine</span>
-      <span class="tw tw-green">dans 3 jours</span>
-      <span class="tw tw-green">bientôt</span>
-      <span class="tw tw-green">un jour</span>
-      <span class="tw tw-green">quand (+ future meaning)</span>
-      <span class="tw tw-green">lorsque</span>
-      <span class="tw tw-green">dès que</span>
-      <span class="tw tw-green">aussitôt que</span>
+      <span class="trigger">demain</span>
+      <span class="trigger">après-demain</span>
+      <span class="trigger">la semaine prochaine</span>
+      <span class="trigger">l'année prochaine</span>
+      <span class="trigger">dans 3 jours</span>
+      <span class="trigger">bientôt</span>
+      <span class="trigger">un jour</span>
+      <span class="trigger">quand (+ future meaning)</span>
+      <span class="trigger">lorsque</span>
+      <span class="trigger">dès que</span>
+      <span class="trigger">aussitôt que</span>
     </div>
   </div>
 
   <div class="when-grid">
     <div class="when-card">
-      <div class="wi">📅</div>
+      <div class="when-icon">📅</div>
       <div>
         <div class="when-rule">Future plans and predictions</div>
-        <div class="when-fr">L'année prochaine, nous voyagerons en Asie.</div>
-        <div class="when-en">Next year, we will travel to Asia.</div>
+        <div class="when-example-native">L'année prochaine, nous voyagerons en Asie.</div>
+        <div class="when-example-en">Next year, we will travel to Asia.</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">🔮</div>
+      <div class="when-icon">🔮</div>
       <div>
         <div class="when-rule">After quand/lorsque/dès que in future contexts (KEY B1 rule!)</div>
-        <div class="when-fr">Appelle-moi quand tu arriveras. (NOT "quand tu arrives")</div>
-        <div class="when-en">Call me when you arrive. French uses futur here — unlike English!</div>
+        <div class="when-example-native">Appelle-moi quand tu arriveras. (NOT "quand tu arrives")</div>
+        <div class="when-example-en">Call me when you arrive. French uses futur here — unlike English!</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">💬</div>
+      <div class="when-icon">💬</div>
       <div>
         <div class="when-rule">Promises and orders (formal)</div>
-        <div class="when-fr">Tu feras tes devoirs avant de sortir.</div>
-        <div class="when-en">You will do your homework before going out.</div>
+        <div class="when-example-native">Tu feras tes devoirs avant de sortir.</div>
+        <div class="when-example-en">You will do your homework before going out.</div>
       </div>
     </div>
   </div>
@@ -1380,7 +956,7 @@ body {
   </div>
 </section>
 
-<hr class="divider">
+<hr class="sec-divider">
 
 <!-- CONDITIONNEL PRÉSENT -->
 <section class="tense-section" id="conditionnel">
@@ -1389,16 +965,16 @@ body {
     <h2 class="tense-title">Conditionnel Présent</h2>
     <span class="level-pill pill-both">B1/B2</span>
   </div>
-  <p class="tense-subtitle">"Would do" — hypotheticals, politeness, reported speech</p>
+  <p class="tense-nickname">"Would do" — hypotheticals, politeness, reported speech</p>
 
   <div class="rule-box">
-    <div class="rule-label">How to Form It</div>
+    <div class="rule-box-title">How to Form It</div>
     <p>Use the <strong>same stems as the Futur Simple</strong>, but add <strong>Imparfait endings</strong>: -ais, -ais, -ait, -ions, -iez, -aient. This is the key shortcut: if you know futur stems and imparfait endings, you already know the conditionnel.</p>
   </div>
 
   <div class="conj-grid">
     <div class="conj-block">
-      <div class="conj-block-head">parler → parler- + imparfait endings</div>
+      <div class="conj-block-header">parler → parler- + imparfait endings</div>
       <table class="conj-table">
         <tr><td>je</td><td>parler<strong>ais</strong></td></tr>
         <tr><td>tu</td><td>parler<strong>ais</strong></td></tr>
@@ -1409,7 +985,7 @@ body {
       </table>
     </div>
     <div class="conj-block">
-      <div class="conj-block-head">Irregular stems (same as futur)</div>
+      <div class="conj-block-header">Irregular stems (same as futur)</div>
       <table class="conj-table">
         <tr><td>être</td><td>ser- → serais</td></tr>
         <tr><td>avoir</td><td>aur- → aurais</td></tr>
@@ -1425,41 +1001,41 @@ body {
 
   <div class="when-grid">
     <div class="when-card">
-      <div class="wi">💡</div>
+      <div class="when-icon">💡</div>
       <div>
         <div class="when-rule">Hypothetical consequences ("would") — the "then" in si clauses</div>
-        <div class="when-fr">Si j'avais plus de temps, je voyagerais davantage.</div>
-        <div class="when-en">If I had more time, I would travel more.</div>
+        <div class="when-example-native">Si j'avais plus de temps, je voyagerais davantage.</div>
+        <div class="when-example-en">If I had more time, I would travel more.</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">🤝</div>
+      <div class="when-icon">🤝</div>
       <div>
         <div class="when-rule">Polite requests — much softer than present tense</div>
-        <div class="when-fr">Je voudrais un café, s'il vous plaît. / Pourriez-vous m'aider ?</div>
-        <div class="when-en">I would like a coffee. / Could you help me?</div>
+        <div class="when-example-native">Je voudrais un café, s'il vous plaît. / Pourriez-vous m'aider ?</div>
+        <div class="when-example-en">I would like a coffee. / Could you help me?</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">📰</div>
+      <div class="when-icon">📰</div>
       <div>
         <div class="when-rule">Unverified information / journalistic conditional (B2)</div>
-        <div class="when-fr">Selon les médias, il y aurait des négociations en cours.</div>
-        <div class="when-en">According to the media, there would apparently be negotiations underway. (not confirmed)</div>
+        <div class="when-example-native">Selon les médias, il y aurait des négociations en cours.</div>
+        <div class="when-example-en">According to the media, there would apparently be negotiations underway. (not confirmed)</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">💬</div>
+      <div class="when-icon">💬</div>
       <div>
         <div class="when-rule">Reported speech ("said that he would")</div>
-        <div class="when-fr">Il a dit qu'il viendrait demain.</div>
-        <div class="when-en">He said he would come tomorrow.</div>
+        <div class="when-example-native">Il a dit qu'il viendrait demain.</div>
+        <div class="when-example-en">He said he would come tomorrow.</div>
       </div>
     </div>
   </div>
 </section>
 
-<hr class="divider">
+<hr class="sec-divider">
 
 <!-- SUBJONCTIF PRÉSENT -->
 <section class="tense-section" id="subjonctif-pres">
@@ -1468,16 +1044,16 @@ body {
     <h2 class="tense-title">Subjonctif Présent</h2>
     <span class="level-pill pill-both">B1/B2</span>
   </div>
-  <p class="tense-subtitle">"The mood of subjectivity" — wishes, doubt, emotion, necessity</p>
+  <p class="tense-nickname">"The mood of subjectivity" — wishes, doubt, emotion, necessity</p>
 
   <div class="rule-box">
-    <div class="rule-label">How to Form It</div>
+    <div class="rule-box-title">How to Form It</div>
     <p>Take the <strong>ils/elles present-tense form</strong>, drop <em>-ent</em>, and add: <strong>-e, -es, -e, -ions, -iez, -ent</strong>. The nous and vous forms are actually identical to the imparfait — a useful memory hook! Most irregulars in the present tense carry their irregularity into the subjonctif.</p>
   </div>
 
   <div class="conj-grid">
     <div class="conj-block">
-      <div class="conj-block-head">parler (ils parlent → parl-)</div>
+      <div class="conj-block-header">parler (ils parlent → parl-)</div>
       <table class="conj-table">
         <tr><td>que je</td><td>parl<strong>e</strong></td></tr>
         <tr><td>que tu</td><td>parl<strong>es</strong></td></tr>
@@ -1488,7 +1064,7 @@ body {
       </table>
     </div>
     <div class="conj-block">
-      <div class="conj-block-head">Key irregular subjonctifs</div>
+      <div class="conj-block-header">Key irregular subjonctifs</div>
       <table class="conj-table">
         <tr><td>être</td><td>que je sois, tu sois, il soit, nous soyons, vous soyez, ils soient</td></tr>
         <tr><td>avoir</td><td>que j'aie, tu aies, il ait, nous ayons, vous ayez, ils aient</td></tr>
@@ -1509,75 +1085,75 @@ body {
 
   <div class="when-grid">
     <div class="when-card">
-      <div class="wi">🙏</div>
+      <div class="when-icon">🙏</div>
       <div>
         <div class="when-rule">Wishes and desires (vouloir que, désirer que, souhaiter que)</div>
-        <div class="when-fr">Je veux que tu viennes avec moi.</div>
-        <div class="when-en">I want you to come with me.</div>
+        <div class="when-example-native">Je veux que tu viennes avec moi.</div>
+        <div class="when-example-en">I want you to come with me.</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">😊</div>
+      <div class="when-icon">😊</div>
       <div>
         <div class="when-rule">Emotions (être content/triste/surpris que, craindre que, regretter que)</div>
-        <div class="when-fr">Je suis content que tu sois là.</div>
-        <div class="when-en">I'm glad that you're here.</div>
+        <div class="when-example-native">Je suis content que tu sois là.</div>
+        <div class="when-example-en">I'm glad that you're here.</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">🤨</div>
+      <div class="when-icon">🤨</div>
       <div>
         <div class="when-rule">Doubt and denial (douter que, ne pas croire que, ne pas penser que)</div>
-        <div class="when-fr">Je ne crois pas qu'il ait raison.</div>
-        <div class="when-en">I don't believe he's right.</div>
+        <div class="when-example-native">Je ne crois pas qu'il ait raison.</div>
+        <div class="when-example-en">I don't believe he's right.</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">⚖️</div>
+      <div class="when-icon">⚖️</div>
       <div>
         <div class="when-rule">Necessity and importance (il faut que, il est important que, il est nécessaire que)</div>
-        <div class="when-fr">Il faut que vous fassiez attention.</div>
-        <div class="when-en">You need to pay attention. (lit: it is necessary that you pay attention)</div>
+        <div class="when-example-native">Il faut que vous fassiez attention.</div>
+        <div class="when-example-en">You need to pay attention. (lit: it is necessary that you pay attention)</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">🔗</div>
+      <div class="when-icon">🔗</div>
       <div>
         <div class="when-rule">Conjunctions that always trigger subjonctif</div>
-        <div class="when-fr">bien que, pour que, avant que, à moins que, quoique, jusqu'à ce que</div>
-        <div class="when-en">although, so that, before, unless, although, until</div>
+        <div class="when-example-native">bien que, pour que, avant que, à moins que, quoique, jusqu'à ce que</div>
+        <div class="when-example-en">although, so that, before, unless, although, until</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">🏆</div>
+      <div class="when-icon">🏆</div>
       <div>
         <div class="when-rule">Superlatives and unique expressions (le seul, le premier, le plus…)</div>
-        <div class="when-fr">C'est le meilleur film que j'aie jamais vu.</div>
-        <div class="when-en">It's the best film I have ever seen.</div>
+        <div class="when-example-native">C'est le meilleur film que j'aie jamais vu.</div>
+        <div class="when-example-en">It's the best film I have ever seen.</div>
       </div>
     </div>
   </div>
 </section>
 
-<hr class="divider">
+<hr class="sec-divider">
 
 <!-- PLUS-QUE-PARFAIT -->
 <section class="tense-section" id="plus-que-parfait">
   <div class="section-chapter">Past Perfect · B2</div>
   <div class="tense-header-row">
     <h2 class="tense-title">Plus-que-parfait</h2>
-    <span class="level-pill pill-b2">B2</span>
+    <span class="level-pill b2-pill">B2</span>
   </div>
-  <p class="tense-subtitle">"Had done" — the past before the past</p>
+  <p class="tense-nickname">"Had done" — the past before the past</p>
 
   <div class="rule-box">
-    <div class="rule-label">How to Form It</div>
+    <div class="rule-box-title">How to Form It</div>
     <p>Formed with <strong>avoir or être in the Imparfait + past participle</strong>. The same être/avoir rules apply as in the passé composé (same verbs use être, past participle agrees with subject for être verbs). Use it when you're in the past and need to refer to something that happened even earlier.</p>
   </div>
 
   <div class="conj-grid">
     <div class="conj-block">
-      <div class="conj-block-head">With avoir → parler</div>
+      <div class="conj-block-header">With avoir → parler</div>
       <table class="conj-table">
         <tr><td>j'</td><td>avais parlé</td></tr>
         <tr><td>tu</td><td>avais parlé</td></tr>
@@ -1588,7 +1164,7 @@ body {
       </table>
     </div>
     <div class="conj-block">
-      <div class="conj-block-head">With être → aller</div>
+      <div class="conj-block-header">With être → aller</div>
       <table class="conj-table">
         <tr><td>j'</td><td>étais allé(e)</td></tr>
         <tr><td>tu</td><td>étais allé(e)</td></tr>
@@ -1602,51 +1178,51 @@ body {
 
   <div class="when-grid">
     <div class="when-card">
-      <div class="wi">⏮️</div>
+      <div class="when-icon">⏮️</div>
       <div>
         <div class="when-rule">Action completed before another past event</div>
-        <div class="when-fr">Quand je suis arrivé, elle était déjà partie.</div>
-        <div class="when-en">When I arrived, she had already left. (she left first, then I arrived)</div>
+        <div class="when-example-native">Quand je suis arrivé, elle était déjà partie.</div>
+        <div class="when-example-en">When I arrived, she had already left. (she left first, then I arrived)</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">📖</div>
+      <div class="when-icon">📖</div>
       <div>
         <div class="when-rule">Reported past events (backstory in narratives)</div>
-        <div class="when-fr">Il m'a dit qu'il avait oublié son passeport.</div>
-        <div class="when-en">He told me he had forgotten his passport.</div>
+        <div class="when-example-native">Il m'a dit qu'il avait oublié son passeport.</div>
+        <div class="when-example-en">He told me he had forgotten his passport.</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">😔</div>
+      <div class="when-icon">😔</div>
       <div>
         <div class="when-rule">In si clauses — impossible past conditions (Type 3)</div>
-        <div class="when-fr">Si j'avais su, j'aurais agi différemment.</div>
-        <div class="when-en">If I had known, I would have acted differently.</div>
+        <div class="when-example-native">Si j'avais su, j'aurais agi différemment.</div>
+        <div class="when-example-en">If I had known, I would have acted differently.</div>
       </div>
     </div>
   </div>
 </section>
 
-<hr class="divider">
+<hr class="sec-divider">
 
 <!-- FUTUR ANTÉRIEUR -->
 <section class="tense-section" id="futur-anterieur">
   <div class="section-chapter">Future Perfect · B2</div>
   <div class="tense-header-row">
     <h2 class="tense-title">Futur Antérieur</h2>
-    <span class="level-pill pill-b2">B2</span>
+    <span class="level-pill b2-pill">B2</span>
   </div>
-  <p class="tense-subtitle">"Will have done" — completed before a future moment</p>
+  <p class="tense-nickname">"Will have done" — completed before a future moment</p>
 
   <div class="rule-box">
-    <div class="rule-label">How to Form It</div>
+    <div class="rule-box-title">How to Form It</div>
     <p>Formed with <strong>avoir or être in the Futur Simple + past participle</strong>. Same être/avoir rules apply. Used for actions that will be finished before another future event, often with <em>quand, lorsque, dès que, avant que</em>.</p>
   </div>
 
   <div class="conj-grid">
     <div class="conj-block">
-      <div class="conj-block-head">With avoir → finir</div>
+      <div class="conj-block-header">With avoir → finir</div>
       <table class="conj-table">
         <tr><td>j'</td><td>aurai fini</td></tr>
         <tr><td>tu</td><td>auras fini</td></tr>
@@ -1657,7 +1233,7 @@ body {
       </table>
     </div>
     <div class="conj-block">
-      <div class="conj-block-head">Common use patterns</div>
+      <div class="conj-block-header">Common use patterns</div>
       <table class="conj-table">
         <tr><td>Before a deadline</td><td class="note-cell">J'aurai terminé avant vendredi.</td></tr>
         <tr><td>Before another future</td><td class="note-cell">Quand tu arriveras, j'aurai déjà mangé.</td></tr>
@@ -1672,25 +1248,25 @@ body {
   </div>
 </section>
 
-<hr class="divider">
+<hr class="sec-divider">
 
 <!-- CONDITIONNEL PASSÉ -->
 <section class="tense-section" id="conditionnel-passe">
   <div class="section-chapter">Conditional Perfect · B2</div>
   <div class="tense-header-row">
     <h2 class="tense-title">Conditionnel Passé</h2>
-    <span class="level-pill pill-b2">B2</span>
+    <span class="level-pill b2-pill">B2</span>
   </div>
-  <p class="tense-subtitle">"Would have done" — the result of an impossible past condition</p>
+  <p class="tense-nickname">"Would have done" — the result of an impossible past condition</p>
 
   <div class="rule-box">
-    <div class="rule-label">How to Form It</div>
+    <div class="rule-box-title">How to Form It</div>
     <p>Formed with <strong>avoir or être in the Conditionnel Présent + past participle</strong>. Almost always paired with the plus-que-parfait in si clauses (Type 3). Also used for regret, criticism, or a softer way of saying what should have happened.</p>
   </div>
 
   <div class="conj-grid">
     <div class="conj-block">
-      <div class="conj-block-head">With avoir → parler</div>
+      <div class="conj-block-header">With avoir → parler</div>
       <table class="conj-table">
         <tr><td>j'</td><td>aurais parlé</td></tr>
         <tr><td>tu</td><td>aurais parlé</td></tr>
@@ -1701,7 +1277,7 @@ body {
       </table>
     </div>
     <div class="conj-block">
-      <div class="conj-block-head">Key uses in context</div>
+      <div class="conj-block-header">Key uses in context</div>
       <table class="conj-table">
         <tr><td>Type 3 si clause</td><td class="note-cell">Si j'avais su, j'aurais agi différemment.</td></tr>
         <tr><td>Regret</td><td class="note-cell">J'aurais dû partir plus tôt.</td></tr>
@@ -1712,25 +1288,25 @@ body {
   </div>
 </section>
 
-<hr class="divider">
+<hr class="sec-divider">
 
 <!-- SUBJONCTIF PASSÉ -->
 <section class="tense-section" id="subjonctif-passe">
   <div class="section-chapter">Past Subjunctive · B2</div>
   <div class="tense-header-row">
     <h2 class="tense-title">Subjonctif Passé</h2>
-    <span class="level-pill pill-b2">B2</span>
+    <span class="level-pill b2-pill">B2</span>
   </div>
-  <p class="tense-subtitle">"That he may have done" — past action in a subjunctive context</p>
+  <p class="tense-nickname">"That he may have done" — past action in a subjunctive context</p>
 
   <div class="rule-box">
-    <div class="rule-label">How to Form It</div>
+    <div class="rule-box-title">How to Form It</div>
     <p>Formed with <strong>avoir or être in the Subjonctif Présent + past participle</strong>. The same triggers as the subjonctif présent apply, but you use this when the subjunctive verb describes an action that happened <em>before</em> the main verb's action.</p>
   </div>
 
   <div class="conj-grid">
     <div class="conj-block">
-      <div class="conj-block-head">With avoir → parler</div>
+      <div class="conj-block-header">With avoir → parler</div>
       <table class="conj-table">
         <tr><td>que j'</td><td>aie parlé</td></tr>
         <tr><td>que tu</td><td>aies parlé</td></tr>
@@ -1741,7 +1317,7 @@ body {
       </table>
     </div>
     <div class="conj-block">
-      <div class="conj-block-head">When to use it vs. subjonctif présent</div>
+      <div class="conj-block-header">When to use it vs. subjonctif présent</div>
       <table class="conj-table">
         <tr><td>Same time / future</td><td class="note-cell">→ Subjonctif Présent: Je suis content qu'il vienne.</td></tr>
         <tr><td>Action already done</td><td class="note-cell">→ Subjonctif Passé: Je suis content qu'il soit venu.</td></tr>
@@ -1752,7 +1328,7 @@ body {
   </div>
 </section>
 
-<hr class="divider">
+<hr class="sec-divider">
 
 <!-- SI CLAUSES -->
 <section class="tense-section" id="si-clauses">
@@ -1760,10 +1336,10 @@ body {
   <div class="tense-header-row">
     <h2 class="tense-title">Si Clauses (If/Then)</h2>
   </div>
-  <p class="tense-subtitle">Three types — each expressing a different level of likelihood</p>
+  <p class="tense-nickname">Three types — each expressing a different level of likelihood</p>
 
   <div class="rule-box">
-    <div class="rule-label">The Golden Rule</div>
+    <div class="rule-box-title">The Golden Rule</div>
     <p>Never use the futur or conditionnel directly after <em>si</em> (when si means "if"). The si clause always uses indicative (présent or imparfait or plus-que-parfait), and the result clause uses futur/conditionnel/conditionnel passé.</p>
   </div>
 
@@ -1808,7 +1384,7 @@ body {
   </div>
 </section>
 
-<hr class="divider">
+<hr class="sec-divider">
 
 <!-- ═══════════════════════════════════════════════════════════
      PASSÉ SIMPLE — C1
@@ -1817,18 +1393,18 @@ body {
   <div class="section-chapter">Literary Past · C1</div>
   <div class="tense-header-row">
     <h2 class="tense-title">Passé Simple</h2>
-    <span class="level-pill pill-c1">C1</span>
+    <span class="level-pill c1-pill">C1</span>
   </div>
-  <p class="tense-subtitle">"The literary past" — used in formal writing, literature, and historical texts</p>
+  <p class="tense-nickname">"The literary past" — used in formal writing, literature, and historical texts</p>
 
   <div class="rule-box">
-    <div class="rule-label">The Core Rule</div>
+    <div class="rule-box-title">The Core Rule</div>
     <p>The passé simple is the <strong>literary equivalent of the passé composé</strong>. It's never used in spoken French but dominates <em>novels, historical writing, journalism, and formal reports</em>. As an interpreter working with written texts, you must recognize every form instantly. It has four conjugation patterns based on verb ending.</p>
   </div>
 
   <div class="conj-grid">
     <div class="conj-block">
-      <div class="conj-block-head">-er verbs → parler</div>
+      <div class="conj-block-header">-er verbs → parler</div>
       <table class="conj-table">
         <tr><td>je</td><td>parl<strong>ai</strong></td></tr>
         <tr><td>tu</td><td>parl<strong>as</strong></td></tr>
@@ -1839,7 +1415,7 @@ body {
       </table>
     </div>
     <div class="conj-block">
-      <div class="conj-block-head">-ir/-re verbs → finir / prendre</div>
+      <div class="conj-block-header">-ir/-re verbs → finir / prendre</div>
       <table class="conj-table">
         <tr><td>je</td><td>fin<strong>is</strong> / pr<strong>is</strong></td></tr>
         <tr><td>tu</td><td>fin<strong>is</strong> / pr<strong>is</strong></td></tr>
@@ -1851,8 +1427,8 @@ body {
     </div>
   </div>
 
-  <div class="irreg-wrap">
-    <div class="conj-block-head" style="padding:0.38rem 0.8rem;background:var(--tag-bg);border:1px solid var(--border);border-bottom:none;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);font-weight:600">Key Irregular Passé Simple Forms</div>
+  <div class="irreg-table-wrap">
+    <div class="conj-block-header" style="padding:0.38rem 0.8rem;background:var(--tag-bg);border:1px solid var(--border);border-bottom:none;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);font-weight:600">Key Irregular Passé Simple Forms</div>
     <table class="irreg-table">
       <tr><th>Verb</th><th>je</th><th>il/elle</th><th>ils/elles</th></tr>
       <tr><td>être</td><td>fus</td><td>fut</td><td>furent</td></tr>
@@ -1870,19 +1446,19 @@ body {
 
   <div class="when-grid">
     <div class="when-card">
-      <div class="wi">📖</div>
+      <div class="when-icon">📖</div>
       <div>
         <div class="when-rule">Narrative events in literature</div>
-        <div class="when-fr">Il entra dans la pièce et posa son chapeau sur la table.</div>
-        <div class="when-en">He entered the room and placed his hat on the table.</div>
+        <div class="when-example-native">Il entra dans la pièce et posa son chapeau sur la table.</div>
+        <div class="when-example-en">He entered the room and placed his hat on the table.</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">📰</div>
+      <div class="when-icon">📰</div>
       <div>
         <div class="when-rule">Historical accounts and formal journalism</div>
-        <div class="when-fr">La Révolution commença en 1789 et transforma la France.</div>
-        <div class="when-en">The Revolution began in 1789 and transformed France.</div>
+        <div class="when-example-native">La Révolution commença en 1789 et transforma la France.</div>
+        <div class="when-example-en">The Revolution began in 1789 and transformed France.</div>
       </div>
     </div>
   </div>
@@ -1893,7 +1469,7 @@ body {
   </div>
 </section>
 
-<hr class="divider">
+<hr class="sec-divider">
 
 <!-- ═══════════════════════════════════════════════════════════
      SUBJONCTIF IMPARFAIT — C1
@@ -1902,18 +1478,18 @@ body {
   <div class="section-chapter">Literary Subjunctive · C1</div>
   <div class="tense-header-row">
     <h2 class="tense-title">Subjonctif Imparfait</h2>
-    <span class="level-pill pill-c1">C1</span>
+    <span class="level-pill c1-pill">C1</span>
   </div>
-  <p class="tense-subtitle">"That he might do" — the literary form of the past subjunctive</p>
+  <p class="tense-nickname">"That he might do" — the literary form of the past subjunctive</p>
 
   <div class="rule-box">
-    <div class="rule-label">How to Form It</div>
+    <div class="rule-box-title">How to Form It</div>
     <p>Take the <strong>passé simple il/elle form</strong> and add: for -er verbs: <strong>-asse, -asses, -ât, -assions, -assiez, -assent</strong>; for -ir/-re/-oir verbs: <strong>-sse, -sses, -^t, -ssions, -ssiez, -ssent</strong>. Note the circumflex (^) on the il/elle form. In modern French, this is replaced by the subjonctif présent in speech, but it appears in literary and very formal texts.</p>
   </div>
 
   <div class="conj-grid">
     <div class="conj-block">
-      <div class="conj-block-head">parler (PS: il parla → parla-)</div>
+      <div class="conj-block-header">parler (PS: il parla → parla-)</div>
       <table class="conj-table">
         <tr><td>que je</td><td>parl<strong>asse</strong></td></tr>
         <tr><td>que tu</td><td>parl<strong>asses</strong></td></tr>
@@ -1924,7 +1500,7 @@ body {
       </table>
     </div>
     <div class="conj-block">
-      <div class="conj-block-head">Key verbs to recognize</div>
+      <div class="conj-block-header">Key verbs to recognize</div>
       <table class="conj-table">
         <tr><td>être</td><td>que je fusse, qu'il fût</td></tr>
         <tr><td>avoir</td><td>que j'eusse, qu'il eût</td></tr>
@@ -1938,19 +1514,19 @@ body {
 
   <div class="when-grid">
     <div class="when-card">
-      <div class="wi">📖</div>
+      <div class="when-icon">📖</div>
       <div>
         <div class="when-rule">Literary sequence of tenses (past main verb + subjunctive)</div>
-        <div class="when-fr">Il voulait qu'elle partît immédiatement.</div>
-        <div class="when-en">He wanted her to leave immediately. (modern: qu'elle parte)</div>
+        <div class="when-example-native">Il voulait qu'elle partît immédiatement.</div>
+        <div class="when-example-en">He wanted her to leave immediately. (modern: qu'elle parte)</div>
       </div>
     </div>
     <div class="when-card">
-      <div class="wi">🎭</div>
+      <div class="when-icon">🎭</div>
       <div>
         <div class="when-rule">Formal/elevated register — speeches and ceremonies</div>
-        <div class="when-fr">Il fallait qu'il fût présent pour signer l'accord.</div>
-        <div class="when-en">It was necessary that he be present to sign the agreement.</div>
+        <div class="when-example-native">Il fallait qu'il fût présent pour signer l'accord.</div>
+        <div class="when-example-en">It was necessary that he be present to sign the agreement.</div>
       </div>
     </div>
   </div>
@@ -1961,7 +1537,7 @@ body {
   </div>
 </section>
 
-<hr class="divider">
+<hr class="sec-divider">
 
 <!-- ═══════════════════════════════════════════════════════════
      REGISTRE PROFESSIONNEL — C1
@@ -1970,18 +1546,18 @@ body {
   <div class="section-chapter">Professional Register · C1</div>
   <div class="tense-header-row">
     <h2 class="tense-title">Registre Professionnel</h2>
-    <span class="level-pill pill-c1">C1</span>
+    <span class="level-pill c1-pill">C1</span>
   </div>
-  <p class="tense-subtitle">Formal vs informal — the register shifts that interpreters must master</p>
+  <p class="tense-nickname">Formal vs informal — the register shifts that interpreters must master</p>
 
   <div class="rule-box">
-    <div class="rule-label">Why Register Matters</div>
+    <div class="rule-box-title">Why Register Matters</div>
     <p>As an interpreter, you must match the speaker's register precisely. A diplomatic speech uses different vocabulary than a casual interview. At C1, you should be able to <strong>shift between registers naturally</strong>, avoid Anglicisms, and use professional-grade vocabulary.</p>
   </div>
 
   <div class="contrast-box">
     <div class="contrast-title">Common Anglicisms to Avoid</div>
-    <div class="contrast-row ch">
+    <div class="contrast-row contrast-header">
       <div class="contrast-cell">Anglicism (avoid)</div>
       <div class="contrast-cell">Correct French</div>
     </div>
@@ -2009,7 +1585,7 @@ body {
 
   <div class="contrast-box">
     <div class="contrast-title">Register Elevation: Informal → Professional</div>
-    <div class="contrast-row ch">
+    <div class="contrast-row contrast-header">
       <div class="contrast-cell">Everyday (B2)</div>
       <div class="contrast-cell">Professional register (C1)</div>
     </div>
@@ -2032,7 +1608,7 @@ body {
   </div>
 </section>
 
-<hr class="divider">
+<hr class="sec-divider">
 
 <!-- ═══════════════════════════════════════════════════════════
      PASSÉ ANTÉRIEUR — C2
@@ -2041,18 +1617,18 @@ body {
   <div class="section-chapter">Literary Past Perfect · C2</div>
   <div class="tense-header-row">
     <h2 class="tense-title">Passé Antérieur</h2>
-    <span class="level-pill pill-c2">C2</span>
+    <span class="level-pill c2-pill">C2</span>
   </div>
-  <p class="tense-subtitle">"Had done (literary)" — the literary equivalent of the plus-que-parfait</p>
+  <p class="tense-nickname">"Had done (literary)" — the literary equivalent of the plus-que-parfait</p>
 
   <div class="rule-box">
-    <div class="rule-label">How to Form It</div>
+    <div class="rule-box-title">How to Form It</div>
     <p>Formed with <strong>avoir or être in the Passé Simple + past participle</strong>. This is the literary version of the plus-que-parfait, used in formal written French after conjunctions like <strong>quand, lorsque, dès que, aussitôt que, après que</strong> to express an action completed immediately before another past action (in passé simple).</p>
   </div>
 
   <div class="conj-grid">
     <div class="conj-block">
-      <div class="conj-block-head">With avoir → parler</div>
+      <div class="conj-block-header">With avoir → parler</div>
       <table class="conj-table">
         <tr><td>j'</td><td>eus parlé</td></tr>
         <tr><td>tu</td><td>eus parlé</td></tr>
@@ -2063,7 +1639,7 @@ body {
       </table>
     </div>
     <div class="conj-block">
-      <div class="conj-block-head">Literary examples</div>
+      <div class="conj-block-header">Literary examples</div>
       <table class="conj-table">
         <tr><td>Immediacy</td><td class="note-cell">Dès qu'il eut fini, il quitta la salle.</td></tr>
         <tr><td>Sequence</td><td class="note-cell">Quand elle eut lu la lettre, elle pleura.</td></tr>
@@ -2078,7 +1654,7 @@ body {
   </div>
 </section>
 
-<hr class="divider">
+<hr class="sec-divider">
 
 <!-- ═══════════════════════════════════════════════════════════
      SUBJONCTIF PLUS-QUE-PARFAIT — C2
@@ -2087,18 +1663,18 @@ body {
   <div class="section-chapter">Literary Subjunctive · C2</div>
   <div class="tense-header-row">
     <h2 class="tense-title">Subjonctif Plus-que-parfait</h2>
-    <span class="level-pill pill-c2">C2</span>
+    <span class="level-pill c2-pill">C2</span>
   </div>
-  <p class="tense-subtitle">"That he might have done" — the most elevated literary form</p>
+  <p class="tense-nickname">"That he might have done" — the most elevated literary form</p>
 
   <div class="rule-box">
-    <div class="rule-label">How to Form It</div>
+    <div class="rule-box-title">How to Form It</div>
     <p>Formed with <strong>avoir or être in the Subjonctif Imparfait + past participle</strong>. This is the literary past form of the subjunctive, used in the most formal written French. In modern speech and informal writing, it is replaced by the subjonctif passé.</p>
   </div>
 
   <div class="conj-grid">
     <div class="conj-block">
-      <div class="conj-block-head">With avoir → parler</div>
+      <div class="conj-block-header">With avoir → parler</div>
       <table class="conj-table">
         <tr><td>que j'</td><td>eusse parlé</td></tr>
         <tr><td>que tu</td><td>eusses parlé</td></tr>
@@ -2109,7 +1685,7 @@ body {
       </table>
     </div>
     <div class="conj-block">
-      <div class="conj-block-head">Special literary use: replaces conditionnel passé</div>
+      <div class="conj-block-header">Special literary use: replaces conditionnel passé</div>
       <table class="conj-table">
         <tr><td>Standard</td><td class="note-cell">J'aurais voulu qu'il fût venu.</td></tr>
         <tr><td>Elevated literary</td><td class="note-cell">Il eût été préférable d'agir. (= Il aurait été...)</td></tr>
@@ -2124,7 +1700,7 @@ body {
   </div>
 </section>
 
-<hr class="divider">
+<hr class="sec-divider">
 
 <!-- ═══════════════════════════════════════════════════════════
      STYLE ET NUANCE — C2
@@ -2133,18 +1709,18 @@ body {
   <div class="section-chapter">Native Mastery · C2</div>
   <div class="tense-header-row">
     <h2 class="tense-title">Style et Nuance</h2>
-    <span class="level-pill pill-c2">C2</span>
+    <span class="level-pill c2-pill">C2</span>
   </div>
-  <p class="tense-subtitle">Style and nuance — the final frontier of interpreter-level French</p>
+  <p class="tense-nickname">Style and nuance — the final frontier of interpreter-level French</p>
 
   <div class="rule-box">
-    <div class="rule-label">Beyond Grammar</div>
+    <div class="rule-box-title">Beyond Grammar</div>
     <p>At C2, grammar errors are rare. The challenge is <strong>nuance</strong>: choosing between near-synonyms, using sophisticated discourse connectors, maintaining consistent register, and avoiding the subtle Anglicisms that mark you as non-native even when the grammar is perfect.</p>
   </div>
 
   <div class="contrast-box">
     <div class="contrast-title">Nuanced Word Choice</div>
-    <div class="contrast-row ch">
+    <div class="contrast-row contrast-header">
       <div class="contrast-cell">Generic (correct but flat)</div>
       <div class="contrast-cell">Precise (native-sounding)</div>
     </div>
@@ -2172,7 +1748,7 @@ body {
 
   <div class="contrast-box">
     <div class="contrast-title">Advanced Discourse Connectors</div>
-    <div class="contrast-row ch">
+    <div class="contrast-row contrast-header">
       <div class="contrast-cell">Function</div>
       <div class="contrast-cell">Connectors</div>
     </div>
