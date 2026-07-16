@@ -90,22 +90,29 @@ def validate_pack(path: Path) -> list[str]:
 
 
 def _load_generation_quality_validator():
-    """Import validate_generation_quality and heuristic_feedback at call time to avoid
-    circular imports when the training/ directory is not on sys.path."""
+    """Import generation-quality helpers at call time to avoid circular imports
+    when the training/ directory is not on sys.path.
+
+    Returns (validate_generation_quality, heuristic_feedback, french_heuristic_feedback).
+    """
     import importlib.util
     training_dir = Path(__file__).resolve().parent
     spec = importlib.util.spec_from_file_location(
         "parlance_slm_validate", training_dir / "parlance_slm_validate.py"
     )
     if spec is None or spec.loader is None:
-        return None, None
+        return None, None, None
     mod = importlib.util.module_from_spec(spec)
     sys.path.insert(0, str(training_dir))
     try:
         spec.loader.exec_module(mod)  # type: ignore[union-attr]
     except Exception:
-        return None, None
-    return getattr(mod, "validate_generation_quality", None), getattr(mod, "heuristic_feedback", None)
+        return None, None, None
+    return (
+        getattr(mod, "validate_generation_quality", None),
+        getattr(mod, "heuristic_feedback", None),
+        getattr(mod, "french_heuristic_feedback", None),
+    )
 
 
 def validate_regression_generation_quality(lang: str) -> list[str]:
@@ -113,14 +120,15 @@ def validate_regression_generation_quality(lang: str) -> list[str]:
     the new quality-check fields (expect_no_fragment_alt, expect_register_contains,
     expect_tip_has_example, expect_alt_differs).
 
-    Uses heuristic_feedback() as a deterministic model stand-in so that checks
-    can run on every CI pass without a live model checkpoint.
+    Uses heuristic_feedback() / french_heuristic_feedback() as a deterministic
+    model stand-in so that checks can run on every CI pass without a live model
+    checkpoint.
     """
     path = RULES_DIR / f"regression_{lang}.jsonl"
     if not path.exists():
         return []
 
-    validate_gq, heuristic_fb = _load_generation_quality_validator()
+    validate_gq, heuristic_fb, french_heuristic_fb = _load_generation_quality_validator()
     if validate_gq is None or heuristic_fb is None:
         return ["parlance_slm_validate.py could not be imported — skipping generation quality checks"]
 
@@ -137,7 +145,10 @@ def validate_regression_generation_quality(lang: str) -> list[str]:
 
             sentence = case.get("sentence", "")
             case_id = case.get("id", "?")
-            result = heuristic_fb(sentence, "")
+            if lang == "fr" and french_heuristic_fb is not None:
+                result = french_heuristic_fb(sentence, "")
+            else:
+                result = heuristic_fb(sentence, "")
 
             gq_failures = validate_gq(sentence, result, lang)
 
@@ -185,9 +196,7 @@ def main() -> None:
             print(f"{path.name} — OK ({n} rules)")
 
     # Generation-quality regression checks (deterministic, no live model needed).
-    # Failures here are WARNINGS — they document known model/heuristic deficiencies
-    # tracked in GitHub issues and are expected to be fixed via training-data improvements.
-    # They do NOT block CI so that the build stays green while the fixes are in progress.
+    # Failures here are blocking — same as schema / rule-pack validation.
     for lang in ("es", "fr"):
         gq_errs = validate_regression_generation_quality(lang)
         reg_path = RULES_DIR / f"regression_{lang}.jsonl"
@@ -200,9 +209,10 @@ def main() -> None:
         else:
             gq_count = 0
         if gq_errs:
-            print(f"\nGeneration quality WARNINGS [{lang}] ({len(gq_errs)}/{gq_count} cases):")
+            failed = True
+            print(f"\nGeneration quality FAILED [{lang}] ({len(gq_errs)}/{gq_count} cases):")
             for e in gq_errs:
-                print(f"  ⚠  {e}")
+                print(f"  • {e}")
         elif gq_count:
             print(f"Generation quality checks [{lang}] — OK ({gq_count} cases)")
 

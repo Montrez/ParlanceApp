@@ -5,6 +5,8 @@ on:
     paths:
       - 'shared/coach-rules/**'
       - 'training/coach_rules.py'
+      - 'training/coach_tips.py'
+      - 'training/parlance_slm_validate.py'
       - 'training/validate_coach_rules.py'
       - 'training/run_coach_rules_regression.py'
       - 'Parlance/web/coach-rules-engine.js'
@@ -12,6 +14,8 @@ on:
     paths:
       - 'shared/coach-rules/**'
       - 'training/coach_rules.py'
+      - 'training/coach_tips.py'
+      - 'training/parlance_slm_validate.py'
       - 'training/validate_coach_rules.py'
       - 'training/run_coach_rules_regression.py'
       - 'Parlance/web/coach-rules-engine.js'

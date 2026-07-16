@@ -615,6 +615,80 @@ def is_unrelated_rewrite(sentence: str, alt: str | None) -> bool:
     return len(overlap) < min_overlap
 
 
+# Voseo present-tense verb forms carry a written accent on the final syllable
+# (habl-ás, ten-és, viv-ís) that standard tú/usted conjugation never uses. A
+# handful of common adverbs happen to share that ending and must be excluded so
+# they aren't mistaken for voseo verbs.
+_VOSEO_ADVERB_EXCLUDE = frozenset(
+    {"mas", "ademas", "traves", "detras", "despues", "jamas", "quizas", "atras", "estas", "tras"}
+)
+_VOSEO_ACCENTED_VERB_RE = re.compile(r"\b\w{3,}(?:ás|és|ís)\b", re.I)
+
+# Common present-tense tú forms (2nd person singular, familiar) that unambiguously
+# signal an informal register, as opposed to the corresponding usted/3rd-person forms.
+_TU_VERB_RE = re.compile(
+    r"\b(est[aá]s|tienes|quieres|puedes|sabes|hablas|vives|comes|dices|eres|vas|"
+    r"haces|necesitas|entiendes|escribes|trabajas|estudias|vienes|sientes|piensas|"
+    r"recuerdas|prefieres)\b",
+    re.I,
+)
+
+
+def _is_voseo(text: str) -> bool:
+    """Detect the voseo pronoun «vos» or an unambiguous voseo verb ending."""
+    if re.search(r"\bvos\b", text, re.I):
+        return True
+    for m in _VOSEO_ACCENTED_VERB_RE.finditer(text):
+        if _normalize(m.group(0)) not in _VOSEO_ADVERB_EXCLUDE:
+            return True
+    return False
+
+
+def _register_label(text: str, lang: str = "es") -> str:
+    """Infer a concrete register label from the pronouns/verb forms actually
+    present in *text*, instead of vague "note whether…" meta-advice."""
+    if lang == "fr":
+        if re.search(r"\b(vous|votre)\b", text, re.I):
+            return "Formal vous — appropriate for professional interpreting."
+        if re.search(r"\b(tu|ton|ta|tes|toi)\b", text, re.I):
+            return "Informal tu — familiar address; shift to vous in clinical/legal settings."
+        return "Match tu/vous and formality to the scenario (clinical, legal, or casual)."
+    norm = _normalize(text)
+    if _is_voseo(text):
+        return (
+            "Voseo (vos) — informal, regional address (Argentina/Uruguay/Central "
+            "America); do not label this as tú or usted."
+        )
+    if re.search(r"\b(usted|senor|senora|don|dona)\b", norm):
+        return "Formal usted — keep third-person verb forms in professional settings."
+    if _TU_VERB_RE.search(text) or re.search(r"\btu\b", norm):
+        return "Informal tú — familiar address fits a personal or casual setting, not formal usted."
+    return "Match tú/usted and formality to the scenario (clinical, legal, or casual)."
+
+
+def _lower_first_letter(s: str) -> str:
+    for i, ch in enumerate(s):
+        if ch.isalpha():
+            return s[:i] + ch.lower() + s[i + 1 :]
+    return s
+
+
+def _stylistic_next_alt(text: str) -> str:
+    """When no structural upgrade (y-coordination, etc.) applies, offer a
+    meaning-preserving stylistic variant that adds a discourse connector — a
+    concrete B1+ skill — instead of echoing the input verbatim."""
+    stripped = text.strip()
+    if not stripped:
+        return text
+    m = re.search(r"([.!?]+)$", stripped)
+    trailing = m.group(1) if m else "."
+    core = stripped[: -len(m.group(1))].strip() if m else stripped
+    if not core:
+        return text
+    core = _lower_first_letter(core)
+    return f"De hecho, {core}{trailing}"
+
+
 def detect_register_conflict(sentence: str, feedback: dict[str, Any]) -> bool:
     sent = _normalize(sentence)
     correction = feedback.get("correction") or ""
@@ -1011,14 +1085,18 @@ def _upgrade_y_coordination(text: str) -> tuple[str, str | None]:
         return text, None
     a = _strip_trailing_punct(parts[0].strip())
     b = _strip_trailing_punct(parts[1].strip())
-    if b:
-        b = b[0].lower() + b[1:]
+    if not b or not _CONJUGATED_VERB_RE.search(_normalize(b)):
+        # The right-hand side has no finite verb (e.g. «...y la casa de mi abuela» —
+        # a coordinated noun phrase, not a second clause). Subordinating it with
+        # «porque» would produce a sentence fragment, so keep the coordination as-is.
+        return text, None
+    b = b[0].lower() + b[1:]
     nxt = f"{a}, porque {b}."
     tgt = f"{a}, sobre todo porque {b}, lo cual me resulta difícil de manejar."
     return nxt, tgt
 
 
-def _substantive_excellent_feedback(sentence: str) -> dict[str, Any]:
+def _substantive_excellent_feedback(sentence: str, lang: str = "es") -> dict[str, Any]:
     text = sentence.strip()
     norm = _normalize(text)
     word_count = len(text.split())
@@ -1051,9 +1129,9 @@ def _substantive_excellent_feedback(sentence: str) -> dict[str, Any]:
         target_alt = "Me encuentro incómoda, sobre todo porque no consigo dejar de darle vueltas al asunto."
         from coach_tips import tip_for_excellent
 
-        tip = tip_for_excellent(text, next_alt=next_alt, y_coordinated=True)
+        tip = tip_for_excellent(text, next_alt=next_alt, y_coordinated=True, lang=lang)
         assessed = "B1"
-    elif y_coordinated and not _has_subordinator(text):
+    elif lang == "es" and y_coordinated and not _has_subordinator(text):
         grammar = "Coordination with «y» vs subordination (porque, pues, lo cual)"
         explanation = (
             "Your sentence links ideas with «y», which is grammatically fine but reads as two separate "
@@ -1064,15 +1142,17 @@ def _substantive_excellent_feedback(sentence: str) -> dict[str, Any]:
             "Simple coordination with «y» and no subordinate clause — structurally straightforward. "
             "Clear vocabulary but limited syntactic layering."
         )
-        register = (
-            "Confirm tú/usted matches the setting; «y» chains are fine in casual speech but often "
-            "upgraded in formal interpreting."
-        )
+        register = _register_label(text, lang=lang)
         next_alt, target_alt = _upgrade_y_coordination(text)
+        # When the right-hand side is a noun phrase (no finite verb), porque-upgrade
+        # is refused and next_alt stays verbatim — offer a stylistic variant instead.
+        if _normalize(next_alt) == _normalize(text):
+            next_alt = _stylistic_next_alt(text)
+            target_alt = None
         from coach_tips import tip_for_excellent
 
-        tip = tip_for_excellent(text, next_alt=next_alt, y_coordinated=True)
-    elif "estoy " in norm or "estoy," in norm:
+        tip = tip_for_excellent(text, next_alt=next_alt, y_coordinated=True, lang=lang)
+    elif lang == "es" and ("estoy " in norm or "estoy," in norm):
         grammar = "Ser vs estar — temporary states with estar"
         explanation = (
             "Using **estar** for feelings, conditions, or locations is appropriate here. The sentence is "
@@ -1091,7 +1171,10 @@ def _substantive_excellent_feedback(sentence: str) -> dict[str, Any]:
         from coach_tips import tip_for_excellent
 
         tip = tip_for_excellent(
-            text, next_alt=next_alt if y_coordinated else None, y_coordinated=y_coordinated
+            text,
+            next_alt=next_alt if y_coordinated else None,
+            y_coordinated=y_coordinated,
+            lang=lang,
         )
     else:
         grammar, explanation = _dynamic_excellent_grammar(text)
@@ -1099,18 +1182,19 @@ def _substantive_excellent_feedback(sentence: str) -> dict[str, Any]:
             f"{word_count}-word sentence"
             f"{', with subordination' if _has_subordinator(text) else ', main-clause structure'}."
         )
-        register = (
-            "Formal usted with «señor/señora» — keep third-person verb forms in professional settings."
-            if re.search(r"\b(senor|senora|usted)\b", norm)
-            else "Match tú/usted and formality to the scenario (clinical, legal, or casual)."
-        )
-        if y_coordinated and not _has_subordinator(text):
+        register = _register_label(text, lang=lang)
+        if lang == "es" and y_coordinated and not _has_subordinator(text):
             next_alt, target_alt = _upgrade_y_coordination(text)
+            if _normalize(next_alt) == _normalize(text):
+                next_alt = _stylistic_next_alt(text)
+                target_alt = None
+        elif lang == "es":
+            next_alt, target_alt = _stylistic_next_alt(text), None
         else:
             next_alt, target_alt = text, None
         from coach_tips import tip_for_excellent
 
-        tip = tip_for_excellent(text, next_alt=next_alt, y_coordinated=y_coordinated)
+        tip = tip_for_excellent(text, next_alt=next_alt, y_coordinated=y_coordinated, lang=lang)
 
     out: dict[str, Any] = {
         "status": "Excellent",
@@ -1228,7 +1312,7 @@ def french_heuristic_feedback(sentence: str, level: str) -> dict[str, Any]:
         correction = re.sub(r"([A-Za-zÀ-ÿ])([?!;:])", r"\1 \2", text, count=1)
     status = "Needs Improvement" if correction else "Excellent"
     if status == "Excellent":
-        out = _substantive_excellent_feedback(text)
+        out = _substantive_excellent_feedback(text, lang="fr")
         out["_coach_repaired"] = True
         return _preserve_inferred_fields(out, sentence, lang="fr")
 
@@ -1284,7 +1368,7 @@ def heuristic_feedback(sentence: str, level: str) -> dict[str, Any]:
             "Keep «¿cómo está?» — do not switch to informal «¿cómo estás?» in this context."
         )
     else:
-        register = "Note whether tú/usted matches the setting (clinical, legal, or casual)."
+        register = _register_label(text)
 
     correction = None
     if issues:
