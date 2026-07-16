@@ -1545,37 +1545,50 @@ function updateOnlineStatus(online) {
 }
 
 // ── PRIVACY POLICY ────────────────────────────────────────────────
+// Body content comes from privacy.html (canonical English). Modal title
+// stays i18n'd; full policy translations deferred with Swift i18n.
+let _privacyBodyPromise = null;
+
+function loadPrivacyBody() {
+  if (_privacyBodyPromise) return _privacyBodyPromise;
+  _privacyBodyPromise = fetch('privacy.html')
+    .then((res) => {
+      if (!res.ok) throw new Error('privacy.html ' + res.status);
+      return res.text();
+    })
+    .then((html) => {
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      // Skip the page <h1>; the modal header already shows the title.
+      return Array.from(doc.body.children).filter((el) => el.tagName !== 'H1');
+    })
+    .catch((err) => {
+      _privacyBodyPromise = null;
+      throw err;
+    });
+  return _privacyBodyPromise;
+}
+
 function showPrivacyPolicy() {
-  // Update privacy modal content with current UI language
   const overlay = document.getElementById('privacyOverlay');
   const header = overlay.querySelector('.modal-header h2');
   if (header) header.textContent = i18n.t('privacyTitle');
 
-  const body = overlay.querySelector('.modal-body');
-  if (body) {
-    body.innerHTML = `
-      <div class="privacy-section">
-        <h3>${i18n.t('privacyWritingTitle')}</h3>
-        <p>${i18n.t('privacyWritingText')}</p>
-      </div>
-      <div class="privacy-section">
-        <h3>${i18n.t('privacyAITitle')}</h3>
-        <p><strong>${i18n.t('privacyAIText1')}</strong></p>
-        <p style="margin-top:0.5rem">${i18n.t('privacyAIText2')}</p>
-      </div>
-      <div class="privacy-section">
-        <h3>${i18n.t('privacyKeysTitle')}</h3>
-        <p>${i18n.t('privacyKeysText')}</p>
-      </div>
-      <div class="privacy-section">
-        <h3>${i18n.t('privacyTrackingTitle')}</h3>
-        <p>${i18n.t('privacyTrackingText')}</p>
-      </div>
-      <div class="privacy-updated">${i18n.t('privacyUpdated')}</div>
-    `;
-  }
-
+  const body = document.getElementById('privacyBody');
   overlay.style.display = 'flex';
+  if (!body) return;
+
+  if (body.dataset.loaded === '1') return;
+
+  body.innerHTML = '<p class="privacy-loading">' + i18n.t('privacyLoading') + '</p>';
+  loadPrivacyBody()
+    .then((nodes) => {
+      body.innerHTML = '';
+      nodes.forEach((n) => body.appendChild(document.importNode(n, true)));
+      body.dataset.loaded = '1';
+    })
+    .catch(() => {
+      body.innerHTML = '<p>' + i18n.t('privacyLoadError') + '</p>';
+    });
 }
 
 function closePrivacyPolicy() {

@@ -12,8 +12,8 @@
 [data-theme="dark"] .modal-card { box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
 [data-theme="dark"] .modal-close { color: #8a8a94; }
 [data-theme="dark"] .modal-close:hover { color: #e8e0d0; }
-[data-theme="dark"] .privacy-section p { color: #8a8a94; }
-[data-theme="dark"] .privacy-updated { color: #8a8a94; }
+[data-theme="dark"] #privacyBody p { color: #8a8a94; }
+[data-theme="dark"] #privacyBody .updated { color: #8a8a94; }
 [data-theme="dark"] .entry-viewer-delete { border-color: #5a3030; color: #e07070; }
 [data-theme="dark"] .entry-viewer-delete:hover { background: rgba(224,112,112,0.1); }
 [data-theme="dark"] #entryOverlay { background: rgba(0,0,0,0.7); }
@@ -993,25 +993,33 @@ header {
   overflow-y: auto;
   flex: 1;
 }
-.privacy-section { margin-bottom: 1rem; }
-.privacy-section h3 {
+/* Privacy modal body is injected from privacy.html (h2 / p / .updated) */
+#privacyBody h2 {
   font-family: 'Playfair Display', serif;
   font-size: 0.95rem;
   color: #000000;
-  margin-bottom: 0.25rem;
+  margin: 1rem 0 0.25rem;
 }
-[data-theme="dark"] .privacy-section h3 { color: #e8e0d0; }
-.privacy-section p {
+#privacyBody h2:first-of-type { margin-top: 0.5rem; }
+[data-theme="dark"] #privacyBody h2 { color: #e8e0d0; }
+#privacyBody .updated {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin: 0 0 0.75rem;
+}
+#privacyBody p {
   font-family: 'Spectral', serif;
   font-size: 0.9rem;
   color: var(--muted);
   line-height: 1.6;
+  margin: 0 0 0.5rem;
 }
-.privacy-updated {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.7rem;
+#privacyBody a { color: var(--accent, #2563eb); }
+#privacyBody .privacy-loading {
+  font-family: 'Spectral', serif;
+  font-size: 0.9rem;
   color: var(--muted);
-  margin-top: 1rem;
 }
 
 /* ── AI SETTINGS BUTTON ── */

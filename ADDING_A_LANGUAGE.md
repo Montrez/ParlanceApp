@@ -49,6 +49,7 @@ them used to be a place a new language could silently drift from the others:
 | RAG knowledge (grammar rules, exam info, medical/legal terminology, trigger words) | `Parlance/web/rag-knowledge.js` | `new_language_scaffold.py` inserts TODO stubs at the right keys; a human fills them in |
 | Coach standard (register/tone rules fed to the AI) | `Parlance/web/coach-standard-XX.js` | `new_language_scaffold.py` generates a TODO stub |
 | Native app bundling (Xcode resource registration) | `Parlance.xcodeproj/project.pbxproj` | `scripts/xcode_add_web_resources.py` — never hand-edit `project.pbxproj` for this |
+| Privacy policy (English body) | `Parlance/web/privacy.html` | Mirror to `docs/privacy.html`; web modal fetches it; keep `PrivacyPolicyView.swift` section text identical by hand (Swift i18n deferred) |
 
 ### Why this exists
 
