@@ -1,6 +1,4 @@
-/** Auto-synced from shared/standards/en-coach-standard.json */
-(function (root) {
-  root.ParlanceCoachStandardEN = {
+{
   "version": 1,
   "lang": "en",
   "name": "Parlance Interpreter English Standard",
@@ -31,5 +29,4 @@
   "excellent_means": "No real grammar error for the intended meaning and register. Explanation cites structures in the learner's words — not generic praise.",
   "needs_improvement_means": "A clear grammar, article, false-cognate, or calque error exists. List each error. correction is a complete corrected English sentence — never a label or truncated fragment.",
   "interpreter_register": "Clinical, legal, and professional settings default to clear formal English. Prefer precise modals (must vs should). Do not rewrite the speaker into another national variety unless clarity requires it."
-};
-})(typeof globalThis !== "undefined" ? globalThis : this);
+}

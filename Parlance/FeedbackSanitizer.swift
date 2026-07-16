@@ -2,8 +2,10 @@ import Foundation
 
 /// Cloud-path parity layer for `ExternalAnalyzer` (issue #31): hallucination detection,
 /// known-error regex repairs, and register-conflict repair — the same class of checks the
-/// on-device validator applies (`ParlanceSLMFeedbackValidator.swift`), kept in sync with the
-/// shared rule pack (`shared/coach-rules/es.json`, `Parlance/web/coach-rules-engine.js`).
+/// on-device validator applies (`ParlanceSLMFeedbackValidator.swift`). Known-error detect/repair
+/// now delegates to `CoachRulesEngine`, which loads the *full* shared rule packs
+/// (`shared/coach-rules/{es,fr}.json`) instead of a hand-ported subset — Phase 1 of the
+/// consolidation plan in `docs/coach-heuristic-consolidation.md` (issue #30/#32).
 ///
 /// Deliberately Foundation-only and dependency-free (no `AIProvider`/`LanguageRegistry`) so it
 /// can be exercised by a standalone script (see `scripts/test_feedback_sanitizer.swift`) without
@@ -24,9 +26,54 @@ enum FeedbackSanitizer {
     /// Reject CEFR labels that clearly mismatch sentence structure — never invent levels, only
     /// filter obvious mismatches. Mirrors `ParlanceSLMFeedbackValidator.assessedLevelPlausible*`.
     static func assessedLevelPlausible(sentence: String, level: String, language: String) -> Bool {
-        language == "fr"
-            ? assessedLevelPlausibleFrench(sentence: sentence, level: level)
-            : assessedLevelPlausibleSpanish(sentence: sentence, level: level)
+        switch language {
+        case "fr":
+            return assessedLevelPlausibleFrench(sentence: sentence, level: level)
+        case "en":
+            return assessedLevelPlausibleEnglish(sentence: sentence, level: level)
+        default:
+            return assessedLevelPlausibleSpanish(sentence: sentence, level: level)
+        }
+    }
+
+    /// Rougher than the ES/FR heuristics (no fine-tuned on-device English model exists yet —
+    /// see issue #11 — so there's no training-data-derived vocabulary list to lean on), but
+    /// keeps the same "never invent, only reject implausible" philosophy: word count plus
+    /// coarse subordinator/conditional/modal-perfect signals.
+    private static func assessedLevelPlausibleEnglish(sentence: String, level: String) -> Bool {
+        let norm = normalizeForCompare(sentence)
+        let wordCount = sentence.split(whereSeparator: { $0.isWhitespace }).count
+        let hasSub = norm.range(
+            of: #"\b(because|since|although|though|while|when|whereas|if)\b"#,
+            options: .regularExpression
+        ) != nil
+        let hasConditional = norm.range(of: #"\bwould\b"#, options: .regularExpression) != nil
+        let hasModalPerfect = norm.range(
+            of: #"\b(had|would have|could have|should have|might have)\b"#,
+            options: .regularExpression
+        ) != nil
+
+        switch level.uppercased() {
+        case "A1":
+            return wordCount <= 8 && !hasSub && !hasConditional && !hasModalPerfect
+        case "A2":
+            return wordCount <= 12 && !hasConditional
+        case "B1", "B2":
+            return true
+        case "C1":
+            return hasConditional || (hasSub && wordCount >= 12) || hasModalPerfect
+        case "C2":
+            if wordCount >= 14, hasSub,
+               norm.range(
+                   of: #"\b(nonetheless|notwithstanding|albeit|insofar|whereby)\b"#,
+                   options: .regularExpression
+               ) != nil {
+                return true
+            }
+            return hasConditional || (hasSub && wordCount >= 12) || hasModalPerfect
+        default:
+            return false
+        }
     }
 
     private static func assessedLevelPlausibleSpanish(sentence: String, level: String) -> Bool {
@@ -204,9 +251,16 @@ enum FeedbackSanitizer {
     /// True when the sentence's evidenced register (formal usted/vous vs informal tú/vos/tu)
     /// conflicts with what the model's `correction` or `register` field claims.
     static func detectRegisterConflict(sentence: String, feedback: [String: Any], language: String) -> Bool {
-        language == "fr"
-            ? detectRegisterConflictFrench(sentence: sentence, feedback: feedback)
-            : detectRegisterConflictSpanish(sentence: sentence, feedback: feedback)
+        switch language {
+        case "fr":
+            return detectRegisterConflictFrench(sentence: sentence, feedback: feedback)
+        case "en":
+            // English formal/informal register isn't a tú/vous-style binary morphology switch —
+            // out of scope for this heuristic; the model's own register commentary stands.
+            return false
+        default:
+            return detectRegisterConflictSpanish(sentence: sentence, feedback: feedback)
+        }
     }
 
     private static func detectRegisterConflictSpanish(sentence: String, feedback: [String: Any]) -> Bool {
@@ -242,9 +296,9 @@ enum FeedbackSanitizer {
         return false
     }
 
-    // MARK: - Known-error regex repairs (ported from shared/coach-rules/es.json +
-    // ParlanceSLMFeedbackValidator's known-error patterns; French si-clause + typography from the
-    // on-device French heuristics)
+    // MARK: - Known-error regex repairs — delegates to CoachRulesEngine, which loads the full
+    // shared/coach-rules/{es,fr}.json packs (Phase 1 of the #30 consolidation plan). Previously
+    // this hand-ported a ~5-rule ES / 2-rule FR subset directly; that duplication is gone.
 
     struct DetectedIssue {
         let id: String
@@ -254,183 +308,13 @@ enum FeedbackSanitizer {
     }
 
     static func detectKnownIssues(sentence: String, language: String) -> [DetectedIssue] {
-        language == "fr" ? detectFrenchIssues(sentence) : detectSpanishIssues(sentence)
+        CoachRulesEngine.detectIssues(sentence: sentence, language: language).map {
+            DetectedIssue(id: $0.id, grammarRule: $0.grammarRule, issue: $0.issue, mentions: $0.mentions)
+        }
     }
 
     static func applyKnownRepairs(sentence: String, language: String) -> String {
-        language == "fr" ? applyFrenchRepairs(sentence) : applySpanishRepairs(sentence)
-    }
-
-    private static func detectSpanishIssues(_ sentence: String) -> [DetectedIssue] {
-        var issues: [DetectedIssue] = []
-        let norm = normalizeForCompare(sentence)
-
-        if sentence.range(
-            of: #"(?i)[Cc]ómo\s+es\s+usted\s+d[ií]a\s+(se[nñ]or|se[nñ]ora)\b"#,
-            options: .regularExpression
-        ) != nil {
-            issues.append(DetectedIssue(
-                id: "greeting_vocative_order",
-                grammarRule: "Ser vs estar + word order in formal greetings",
-                issue: "Use «¿Cómo está usted hoy, señor?» — estar (not ser) for wellbeing, with natural vocative order.",
-                mentions: ["cómo está", "ser vs estar", "vocative"]
-            ))
-        } else if sentence.range(of: #"(?i)[Cc]ómo\s+es\b"#, options: .regularExpression) != nil,
-                  norm.range(of: #"\b(usted|tu|senor|senora|dia)\b"#, options: .regularExpression) != nil,
-                  norm.range(of: #"usted\s+dia\s+senor"#, options: .regularExpression) == nil {
-            issues.append(DetectedIssue(
-                id: "como_es_wellbeing",
-                grammarRule: "Ser vs estar — «¿Cómo está?» for wellbeing",
-                issue: "Asking after someone's state uses «¿Cómo está …?» (estar), not «Cómo es …» (ser).",
-                mentions: ["cómo está", "ser vs estar", "wellbeing"]
-            ))
-        }
-
-        if sentence.range(
-            of: #"(?i)\b(a)\s+(ver|hacer|comprar|ir|llegar|terminar)\s+(un|una|el|la|al|a la)\b"#,
-            options: .regularExpression
-        ) != nil,
-           sentence.range(
-               of: #"(?i)\bpara\s+(ver|hacer|comprar|ir|llegar|terminar)\b"#,
-               options: .regularExpression
-           ) == nil {
-            issues.append(DetectedIssue(
-                id: "para_purpose_infinitive",
-                grammarRule: "Por vs para — purpose before infinitive",
-                issue: "Purpose before an infinitive uses «para» (e.g. «dinero para ver»), not bare «a».",
-                mentions: ["para ver", "por vs para", "purpose"]
-            ))
-        }
-
-        if sentence.range(
-            of: #"(?i)\b(espero|quiero|deseo|necesito|ojal[aá])\s+que\b"#,
-            options: .regularExpression
-        ) != nil,
-           sentence.range(
-               of: #"(?i)\b(todos|todo|t[uú]|ell[oa]|nosotros|usted|ustedes)\s+(ir|ser|estar|tener|hacer|poder|venir|decir)\b"#,
-               options: .regularExpression
-           ) != nil,
-           norm.range(
-               of: #"\b(vaya|vayan|sea|sean|este|esten|tenga|tengan|haga|hagan|pueda|puedan|venga|vengan|diga|digan)\b"#,
-               options: .regularExpression
-           ) == nil {
-            issues.append(DetectedIssue(
-                id: "que_clause_infinitive_subjunctive",
-                grammarRule: "Subjunctive after «espero que» / «quiero que» — not infinitive in the subordinate clause",
-                issue: "After a subjunctive trigger («espero que», «quiero que»…), use subjunctive in the subordinate clause — not a bare infinitive («todos ir» → «todos vayan»).",
-                mentions: ["subjunctive", "espero que", "vayan", "present subjunctive"]
-            ))
-        }
-
-        if sentence.range(
-            of: #"(?i)\bsi\b[^.!?]*\b(tendr[ií]a|har[ií]a|ser[ií]a|podr[ií]a|querr[ií]a|dir[ií]a|vendr[ií]a)\b"#,
-            options: .regularExpression
-        ) != nil {
-            issues.append(DetectedIssue(
-                id: "si_clause_conditional_protasis",
-                grammarRule: "Si clauses: imperfect subjunctive in the protasis, not conditional",
-                issue: "After «si» introducing a hypothetical condition, Spanish uses the imperfect subjunctive (e.g. «tuviera»), not the conditional («tendría»).",
-                mentions: ["tuviera", "imperfect subjunctive", "si clause"]
-            ))
-        }
-
-        if sentence.range(of: #"(?i)\b(le|les)\s+echo\s+de\s+menos\b"#, options: .regularExpression) != nil {
-            issues.append(DetectedIssue(
-                id: "leismo_echar_de_menos",
-                grammarRule: "«Echar de menos» takes a direct object (lo/la), not «le»",
-                issue: "«Echar de menos» governs a direct object pronoun (lo/la/los/las) — «le echo de menos» is leísmo.",
-                mentions: ["la echo de menos", "lo echo de menos", "direct object", "leísmo"]
-            ))
-        }
-
-        return issues
-    }
-
-    private static func applySpanishRepairs(_ sentence: String) -> String {
-        var c = sentence
-        c = c.replacingOccurrences(
-            of: #"(?i)[Cc]ómo\s+es\s+usted\s+d[ií]a\s+(se[nñ]or|se[nñ]ora)\b"#,
-            with: "¿Cómo está usted hoy, $1",
-            options: .regularExpression
-        )
-        if c.range(of: #"(?i)[Cc]ómo\s+es\b"#, options: .regularExpression) != nil,
-           !c.localizedCaseInsensitiveContains("cómo está") {
-            c = c.replacingOccurrences(of: #"(?i)[Cc]ómo\s+es\b"#, with: "¿Cómo está", options: .regularExpression)
-        }
-        c = c.replacingOccurrences(
-            of: #"(?i)\b(a)\s+(ver|hacer|comprar|ir|llegar|terminar)\s+(un|una|el|la|al|a la)\b"#,
-            with: "para $2 $3",
-            options: .regularExpression
-        )
-        let queReplacements: [(String, String)] = [
-            (#"(?i)\btodos\s+ir\b"#, "todos vayan"), (#"(?i)\btodo\s+ir\b"#, "todo vaya"),
-            (#"(?i)\btodos\s+ser\b"#, "todos sean"), (#"(?i)\btodo\s+ser\b"#, "todo sea"),
-            (#"(?i)\btodos\s+estar\b"#, "todos estén"), (#"(?i)\btodo\s+estar\b"#, "todo esté"),
-            (#"(?i)\btodos\s+tener\b"#, "todos tengan"), (#"(?i)\btodo\s+tener\b"#, "todo tenga"),
-            (#"(?i)\btodos\s+hacer\b"#, "todos hagan"), (#"(?i)\btodo\s+hacer\b"#, "todo haga"),
-        ]
-        for (pattern, sub) in queReplacements {
-            c = c.replacingOccurrences(of: pattern, with: sub, options: .regularExpression)
-        }
-        let siReplacements: [(String, String)] = [
-            (#"(?i)\btendría\b"#, "tuviera"), (#"(?i)\btendria\b"#, "tuviera"),
-            (#"(?i)\bharía\b"#, "hiciera"), (#"(?i)\bharia\b"#, "hiciera"),
-            (#"(?i)\bsería\b"#, "fuera"), (#"(?i)\bseria\b"#, "fuera"),
-            (#"(?i)\bpodría\b"#, "pudiera"), (#"(?i)\bpodria\b"#, "pudiera"),
-        ]
-        for (pattern, sub) in siReplacements {
-            c = c.replacingOccurrences(of: pattern, with: sub, options: .regularExpression)
-        }
-        c = c.replacingOccurrences(
-            of: #"(?i)\bles\s+echo\s+de\s+menos\b"#, with: "las echo de menos", options: .regularExpression
-        )
-        c = c.replacingOccurrences(
-            of: #"(?i)\ble\s+echo\s+de\s+menos\b"#, with: "la echo de menos", options: .regularExpression
-        )
-        return c
-    }
-
-    private static func detectFrenchIssues(_ sentence: String) -> [DetectedIssue] {
-        var issues: [DetectedIssue] = []
-        if sentence.range(
-            of: #"(?i)\bsi\b[^.!?]*\b(j'aurais|tu aurais|il aurait|elle aurait|nous aurions|vous auriez)\b"#,
-            options: .regularExpression
-        ) != nil {
-            issues.append(DetectedIssue(
-                id: "si_clause_conditional_protasis_fr",
-                grammarRule: "Si clauses: imparfait in the protasis, not conditionnel",
-                issue: "After « si » introducing a hypothetical condition, French uses the imparfait (« j'avais »), not the conditionnel (« j'aurais »).",
-                mentions: ["j'avais", "imparfait", "si clause"]
-            ))
-        }
-        if hasFrenchTypographyIssue(sentence) {
-            issues.append(DetectedIssue(
-                id: "french_typography_spacing",
-                grammarRule: "French typography (espaces insécables)",
-                issue: "French requires a space before ? ! ; : — e.g. « Comment allez-vous ? »",
-                mentions: ["typography", "espace", "?"]
-            ))
-        }
-        return issues
-    }
-
-    static func hasFrenchTypographyIssue(_ sentence: String) -> Bool {
-        sentence.range(of: #"\w[?!;:]"#, options: .regularExpression) != nil
-    }
-
-    private static func applyFrenchRepairs(_ sentence: String) -> String {
-        var c = sentence
-        let replacements: [(String, String)] = [
-            (#"(?i)\bj'aurais\b"#, "j'avais"), (#"(?i)\btu aurais\b"#, "tu avais"),
-            (#"(?i)\bil aurait\b"#, "il avait"), (#"(?i)\belle aurait\b"#, "elle avait"),
-        ]
-        for (pattern, sub) in replacements {
-            c = c.replacingOccurrences(of: pattern, with: sub, options: .regularExpression)
-        }
-        if hasFrenchTypographyIssue(c) {
-            c = c.replacingOccurrences(of: #"(\w)([?!;:])"#, with: "$1 $2", options: .regularExpression)
-        }
-        return c
+        CoachRulesEngine.applyRepairs(sentence: sentence, language: language)
     }
 
     /// Additively merge ground-truth known-error repairs into cloud feedback: keeps the model's
@@ -528,7 +412,7 @@ enum FeedbackSanitizer {
             feedback.removeValue(forKey: "target_level_alt")
         }
 
-        guard language == "es" || language == "fr" else { return }
+        guard language == "es" || language == "fr" || language == "en" else { return }
 
         mergeKnownErrors(sentence: sentence, level: level, language: language, feedback: &feedback)
 

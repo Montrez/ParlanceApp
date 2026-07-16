@@ -6,6 +6,7 @@ cd "$ROOT"
 python3 training/validate_coach_rules.py
 python3 training/run_coach_rules_regression.py --lang es
 python3 training/run_coach_rules_regression.py --lang fr
+python3 training/run_coach_rules_regression.py --lang en
 node -e "
 const fs = require('fs');
 const path = require('path');
@@ -40,6 +41,8 @@ function syncRules(lang, globalName) {
 }
 
 syncStandard('es', 'ParlanceCoachStandardES');
+syncStandard('en', 'ParlanceCoachStandardEN');
 syncRules('es', 'ParlanceCoachRulesES');
 syncRules('fr', 'ParlanceCoachRulesFR');
+syncRules('en', 'ParlanceCoachRulesEN');
 "

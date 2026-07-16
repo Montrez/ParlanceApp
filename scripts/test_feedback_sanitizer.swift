@@ -1,11 +1,15 @@
 // Standalone regression for the cloud-path sanitizer (issue #31).
-// `Parlance/FeedbackSanitizer.swift` is dependency-free (Foundation only), so it can be
-// compiled and exercised here without the rest of the app target or Xcode.
+// `Parlance/FeedbackSanitizer.swift` + `Parlance/CoachRulesEngine.swift` are dependency-free
+// (Foundation only), so they can be compiled and exercised here without the rest of the app
+// target or Xcode. CoachRulesEngine reads the bundled `coach-rules-{es,fr}.js` resources via
+// `Bundle.main`, which for a bare executable resolves relative to the binary's own directory —
+// copy those two files alongside the binary, not just the Swift sources.
 //
 // Run (swiftc requires the top-level-code file to be named main.swift):
-//   dir=$(mktemp -d) && cp Parlance/FeedbackSanitizer.swift "$dir/" \
+//   dir=$(mktemp -d) && cp Parlance/FeedbackSanitizer.swift Parlance/CoachRulesEngine.swift "$dir/" \
+//     && cp Parlance/web/coach-rules-es.js Parlance/web/coach-rules-fr.js Parlance/web/coach-rules-en.js "$dir/" \
 //     && cp scripts/test_feedback_sanitizer.swift "$dir/main.swift" \
-//     && swiftc "$dir"/*.swift -o "$dir/test_bin" && "$dir/test_bin"
+//     && swiftc "$dir"/*.swift -o "$dir/test_bin" && (cd "$dir" && ./test_bin)
 
 import Foundation
 
@@ -147,6 +151,104 @@ do {
         (out["correction"] as? String ?? "").contains("vous ?"),
         "got \(out["correction"] ?? "nil")"
     )
+}
+
+// MARK: - Full-pack coverage (Phase 1 of #30/#32): rules with no pre-existing hardcoded Swift
+// equivalent, only reachable now that FeedbackSanitizer delegates to CoachRulesEngine's full
+// shared/coach-rules/{es,fr}.json packs instead of a ~5/2-rule hand-ported subset.
+
+do {
+    let out = sanitized("Tengo muchos cosas que hacer.", feedback: ["status": "Excellent", "explanation": "Fine."])
+    check("gender_muchas_cosas: status flipped", out["status"] as? String == "Needs Improvement")
+    check(
+        "gender_muchas_cosas: correction agrees",
+        (out["correction"] as? String ?? "").localizedCaseInsensitiveContains("muchas cosas")
+    )
+}
+
+do {
+    let out = sanitized("Ayer comi con mi madre.", feedback: ["status": "Excellent", "explanation": "Fine."])
+    check("accent_comi: status flipped", out["status"] as? String == "Needs Improvement")
+    check("accent_comi: accent added", (out["correction"] as? String ?? "").contains("comí"))
+}
+
+do {
+    let out = sanitized(
+        "Il faut que tu viens demain matin.",
+        language: "fr",
+        feedback: ["status": "Excellent", "explanation": "Fine."]
+    )
+    check("fr_il_faut_que: status flipped", out["status"] as? String == "Needs Improvement")
+    check(
+        "fr_il_faut_que: subjunctive applied",
+        (out["correction"] as? String ?? "").localizedCaseInsensitiveContains("viennes")
+    )
+}
+
+do {
+    let out = sanitized(
+        "Elle est allé au marché.",
+        language: "fr",
+        feedback: ["status": "Excellent", "explanation": "Fine."]
+    )
+    check("fr_participle_agreement: status flipped", out["status"] as? String == "Needs Improvement")
+    check(
+        "fr_participle_agreement: gender agreement applied",
+        (out["correction"] as? String ?? "").localizedCaseInsensitiveContains("allée")
+    )
+}
+
+// MARK: - English (issue #11 strategic pivot): no fine-tuned on-device model exists, but the
+// same CoachRulesEngine now loads shared/coach-rules/en.json — deterministic L1-transfer
+// grammar checking for Spanish/French speakers learning English, no model fine-tune required.
+
+do {
+    let out = sanitized(
+        "If I would have more time, I would study more.",
+        language: "en",
+        feedback: ["status": "Excellent", "explanation": "Fine."]
+    )
+    check("en_if_would: status flipped", out["status"] as? String == "Needs Improvement")
+    check(
+        "en_if_would: protasis repaired",
+        (out["correction"] as? String ?? "").localizedCaseInsensitiveContains("if I had more time")
+    )
+}
+
+do {
+    let out = sanitized(
+        "It depends of the weather tomorrow.",
+        language: "en",
+        feedback: ["status": "Excellent", "explanation": "Fine."]
+    )
+    check("en_depend_of: status flipped", out["status"] as? String == "Needs Improvement")
+    check(
+        "en_depend_of: preposition fixed",
+        (out["correction"] as? String ?? "").localizedCaseInsensitiveContains("depends on")
+    )
+}
+
+do {
+    let out = sanitized(
+        "Speak you English fluently?",
+        language: "en",
+        feedback: ["status": "Excellent", "explanation": "Fine."]
+    )
+    check("en_do_support: status flipped", out["status"] as? String == "Needs Improvement")
+    check(
+        "en_do_support: do-support inserted",
+        (out["correction"] as? String ?? "").localizedCaseInsensitiveContains("Do you speak")
+    )
+}
+
+do {
+    let out = sanitized(
+        "I am interested in learning more about this program.",
+        language: "en",
+        feedback: ["status": "Excellent", "explanation": "Clear and correct."]
+    )
+    check("en_correct_sentence: status unchanged", out["status"] as? String == "Excellent")
+    check("en_correct_sentence: no rules fired", out["_coach_rules"] == nil)
 }
 
 // MARK: - Hallucination detection

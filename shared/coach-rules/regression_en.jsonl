@@ -1,0 +1,10 @@
+{"id": "if_would_have", "sentence": "If I would have more time, I would study more.", "expect_rules": ["if_would_protasis"], "expect_correction_contains": ["if I had more time"], "notes": "Calque from si + tendría / si + aurais — would never appears in the if-clause."}
+{"id": "depend_of_context", "sentence": "It depends of the weather tomorrow.", "expect_rules": ["depend_of"], "expect_correction_contains": ["depends on"], "notes": "Calque from depender de / dépendre de."}
+{"id": "discuss_about_topic", "sentence": "We need to discuss about the contract terms.", "expect_rules": ["discuss_about"], "expect_correction_contains": ["discuss the contract"], "notes": "Discuss is directly transitive — no about."}
+{"id": "interested_by_topic", "sentence": "I am interested by this job opportunity.", "expect_rules": ["interested_by"], "expect_correction_contains": ["interested in"], "notes": "Calque from interesado por / intéressé par."}
+{"id": "married_with_partner", "sentence": "She is married with a doctor.", "expect_rules": ["married_with"], "expect_correction_contains": ["married to"], "notes": "Calque from casado con / marié avec."}
+{"id": "an_advice", "sentence": "Let me give you an advice about the interview.", "expect_rules": ["uncountable_indefinite_article"], "expect_correction_contains": ["some advice"], "notes": "Advice is uncountable — no indefinite article."}
+{"id": "informations_plural", "sentence": "I need more informations about the patient.", "expect_rules": ["informations_plural"], "expect_correction_contains": ["information"], "notes": "Uncountable nouns have no plural -s form."}
+{"id": "do_support_speak_you", "sentence": "Speak you English fluently?", "expect_rules": ["do_support_question"], "expect_correction_contains": ["Do you speak"], "notes": "Simple-tense yes/no questions need do-support."}
+{"id": "correct_sentence_no_rules", "sentence": "I am interested in learning more about this program.", "expect_rules": []}
+{"id": "correct_conditional", "sentence": "If I had more time, I would study more.", "expect_rules": []}

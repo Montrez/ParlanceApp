@@ -127,11 +127,35 @@
     }
   }
 
+  // No fine-tuned on-device English model exists yet (issue #11), so there's no
+  // training-data-derived vocabulary list to lean on the way ES/FR do — this is coarser
+  // (word count + subordinator/conditional/modal-perfect signals) but keeps the same
+  // "never invent, only reject implausible" philosophy. Mirrors CoachRulesEngine.swift's
+  // assessedLevelPlausibleEnglish.
+  function assessedLevelPlausibleEnglish(sentence, level) {
+    const norm = normalizeTextForCompare(sentence);
+    const wc = sentence.trim().split(/\s+/).filter(Boolean).length;
+    const hasSub = /\b(because|since|although|though|while|when|whereas|if)\b/i.test(norm);
+    const hasCond = /\bwould\b/i.test(norm);
+    const hasModalPerfect = /\b(had|would have|could have|should have|might have)\b/i.test(norm);
+    switch (level.toUpperCase()) {
+      case 'A1': return wc <= 8 && !hasSub && !hasCond && !hasModalPerfect;
+      case 'A2': return wc <= 12 && !hasCond;
+      case 'B1':
+      case 'B2': return true;
+      case 'C1': return hasCond || (hasSub && wc >= 12) || hasModalPerfect;
+      case 'C2':
+        if (wc >= 14 && hasSub && /\b(nonetheless|notwithstanding|albeit|insofar|whereby)\b/i.test(norm)) return true;
+        return hasCond || (hasSub && wc >= 12) || hasModalPerfect;
+      default: return false;
+    }
+  }
+
   function assessedLevelPlausible(sentence, level, lang) {
     if (!level) return false;
-    return lang === 'fr'
-      ? assessedLevelPlausibleFrench(sentence, level)
-      : assessedLevelPlausibleSpanish(sentence, level);
+    if (lang === 'fr') return assessedLevelPlausibleFrench(sentence, level);
+    if (lang === 'en') return assessedLevelPlausibleEnglish(sentence, level);
+    return assessedLevelPlausibleSpanish(sentence, level);
   }
 
   function coachSalvageAssessedLevel(sentence, assessed, lang) {
@@ -498,16 +522,17 @@
     const out = { ...result };
     normalizeFeedbackFields(out);
     const lang = parlanceLanguageInfo(language).code;
-    if (sentence && (lang === 'es' || lang === 'fr')) {
+    if (sentence && (lang === 'es' || lang === 'fr' || lang === 'en')) {
       applyCoachRules(sentence, out, lang);
     }
     preserveInferredFields(out, sentence, lang);
-    // Correct register when vague or sentence evidence contradicts the AI's report
-    if (sentence) {
+    // Register/tip synthesis below is Spanish/French-specific (tú/vous morphology, RAE/
+    // Bescherelle-flavored examples) — no equivalent exists for English yet, so leave the
+    // model's own register/tip commentary alone rather than force Spanish-shaped output onto it.
+    if (sentence && lang !== 'en') {
       out.register = sanitizeRegister(sentence, out.register || '', lang);
     }
-    // Replace generic tip with a concrete grammar-rule-based tip
-    if (sentence) {
+    if (sentence && lang !== 'en') {
       out.tip = sanitizeTip(sentence, out.tip, out.grammar_rule, lang, out.register);
     }
     const sentNorm = normalizeTextForCompare(sentence);

@@ -26,8 +26,11 @@ _SHORT_CORRECTION_ALLOW_WORDS = frozenset(
 )
 
 
+_SUPPORTED_LANGS = frozenset({"es", "fr", "en"})
+
+
 def load_rules(lang: str = "es") -> dict[str, Any]:
-    key = "fr" if lang == "fr" else "es"
+    key = lang if lang in _SUPPORTED_LANGS else "es"
     if key in _CACHE:
         return _CACHE[key]
     path = _RULES_DIR / f"{key}.json"
