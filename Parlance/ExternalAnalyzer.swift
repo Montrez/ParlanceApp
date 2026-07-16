@@ -60,7 +60,7 @@ final class ExternalAnalyzer: Sendable {
             throw ExternalError.parseError
         }
 
-        return try parseAndNormalize(text, sentence: sentence)
+        return try parseAndNormalize(text, sentence: sentence, language: language, level: level)
     }
 
     // MARK: - Provider endpoints
@@ -147,7 +147,9 @@ final class ExternalAnalyzer: Sendable {
 
     // MARK: - Response parsing
 
-    func parseAndNormalize(_ raw: String, sentence: String = "") throws -> [String: Any] {
+    func parseAndNormalize(
+        _ raw: String, sentence: String = "", language: String = "es", level: String = ""
+    ) throws -> [String: Any] {
         let cleaned = raw
             .replacingOccurrences(of: "<think>[\\s\\S]*?</think>", with: "", options: .regularExpression)
             .replacingOccurrences(of: "```json", with: "")
@@ -165,10 +167,12 @@ final class ExternalAnalyzer: Sendable {
             throw ExternalError.parseError
         }
 
-        return normalize(result, sentence: sentence)
+        return normalize(result, sentence: sentence, language: language, level: level)
     }
 
-    func normalize(_ raw: [String: Any], sentence: String = "") -> [String: Any] {
+    func normalize(
+        _ raw: [String: Any], sentence: String = "", language: String = "es", level: String = ""
+    ) -> [String: Any] {
         var result: [String: Any] = [:]
         let status = raw["status"] as? String ?? "Excellent"
         result["status"]       = (status == "Excellent" || status == "Needs Improvement") ? status : "Excellent"
@@ -189,92 +193,28 @@ final class ExternalAnalyzer: Sendable {
             result["complexity_note"] = note
         }
         if !sentence.isEmpty {
-            applyFeedbackSanitizer(sentence: sentence, feedback: &result)
+            applyFeedbackSanitizer(sentence: sentence, language: language, level: level, feedback: &result)
         }
         return result
     }
 
-    /// Strip unreliable CEFR labels and verbatim upgrade copies — shared by all cloud providers.
-    func applyFeedbackSanitizer(sentence: String, feedback: inout [String: Any]) {
-        if feedback["_coach_repaired"] as? Bool == true {
-            feedback.removeValue(forKey: "assessed_level")
-        } else if let level = Self.normalizeAssessedLevel(
-            feedback["assessed_level"] as? String
-                ?? feedback["assessedLevel"] as? String
-                ?? feedback["sentence_level"] as? String
-        ) {
-            if Self.assessedLevelPlausible(sentence: sentence, level: level) {
-                feedback["assessed_level"] = level
-            } else {
-                feedback.removeValue(forKey: "assessed_level")
-            }
-        } else {
-            feedback.removeValue(forKey: "assessed_level")
-        }
-        feedback.removeValue(forKey: "assessedLevel")
-        feedback.removeValue(forKey: "sentence_level")
-
-        let sentNorm = Self.normalizeForCompare(sentence)
-        if let next = feedback["next_level_alt"] as? String,
-           Self.normalizeForCompare(next) == sentNorm {
-            feedback.removeValue(forKey: "next_level_alt")
-        }
-        if let target = feedback["target_level_alt"] as? String,
-           Self.normalizeForCompare(target) == sentNorm {
-            feedback.removeValue(forKey: "target_level_alt")
-        }
+    /// Cloud-path parity sanitizer (issue #31): CEFR plausibility + verbatim-alt stripping, plus
+    /// hallucination detection, known-error regex repairs, and register-conflict repair — the
+    /// same class of checks the on-device validator applies. Delegates to `FeedbackSanitizer` so
+    /// the logic is not duplicated per provider. Shared by all cloud providers (Groq, DeepSeek,
+    /// OpenRouter, OpenAI, Kimi, Anthropic, Gemini, Firebase-proxied).
+    func applyFeedbackSanitizer(
+        sentence: String, language: String = "es", level: String = "", feedback: inout [String: Any]
+    ) {
+        FeedbackSanitizer.sanitize(sentence: sentence, level: level, language: language, feedback: &feedback)
     }
 
-    static func assessedLevelPlausible(sentence: String, level: String) -> Bool {
-        let norm = normalizeForCompare(sentence)
-        let wordCount = sentence.split(whereSeparator: { $0.isWhitespace }).count
-        let hasSub = hasSubordinator(sentence)
-        let hasSubjunctive = norm.range(
-            of: #"\b(hubiera|tuviera|fuera|pudiera|quisiera|hiciera|hubiese|tuviese)\b"#,
-            options: .regularExpression
-        ) != nil
-        let hasConditional = norm.range(
-            of: #"\b(habria|habría|tendria|tendría|seria|sería|podria|podría)\b"#,
-            options: .regularExpression
-        ) != nil
-
-        switch level.uppercased() {
-        case "A1":
-            return wordCount <= 8 && !hasSub && !hasSubjunctive && !hasConditional
-        case "A2":
-            return wordCount <= 12 && !hasSubjunctive
-        case "B1", "B2":
-            return true
-        case "C1", "C2":
-            return hasSubjunctive || (hasSub && wordCount >= 12) || hasConditional
-        default:
-            return false
-        }
+    static func assessedLevelPlausible(sentence: String, level: String, language: String = "es") -> Bool {
+        FeedbackSanitizer.assessedLevelPlausible(sentence: sentence, level: level, language: language)
     }
-
-    private static func hasSubordinator(_ sentence: String) -> Bool {
-        let n = " " + normalizeForCompare(sentence) + " "
-        let markers = [
-            " porque ", " pues ", " que ", " cuando ", " si ", " aunque ",
-            " mientras ", " lo cual ", " donde ", " como ", " sino ",
-        ]
-        return markers.contains { n.contains($0) }
-    }
-
-    private static func normalizeForCompare(_ text: String) -> String {
-        text.lowercased()
-            .folding(options: .diacriticInsensitive, locale: .current)
-            .replacingOccurrences(of: #"[^\w\s]"#, with: " ", options: .regularExpression)
-            .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    private static let validCEFRLevels = ["A1", "A2", "B1", "B2", "C1", "C2"]
 
     static func normalizeAssessedLevel(_ raw: String?) -> String? {
-        guard let raw else { return nil }
-        let u = raw.uppercased().trimmingCharacters(in: .whitespacesAndNewlines)
-        return validCEFRLevels.contains(u) ? u : nil
+        FeedbackSanitizer.normalizeAssessedLevel(raw)
     }
 
     private func sanitizeLatin(_ text: String) -> String {

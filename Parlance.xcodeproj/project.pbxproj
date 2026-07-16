@@ -34,6 +34,7 @@
 		E7AI0007 /* AnthropicAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7AI0008 /* AnthropicAnalyzer.swift */; };
 		E7AI0009 /* GeminiAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7AI0010 /* GeminiAnalyzer.swift */; };
 		E7AI0011 /* UnifiedAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7AI0012 /* UnifiedAnalyzer.swift */; };
+		E7AI0013 /* FeedbackSanitizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7AI0014 /* FeedbackSanitizer.swift */; };
 		E7DE26612FBFEED80066F0F5 /* i18n.js in Resources */ = {isa = PBXBuildFile; fileRef = E7DE26602FBFEED80066F0F5 /* i18n.js */; };
 		E7FB0011 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7FB0001 /* AuthManager.swift */; };
 		E7FB0012 /* FirebaseCloudAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7FB0002 /* FirebaseCloudAnalyzer.swift */; };
@@ -93,6 +94,7 @@
 		E7AI0008 /* AnthropicAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnthropicAnalyzer.swift; sourceTree = "<group>"; };
 		E7AI0010 /* GeminiAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiAnalyzer.swift; sourceTree = "<group>"; };
 		E7AI0012 /* UnifiedAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnifiedAnalyzer.swift; sourceTree = "<group>"; };
+		E7AI0014 /* FeedbackSanitizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackSanitizer.swift; sourceTree = "<group>"; };
 		E7DE26602FBFEED80066F0F5 /* i18n.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = i18n.js; sourceTree = "<group>"; };
 		E7FB0001 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
 		E7FB0002 /* FirebaseCloudAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseCloudAnalyzer.swift; sourceTree = "<group>"; };
@@ -166,6 +168,7 @@
 				E7AI0002 /* AIProvider.swift */,
 				E7AI0004 /* AISettingsView.swift */,
 				E7AI0006 /* ExternalAnalyzer.swift */,
+				E7AI0014 /* FeedbackSanitizer.swift */,
 				E7AI0008 /* AnthropicAnalyzer.swift */,
 				E7AI0010 /* GeminiAnalyzer.swift */,
 				E7AI0012 /* UnifiedAnalyzer.swift */,
@@ -352,6 +355,7 @@
 				E7AI0001 /* AIProvider.swift in Sources */,
 				E7AI0003 /* AISettingsView.swift in Sources */,
 				E7AI0005 /* ExternalAnalyzer.swift in Sources */,
+				E7AI0013 /* FeedbackSanitizer.swift in Sources */,
 				E7AI0007 /* AnthropicAnalyzer.swift in Sources */,
 				E7AI0009 /* GeminiAnalyzer.swift in Sources */,
 				E7AI0011 /* UnifiedAnalyzer.swift in Sources */,

@@ -31,9 +31,9 @@ enum FirebaseCloudAnalyzer {
         }
 
         if let feedback = data["feedback"] as? [String: Any] {
-            return ExternalAnalyzer.shared.normalize(feedback, sentence: sentence)
+            return ExternalAnalyzer.shared.normalize(feedback, sentence: sentence, language: language, level: level)
         }
-        return ExternalAnalyzer.shared.normalize(data, sentence: sentence)
+        return ExternalAnalyzer.shared.normalize(data, sentence: sentence, language: language, level: level)
     }
 
     static func provider(fromWebId id: String) -> AIProvider? {

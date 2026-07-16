@@ -66,6 +66,6 @@ final class GeminiAnalyzer: Sendable {
             throw ExternalError.parseError
         }
 
-        return try ExternalAnalyzer.shared.parseAndNormalize(text, sentence: sentence)
+        return try ExternalAnalyzer.shared.parseAndNormalize(text, sentence: sentence, language: language, level: level)
     }
 }
