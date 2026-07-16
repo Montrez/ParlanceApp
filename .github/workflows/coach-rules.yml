@@ -9,6 +9,8 @@ on:
       - 'training/parlance_slm_validate.py'
       - 'training/validate_coach_rules.py'
       - 'training/run_coach_rules_regression.py'
+      - 'training/run_coach_regression.py'
+      - 'training/golden/**'
       - 'Parlance/web/coach-rules-engine.js'
   pull_request:
     paths:
@@ -18,6 +20,8 @@ on:
       - 'training/parlance_slm_validate.py'
       - 'training/validate_coach_rules.py'
       - 'training/run_coach_rules_regression.py'
+      - 'training/run_coach_regression.py'
+      - 'training/golden/**'
       - 'Parlance/web/coach-rules-engine.js'
 
 jobs:
@@ -34,3 +38,7 @@ jobs:
         run: python3 training/run_coach_rules_regression.py --lang es
       - name: Run deterministic rules regression (fr)
         run: python3 training/run_coach_rules_regression.py --lang fr
+      - name: Run golden regression heuristic (es)
+        run: python3 training/run_coach_regression.py --lang es --heuristic
+      - name: Run golden regression heuristic (fr)
+        run: python3 training/run_coach_regression.py --lang fr --heuristic

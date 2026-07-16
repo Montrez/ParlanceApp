@@ -869,6 +869,17 @@ def known_spanish_error_feedback(sentence: str, level: str) -> dict[str, Any] | 
 
 
 def known_french_error_feedback(sentence: str, level: str) -> dict[str, Any] | None:
+    from coach_rules import feedback_from_rules
+
+    if fb := feedback_from_rules(sentence, "fr"):
+        out = dict(fb)
+        _enrich_rule_feedback(sentence, out, lang="fr")
+        if level.upper() not in ("C1", "C2") and out.get("correction"):
+            out["next_level_alt"] = out["correction"]
+            out["target_level_alt"] = out["correction"]
+        return _preserve_inferred_fields(out, sentence, lang="fr")
+
+    # Hardcoded fallback if shared pack missed a si-clause variant
     if not SI_CLAUSE_FRENCH_CONDITIONAL.search(sentence):
         return None
     correction = sentence
@@ -881,7 +892,7 @@ def known_french_error_feedback(sentence: str, level: str) -> dict[str, Any] | N
         (re.compile(r"\bvous auriez\b", re.I), "vous aviez"),
     ):
         correction = pattern.sub(repl, correction)
-    out: dict[str, Any] = {
+    out = {
         "status": "Needs Improvement",
         "grammar_rule": "Si clauses: imparfait in the protasis, not conditionnel",
         "explanation": (
@@ -900,9 +911,7 @@ def known_french_error_feedback(sentence: str, level: str) -> dict[str, Any] | N
         "_coach_repaired": True,
         "_keep_assessed_level": True,
     }
-    if level.upper() not in ("C1", "C2"):
-        out["target_level_alt"] = correction
-    return out
+    return _preserve_inferred_fields(out, sentence, lang="fr")
 
 
 def _is_greeting_sentence(sentence: str) -> bool:
@@ -1506,6 +1515,12 @@ def _sanitize_french_feedback(sentence: str, feedback: dict[str, Any], level: st
         if is_unrelated_rewrite(sentence, out.get(alt_key)):
             out.pop(alt_key, None)
 
+    from coach_rules import merge_with_ai
+
+    out = merge_with_ai(sentence, out, "fr")
+    if out.get("_coach_enhanced") or out.get("_coach_rules"):
+        _enrich_rule_feedback(sentence, out, lang="fr")
+    _ensure_contextual_tip(sentence, out, lang="fr")
     return _preserve_inferred_fields(out, sentence, lang="fr")
 
 

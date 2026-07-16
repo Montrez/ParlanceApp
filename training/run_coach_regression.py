@@ -116,6 +116,11 @@ def main() -> None:
         default=0,
         help="Allow assessed_level within N CEFR steps of expected (0 = exact)",
     )
+    parser.add_argument(
+        "--heuristic",
+        action="store_true",
+        help="Use deterministic heuristic feedback (no model load) — for CI and local smoke",
+    )
     args = parser.parse_args()
 
     golden = args.golden or TRAINING_DIR / "golden" / f"coach_regression_{args.lang}.jsonl"
@@ -123,16 +128,29 @@ def main() -> None:
         print(f"Missing {golden}")
         sys.exit(1)
 
-    engine = get_engine(args.lang)
+    if args.heuristic:
+        from parlance_slm_validate import french_heuristic_feedback, heuristic_feedback
+
+        def analyze(sentence: str, level: str = "") -> dict:
+            if args.lang == "fr":
+                return french_heuristic_feedback(sentence, level)
+            return heuristic_feedback(sentence, level)
+    else:
+        engine = get_engine(args.lang)
+
+        def analyze(sentence: str, level: str = "") -> dict:
+            return engine.analyze(sentence, level=level)
+
     rows = load_golden(golden)
     failed_cases = 0
 
-    print(f"\nCoach regression — {args.lang.upper()} ({len(rows)} cases)\n")
+    mode = "heuristic" if args.heuristic else "model"
+    print(f"\nCoach regression — {args.lang.upper()} ({len(rows)} cases, {mode})\n")
     if args.level_tolerance:
         print(f"  (level tolerance ±{args.level_tolerance} CEFR step(s))\n")
     for row in rows:
         sentence = row["sentence"]
-        result = engine.analyze(sentence, level="")
+        result = analyze(sentence, level="")
         errs = check_case(row, result, level_tolerance=args.level_tolerance)
         assessed = result.get("assessed_level")
         status = result.get("status", "?")
