@@ -17,8 +17,21 @@ ROOT = TRAINING_DIR.parent
 REGRESSION_DIR = ROOT / "shared" / "coach-rules"
 
 
+def available_langs() -> list[str]:
+    """Any lang with a regression_{lang}.jsonl file is a valid --lang choice."""
+    langs = sorted(
+        p.stem.removeprefix("regression_") for p in REGRESSION_DIR.glob("regression_*.jsonl")
+    )
+    return langs or ["es"]
+
+
 def load_cases(lang: str) -> list[dict]:
     path = REGRESSION_DIR / f"regression_{lang}.jsonl"
+    if not path.exists():
+        raise FileNotFoundError(
+            f"No regression file for lang={lang!r}: expected {path}. "
+            f"Available langs: {', '.join(available_langs())}"
+        )
     rows = []
     with path.open(encoding="utf-8") as f:
         for line in f:
@@ -60,10 +73,19 @@ def check_case(row: dict, lang: str) -> list[str]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run coach rules regression (deterministic)")
-    parser.add_argument("--lang", choices=["es"], default="es")
+    parser.add_argument(
+        "--lang",
+        choices=available_langs(),
+        default="es",
+        help="Any language with a shared/coach-rules/regression_<lang>.jsonl file.",
+    )
     args = parser.parse_args()
 
-    cases = load_cases(args.lang)
+    try:
+        cases = load_cases(args.lang)
+    except FileNotFoundError as e:
+        print(f"\nERROR: {e}\n", file=sys.stderr)
+        sys.exit(2)
     failed = 0
     print(f"\nCoach rules regression — {args.lang.upper()} ({len(cases)} cases)\n")
     for row in cases:

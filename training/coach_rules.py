@@ -14,6 +14,17 @@ _PLACEHOLDER_CORRECTIONS = frozenset(
     {"corrected sentence", "correction", "n/a", "null", "none"}
 )
 
+# Short but valid corrections in these languages that must not be treated as
+# placeholders (e.g. a single accented word or a fixed grammatical particle).
+_SHORT_CORRECTION_ALLOW_WORDS = frozenset(
+    {
+        # French function words / particles common in short corrections.
+        "où", "ou", "à", "a", "là", "la", "du", "des", "de", "d'",
+        "c'est", "il est", "elle est", "ne", "pas", "que", "qui",
+        "j'ai", "j'aime", "tu", "vous", "je", "il", "elle", "on",
+    }
+)
+
 
 def load_rules(lang: str = "es") -> dict[str, Any]:
     key = "fr" if lang == "fr" else "es"
@@ -21,7 +32,10 @@ def load_rules(lang: str = "es") -> dict[str, Any]:
         return _CACHE[key]
     path = _RULES_DIR / f"{key}.json"
     if not path.exists():
-        return {"rules": [], "feminine_nouns": []}
+        raise FileNotFoundError(
+            f"Coach rule pack missing for lang={key!r}: expected {path}. "
+            "No silent empty rule pack is allowed — create the pack or fix the path."
+        )
     with path.open(encoding="utf-8") as f:
         pack = json.load(f)
     _CACHE[key] = pack
@@ -125,19 +139,30 @@ def analyze_sentence(sentence: str, lang: str = "es") -> dict[str, Any]:
     }
 
 
-def _is_placeholder_correction(text: str | None) -> bool:
+def _is_placeholder_correction(text: str | None, lang: str = "es") -> bool:
     if not text or not str(text).strip():
         return True
     t = str(text).strip()
-    # Allow short but valid corrections (e.g. "Comí ayer", "¿Cómo está?")
-    if len(t) < 5:
-        return True
     lower = t.lower().rstrip(".:")
+    # Allow short but valid corrections (e.g. "Comí ayer", "¿Cómo está?", "j'aime", "où")
+    if len(t) < 5:
+        return lower not in _SHORT_CORRECTION_ALLOW_WORDS
     if lower in _PLACEHOLDER_CORRECTIONS:
         return True
-    # Reject strings that look like English labels or pure ASCII with no Spanish content
+    # Reject strings that look like English labels or pure ASCII with no
+    # target-language content (function-word allowlist differs by language).
     if len(t) < 20 and re.fullmatch(r"[a-zA-Z0-9 .,;:'\-]+", t):
-        if not re.search(r"\b(el|la|los|las|un|una|que|por|para|es|son|fue|fui|con|sin|muy)\b", t, re.I):
+        if lang == "fr":
+            has_lang_words = re.search(
+                r"\b(le|la|les|un|une|que|qui|pour|par|est|c'est|il|elle|je|tu|vous|de|du|des|ne|pas)\b",
+                t,
+                re.I,
+            )
+        else:
+            has_lang_words = re.search(
+                r"\b(el|la|los|las|un|una|que|por|para|es|son|fue|fui|con|sin|muy)\b", t, re.I
+            )
+        if not has_lang_words:
             return True
     return False
 
@@ -189,6 +214,17 @@ def _grammar_rule_is_generic(text: str) -> bool:
 
 def _register_note(sentence: str, lang: str = "es") -> str:
     norm = _normalize(sentence)
+    if lang == "fr":
+        if re.search(r"\b(madame|monsieur|vous|veuillez)\b", norm) and not re.search(r"\btu\b", norm):
+            return (
+                "Formal vous with vocative «madame/monsieur» — keep second-person plural verb forms "
+                "(«êtes», not «es») in professional settings."
+            )
+        if re.search(r"\b(tu|toi|copain|copine|ami)\b", norm) and not re.search(r"\bvous\b", norm):
+            return "Informal tu/familiar address — match the relationship in your interpreting scenario."
+        if re.search(r"\btu\b", norm) and re.search(r"\bvous\b", norm):
+            return "Register mismatch — do not mix tu and vous for the same interlocutor; pick one and keep it consistent."
+        return "Match tu/vous and formality to the setting (clinical, legal, or casual)."
     if re.search(r"\b(senor|senora|usted)\b", norm) and "tu " not in norm:
         return (
             "Formal usted with vocative «señor/señora» — keep third-person verb forms "
@@ -242,7 +278,7 @@ def merge_with_ai(sentence: str, feedback: dict[str, Any], lang: str = "es") -> 
     missed = [i for i in ground["issues"] if not _explanation_covers(i, str(out.get("explanation") or ""))]
     corr = str(out.get("correction") or "").strip()
     corr_bad = (
-        _is_placeholder_correction(corr)
+        _is_placeholder_correction(corr, lang)
         or detect_issues(corr, lang)
         or (
             re.search(r"\btodo\b", corr, re.I)
@@ -253,7 +289,7 @@ def merge_with_ai(sentence: str, feedback: dict[str, Any], lang: str = "es") -> 
 
     if str(out.get("explanation") or ""):
         out["explanation"] = apply_repairs(str(out["explanation"]), lang)
-    if _is_placeholder_correction(corr):
+    if _is_placeholder_correction(corr, lang):
         out.pop("correction", None)
 
     out["status"] = "Needs Improvement"

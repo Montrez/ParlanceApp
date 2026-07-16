@@ -3,6 +3,7 @@
  */
 
 require("./coach-rules-es");
+require("./coach-rules-fr");
 require("./coach-rules-engine");
 const { sanitizeFeedbackResult } = require("./feedback-sanitize");
 

@@ -471,7 +471,7 @@
         },
         {
           "pattern": "\\bpor\\s+trabajo\\s+(ma[nñ]ana)\\b",
-          "replace": "para el trabajo $1",
+          "replace": "para el trabajo $2",
           "flags": "gi"
         }
       ],

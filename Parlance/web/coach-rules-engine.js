@@ -17,6 +17,13 @@
       .trim();
   }
 
+  // Rule packs are shared with Python (re.sub, which reads \1 \2 as backreferences).
+  // JS String.replace needs $1 $2 instead — normalize before replacing so both
+  // runtimes honor the exact same "replace" string from shared/coach-rules/*.json.
+  function toJsBackreferences(replace) {
+    return String(replace == null ? '' : replace).replace(/\\(\d)/g, '$$$1');
+  }
+
   function ruleMatches(text, rule) {
     const detect = rule.detect || {};
     const flags = detect.flags || 'i';
@@ -77,6 +84,10 @@
       RULES.es = root.ParlanceCoachRulesES;
       return RULES.es;
     }
+    if (key === 'fr' && root.ParlanceCoachRulesFR) {
+      RULES.fr = root.ParlanceCoachRulesFR;
+      return RULES.fr;
+    }
     return null;
   }
 
@@ -124,26 +135,42 @@
         try {
           const flags = step.flags || 'gi';
           const re = new RegExp(step.pattern, flags);
-          c = step.once ? c.replace(re, step.replace) : c.replace(re, step.replace);
+          const replacement = toJsBackreferences(step.replace);
+          c = c.replace(re, replacement);
         } catch (_) { /* ignore bad pattern */ }
       }
     }
     return c.replace(/\s+/g, ' ').trim();
   }
 
-  function isPlaceholderCorrection(text) {
+  const SHORT_CORRECTION_ALLOW_WORDS = new Set([
+    // French function words / particles common in short corrections.
+    'où', 'ou', 'à', 'a', 'là', 'la', 'du', 'des', 'de', "d'",
+    "c'est", 'il est', 'elle est', 'ne', 'pas', 'que', 'qui',
+    "j'ai", "j'aime", 'tu', 'vous', 'je', 'il', 'elle', 'on',
+  ]);
+
+  function isPlaceholderCorrection(text, lang) {
     if (!text || typeof text !== 'string') return true;
     const t = text.trim();
-    if (t.length < 15) return true;
     const lower = t.toLowerCase().replace(/[.:]+$/, '');
+    if (t.length < 15) {
+      // Allow short but valid corrections (e.g. "j'aime", "où") for languages
+      // with common short function-word fixes.
+      if (lang === 'fr') return !SHORT_CORRECTION_ALLOW_WORDS.has(lower);
+      return true;
+    }
     const placeholders = ['corrected sentence', 'correction', 'n/a', 'null', 'none'];
     if (placeholders.includes(lower)) return true;
     if (/^(corrected|correction|fixed)\s*(sentence|version)?[.:]?$/i.test(t)) return true;
+    if (lang === 'fr') {
+      return !/[àâäéèêëîïôöùûüç]|(?:\b(le|la|les|un|une|que|qui|pour|par|est|il|elle|je|tu|vous|de|du|des|ne|pas)\b)/i.test(t);
+    }
     return !/[áéíóúñü]|(?:\b(el|la|los|las|que|por|para|tengo|tenemos|hacer|trabajo|aplicaci)\b)/i.test(t);
   }
 
   function correctionIsIncomplete(sentence, correction, lang) {
-    if (!correction || isPlaceholderCorrection(correction)) return true;
+    if (!correction || isPlaceholderCorrection(correction, lang)) return true;
     const sent = normalizeTextForCompare(sentence);
     const corr = normalizeTextForCompare(correction);
     if (corr.length < sent.length * 0.6) return true;
@@ -197,7 +224,7 @@
     const sentNorm = normalizeTextForCompare(sentence);
     const modelCorrBad = detectIssues(out.correction || '', lang).length > 0;
     const correctionWeak = !out.correction
-      || isPlaceholderCorrection(out.correction)
+      || isPlaceholderCorrection(out.correction, lang)
       || correctionIsIncomplete(sentence, out.correction, lang)
       || modelCorrBad
       || normalizeTextForCompare(out.correction) === sentNorm;
@@ -205,7 +232,7 @@
     if (out.explanation) {
       out.explanation = applyRepairs(out.explanation, lang);
     }
-    if (isPlaceholderCorrection(out.correction)) {
+    if (isPlaceholderCorrection(out.correction, lang)) {
       delete out.correction;
     }
 
