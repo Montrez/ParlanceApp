@@ -1,12 +1,24 @@
 /**
- * Shared bilingual chrome for dialect (and future guide) pages.
+ * Shared multilingual chrome for dialect and guide pages.
  *
- * Markup uses one element per string:
- *   <h1 data-t-en="Regional Guide" data-t-native="Dialectos"></h1>
- *   <div data-t-en-html="<strong>Tip</strong> …" data-t-native-html="…"></div>
+ * Two modes, both driven by the app's interface language (`ui`), never the
+ * practice language — the parent journal posts
+ * { type: 'parlanceGuideEnv', ui, theme } whenever either changes, and this
+ * re-applies live without reloading the iframe.
  *
- * Call GuideUI.init({ nativeLang, storageKey, titleEn, titleNative }) once per page.
- * Parent journal posts { type: 'parlanceGuideEnv', ui, theme } on language/theme change.
+ * 1. Binary (native-language content, e.g. dialect-es.html teaching Spanish
+ *    dialects — the only two realistic UI languages for that audience are
+ *    English or the target language itself):
+ *      <h1 data-t-en="Regional Guide" data-t-native="Dialectos"></h1>
+ *    GuideUI.init({ nativeLang: 'es', storageKey, titleEn, titleNative })
+ *
+ * 2. Multi (content pages whose audience's interface language can be any of
+ *    en/es/fr regardless of what's being taught — e.g. guide-en.html /
+ *    dialect-en.html, which teach English contrastively to ES *and* FR L1
+ *    speakers, so a binary toggle can't cover both):
+ *      <h1 data-t-en="English" data-t-es="Inglés" data-t-fr="Anglais"></h1>
+ *    GuideUI.init({ langs: ['en','es','fr'], storageKey, titles: {en,es,fr} })
+ *    Untranslated elements fall back to data-t-en.
  */
 (function (global) {
   function applyBilingualTexts(useNative) {
@@ -30,10 +42,27 @@
     });
   }
 
+  function applyMultilingualTexts(lang) {
+    document.querySelectorAll('[data-t-en]').forEach((el) => {
+      el.textContent = el.getAttribute('data-t-' + lang) ?? el.getAttribute('data-t-en') ?? '';
+    });
+    document.querySelectorAll('[data-t-en-html]').forEach((el) => {
+      el.innerHTML = el.getAttribute('data-t-' + lang + '-html') ?? el.getAttribute('data-t-en-html') ?? '';
+    });
+    document.querySelectorAll('select option[data-en]').forEach((opt) => {
+      opt.textContent = opt.getAttribute('data-' + lang) || opt.getAttribute('data-en') || '';
+    });
+  }
+
   function applyGuideEnv(cfg, ui, theme) {
-    const useNative = ui === cfg.nativeLang;
-    document.body.setAttribute('data-guide-ui', useNative ? 'native' : 'en');
-    document.documentElement.lang = useNative ? cfg.nativeLang : 'en';
+    const isMulti = Array.isArray(cfg.langs);
+    const lang = isMulti
+      ? (cfg.langs.includes(ui) ? ui : 'en')
+      : (ui === cfg.nativeLang ? cfg.nativeLang : 'en');
+    const useNative = !isMulti && lang === cfg.nativeLang;
+
+    document.body.setAttribute('data-guide-ui', isMulti ? lang : (useNative ? 'native' : 'en'));
+    document.documentElement.lang = lang;
     if (theme === 'dark') {
       document.documentElement.setAttribute('data-theme', 'dark');
       document.body.classList.add('dark');
@@ -41,25 +70,35 @@
       document.documentElement.removeAttribute('data-theme');
       document.body.classList.remove('dark');
     }
-    applyBilingualTexts(useNative);
-    document.querySelectorAll('.lang-switch a').forEach((a) => {
-      try {
-        const url = new URL(a.getAttribute('href'), location.href);
-        url.searchParams.set('ui', useNative ? cfg.nativeLang : 'en');
-        url.searchParams.set('theme', theme === 'dark' ? 'dark' : 'light');
-        a.setAttribute('href', url.pathname.split('/').pop() + '?' + url.searchParams.toString());
-      } catch (_) { /* ignore */ }
-    });
-    document.querySelectorAll('.guide-lang-btn').forEach((btn) => {
-      btn.classList.toggle('active', btn.dataset.guideRead === (useNative ? 'native' : 'en'));
-    });
-    document.title = useNative ? cfg.titleNative : cfg.titleEn;
-    if (typeof cfg.onApplied === 'function') cfg.onApplied(useNative);
+
+    if (isMulti) {
+      applyMultilingualTexts(lang);
+    } else {
+      applyBilingualTexts(useNative);
+      document.querySelectorAll('.lang-switch a').forEach((a) => {
+        try {
+          const url = new URL(a.getAttribute('href'), location.href);
+          url.searchParams.set('ui', useNative ? cfg.nativeLang : 'en');
+          url.searchParams.set('theme', theme === 'dark' ? 'dark' : 'light');
+          a.setAttribute('href', url.pathname.split('/').pop() + '?' + url.searchParams.toString());
+        } catch (_) { /* ignore */ }
+      });
+      document.querySelectorAll('.guide-lang-btn').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.guideRead === (useNative ? 'native' : 'en'));
+      });
+    }
+
+    document.title = isMulti
+      ? (cfg.titles && (cfg.titles[lang] || cfg.titles.en)) || document.title
+      : (useNative ? cfg.titleNative : cfg.titleEn);
+    if (typeof cfg.onApplied === 'function') cfg.onApplied(isMulti ? lang : useNative);
   }
 
   const GuideUI = {
     /**
-     * @param {{ nativeLang: string, storageKey: string, titleEn: string, titleNative: string, onApplied?: function }} cfg
+     * @param {{ nativeLang?: string, langs?: string[], storageKey: string,
+     *           titleEn?: string, titleNative?: string, titles?: Record<string,string>,
+     *           onApplied?: function }} cfg
      */
     init(cfg) {
       global.applyGuideEnv = function (ui, theme) {

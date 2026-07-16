@@ -8,59 +8,59 @@
 <link href="content-theme.css?v=1" rel="stylesheet"/>
 <link href="content-guide.css?v=3" rel="stylesheet"/>
 </head>
-<body class="dialect lang-en" data-guide-ui="en">
+<body class="dialect lang-en">
 <div class="layout">
 <nav class="sidebar">
   <div class="sidebar-logo">
-    <h1>🌎 Regional English</h1>
-    <p>US · UK · Australia · Canada</p>
+    <h1 data-t-en="🌎 Regional English" data-t-es="🌎 Inglés regional" data-t-fr="🌎 Anglais régional">🌎 Regional English</h1>
+    <p data-t-en="US · UK · Australia · Canada" data-t-es="EE. UU. · Reino Unido · Australia · Canadá" data-t-fr="É.-U. · Royaume-Uni · Australie · Canada">US · UK · Australia · Canada</p>
   </div>
-  <div class="nav-section-label">Tool</div>
-  <a class="nav-item active" href="#picker">Your variety → theirs</a>
-  <div class="nav-section-label">Quick reference</div>
-  <a class="nav-item" href="#spelling">Spelling</a>
-  <a class="nav-item" href="#vocab">Vocabulary</a>
-  <a class="nav-item" href="#traps">Trap words</a>
-  <a class="nav-item" href="#regions">Regional profiles</a>
-  <a class="nav-item" href="#dont-correct">Don’t “correct” this</a>
+  <div class="nav-section-label" data-t-en="Tool" data-t-es="Herramienta" data-t-fr="Outil">Tool</div>
+  <a class="nav-item active" href="#picker"><span data-t-en="Your variety → theirs" data-t-es="Tu variedad → la suya" data-t-fr="Votre variété → la leur">Your variety → theirs</span></a>
+  <div class="nav-section-label" data-t-en="Quick reference" data-t-es="Referencia rápida" data-t-fr="Référence rapide">Quick reference</div>
+  <a class="nav-item" href="#spelling"><span data-t-en="Spelling" data-t-es="Ortografía" data-t-fr="Orthographe">Spelling</span></a>
+  <a class="nav-item" href="#vocab"><span data-t-en="Vocabulary" data-t-es="Vocabulario" data-t-fr="Vocabulaire">Vocabulary</span></a>
+  <a class="nav-item" href="#traps"><span data-t-en="Trap words" data-t-es="Palabras trampa" data-t-fr="Mots pièges">Trap words</span></a>
+  <a class="nav-item" href="#regions"><span data-t-en="Regional profiles" data-t-es="Perfiles regionales" data-t-fr="Profils régionaux">Regional profiles</span></a>
+  <a class="nav-item" href="#dont-correct"><span data-t-en="Don’t “correct” this" data-t-es="No “corrijas” esto" data-t-fr="Ne « corrigez » pas ceci">Don’t “correct” this</span></a>
   <div class="lang-switch" style="margin-top:1rem;padding:0 1rem">
-    <a href="dialect-es.html" style="font-size:0.8rem">→ Spanish dialects</a><br/>
-    <a href="dialect-fr.html" style="font-size:0.8rem">→ French dialects</a>
+    <a href="dialect-es.html" style="font-size:0.8rem"><span data-t-en="→ Spanish dialects" data-t-es="→ Dialectos del español" data-t-fr="→ Dialectes de l'espagnol">→ Spanish dialects</span></a><br/>
+    <a href="dialect-fr.html" style="font-size:0.8rem"><span data-t-en="→ French dialects" data-t-es="→ Dialectos del francés" data-t-fr="→ Dialectes du français">→ French dialects</span></a>
   </div>
 </nav>
 
 <main class="content">
-  <div class="rule-box">
+  <div class="rule-box" data-t-en-html="<strong>How to use this guide.</strong> One interactive tool (region-pair picker) plus reference sections. Match the speaker’s variety when interpreting; do not standardize US English onto a UK speaker (or the reverse) unless meaning requires it." data-t-es-html="<strong>Cómo usar esta guía.</strong> Una herramienta interactiva (selector de pares de regiones) más secciones de referencia. Iguala la variedad del hablante al interpretar; no conviertas el inglés estadounidense al británico (o al revés) salvo que el significado lo requiera." data-t-fr-html="<strong>Comment utiliser ce guide.</strong> Un outil interactif (sélecteur de paires de régions) plus des sections de référence. Adaptez-vous à la variété du locuteur en interprétation ; ne standardisez pas l’anglais américain vers le britannique (ou l’inverse) sauf si le sens l’exige.">
     <strong>How to use this guide.</strong> One interactive tool (region-pair picker) plus reference sections. Match the speaker’s variety when interpreting; do not standardize US English onto a UK speaker (or the reverse) unless meaning requires it.
   </div>
 
   <section class="section" id="picker">
-    <h2>Your variety → theirs</h2>
-    <p class="subtitle">Pick two varieties to see high-impact differences for interpreters.</p>
+    <h2 data-t-en="Your variety → theirs" data-t-es="Tu variedad → la suya" data-t-fr="Votre variété → la leur">Your variety → theirs</h2>
+    <p class="subtitle" data-t-en="Pick two varieties to see high-impact differences for interpreters." data-t-es="Elige dos variedades para ver las diferencias de mayor impacto para intérpretes." data-t-fr="Choisissez deux variétés pour voir les différences les plus importantes pour les interprètes.">Pick two varieties to see high-impact differences for interpreters.</p>
     <div class="picker-card">
       <div class="picker-row">
         <div>
-          <label for="fromRegion">I speak / write like…</label>
+          <label for="fromRegion" data-t-en="I speak / write like…" data-t-es="Yo hablo / escribo como…" data-t-fr="Je parle / j’écris comme…">I speak / write like…</label>
           <select id="fromRegion">
-            <option value="">Select your variety</option>
-            <option value="us">United States</option>
-            <option value="uk">United Kingdom</option>
-            <option value="au">Australia</option>
-            <option value="ca">Canada</option>
+            <option value="" data-en="Select your variety" data-es="Selecciona tu variedad" data-fr="Sélectionnez votre variété">Select your variety</option>
+            <option value="us" data-en="United States" data-es="Estados Unidos" data-fr="États-Unis">United States</option>
+            <option value="uk" data-en="United Kingdom" data-es="Reino Unido" data-fr="Royaume-Uni">United Kingdom</option>
+            <option value="au" data-en="Australia" data-es="Australia" data-fr="Australie">Australia</option>
+            <option value="ca" data-en="Canada" data-es="Canadá" data-fr="Canada">Canada</option>
           </select>
         </div>
         <div>
-          <label for="toRegion">The other person is from…</label>
+          <label for="toRegion" data-t-en="The other person is from…" data-t-es="La otra persona es de…" data-t-fr="L’autre personne est de…">The other person is from…</label>
           <select id="toRegion">
-            <option value="">Select their variety</option>
-            <option value="us">United States</option>
-            <option value="uk">United Kingdom</option>
-            <option value="au">Australia</option>
-            <option value="ca">Canada</option>
+            <option value="" data-en="Select their variety" data-es="Selecciona su variedad" data-fr="Sélectionnez sa variété">Select their variety</option>
+            <option value="us" data-en="United States" data-es="Estados Unidos" data-fr="États-Unis">United States</option>
+            <option value="uk" data-en="United Kingdom" data-es="Reino Unido" data-fr="Royaume-Uni">United Kingdom</option>
+            <option value="au" data-en="Australia" data-es="Australia" data-fr="Australie">Australia</option>
+            <option value="ca" data-en="Canada" data-es="Canadá" data-fr="Canada">Canada</option>
           </select>
         </div>
       </div>
-      <p class="picker-note">Tip: adapt vocabulary and spelling to the listener’s variety when clarity matters; keep the speaker’s wording when interpreting their voice.</p>
+      <p class="picker-note" data-t-en="Tip: adapt vocabulary and spelling to the listener’s variety when clarity matters; keep the speaker’s wording when interpreting their voice." data-t-es="Consejo: adapta el vocabulario y la ortografía a la variedad del oyente cuando la claridad importe; conserva las palabras del hablante cuando interpretes su voz." data-t-fr="Conseil : adaptez le vocabulaire et l’orthographe à la variété de l’auditeur quand la clarté importe ; conservez les mots du locuteur en interprétant sa voix.">Tip: adapt vocabulary and spelling to the listener’s variety when clarity matters; keep the speaker’s wording when interpreting their voice.</p>
     </div>
     <div id="pairResult" class="pair-result">
       <h3 id="pairTitle"></h3>
@@ -69,23 +69,31 @@
   </section>
 
   <section class="section" id="spelling">
-    <h2>Spelling</h2>
-    <p class="subtitle">US vs UK-aligned (UK/AU often share -our/-ise; Canada mixes).</p>
+    <h2 data-t-en="Spelling" data-t-es="Ortografía" data-t-fr="Orthographe">Spelling</h2>
+    <p class="subtitle" data-t-en="US vs UK-aligned (UK/AU often share -our/-ise; Canada mixes)." data-t-es="EE. UU. frente a la alineación británica (RU/Australia suelen compartir -our/-ise; Canadá mezcla ambas)." data-t-fr="É.-U. par rapport à l’alignement britannique (RU/Australie partagent souvent -our/-ise ; le Canada mélange les deux).">US vs UK-aligned (UK/AU often share -our/-ise; Canada mixes).</p>
     <table class="irreg-table">
-      <tr><th>US</th><th>UK / AU (often)</th><th>Notes</th></tr>
-      <tr><td>color, favor</td><td>colour, favour</td><td>Canada often prefers -our in formal writing</td></tr>
-      <tr><td>organize, realize</td><td>organise, realise</td><td>US -ize is also accepted by Oxford</td></tr>
+      <tr>
+        <th>US</th>
+        <th data-t-en="UK / AU (often)" data-t-es="RU / Australia (a menudo)" data-t-fr="RU / Australie (souvent)">UK / AU (often)</th>
+        <th data-t-en="Notes" data-t-es="Notas" data-t-fr="Remarques">Notes</th>
+      </tr>
+      <tr><td>color, favor</td><td>colour, favour</td><td data-t-en="Canada often prefers -our in formal writing" data-t-es="Canadá suele preferir -our en la escritura formal" data-t-fr="Le Canada préfère souvent -our dans l’écrit formel">Canada often prefers -our in formal writing</td></tr>
+      <tr><td>organize, realize</td><td>organise, realise</td><td data-t-en="US -ize is also accepted by Oxford" data-t-es="El -ize estadounidense también lo acepta Oxford" data-t-fr="Le -ize américain est aussi accepté par Oxford">US -ize is also accepted by Oxford</td></tr>
       <tr><td>center, theater</td><td>centre, theatre</td><td></td></tr>
-      <tr><td>defense</td><td>defence</td><td>Legal “defense” appears in US court contexts</td></tr>
-      <tr><td>traveled</td><td>travelled</td><td>Double L in UK/AU/CA</td></tr>
+      <tr><td>defense</td><td>defence</td><td data-t-en="Legal “defense” appears in US court contexts" data-t-es="«Defense» (legal) aparece en contextos judiciales de EE. UU." data-t-fr="« Defense » (juridique) apparaît dans les contextes judiciaires américains">Legal “defense” appears in US court contexts</td></tr>
+      <tr><td>traveled</td><td>travelled</td><td data-t-en="Double L in UK/AU/CA" data-t-es="Doble L en RU/Australia/Canadá" data-t-fr="Double L au RU/en Australie/au Canada">Double L in UK/AU/CA</td></tr>
     </table>
   </section>
 
   <section class="section" id="vocab">
-    <h2>Vocabulary</h2>
-    <p class="subtitle">Everyday pairs that surprise Romance-L1 learners in English-speaking countries.</p>
+    <h2 data-t-en="Vocabulary" data-t-es="Vocabulario" data-t-fr="Vocabulaire">Vocabulary</h2>
+    <p class="subtitle" data-t-en="Everyday pairs that surprise Romance-L1 learners in English-speaking countries." data-t-es="Pares cotidianos que sorprenden a hispanohablantes y francófonos en países de habla inglesa." data-t-fr="Paires courantes qui surprennent les hispanophones et francophones dans les pays anglophones.">Everyday pairs that surprise Romance-L1 learners in English-speaking countries.</p>
     <table class="irreg-table">
-      <tr><th>US</th><th>UK</th><th>AU / other</th></tr>
+      <tr>
+        <th>US</th>
+        <th>UK</th>
+        <th data-t-en="AU / other" data-t-es="Australia / otros" data-t-fr="Australie / autres">AU / other</th>
+      </tr>
       <tr><td>apartment</td><td>flat</td><td>unit / flat (AU)</td></tr>
       <tr><td>elevator</td><td>lift</td><td>lift</td></tr>
       <tr><td>truck</td><td>lorry</td><td>truck (AU often)</td></tr>
@@ -94,48 +102,49 @@
       <tr><td>pants</td><td>trousers</td><td>pants (AU) ≈ trousers; underwear = undies</td></tr>
       <tr><td>cookie</td><td>biscuit</td><td>biscuit</td></tr>
       <tr><td>fries</td><td>chips</td><td>chips; fries also understood</td></tr>
-      <tr><td>chips (crisps)</td><td>crisps</td><td>chips can mean fries or crisps — clarify</td></tr>
+      <tr><td>chips (crisps)</td><td>crisps</td><td data-t-en="chips can mean fries or crisps — clarify" data-t-es="«chips» puede significar «fries» o «crisps» — aclara" data-t-fr="« chips » peut désigner des frites ou des chips — précisez">chips can mean fries or crisps — clarify</td></tr>
     </table>
   </section>
 
   <section class="section" id="traps">
-    <h2>Trap words</h2>
-    <p class="subtitle">Same word, different meaning — or socially risky.</p>
+    <h2 data-t-en="Trap words" data-t-es="Palabras trampa" data-t-fr="Mots pièges">Trap words</h2>
+    <p class="subtitle" data-t-en="Same word, different meaning — or socially risky." data-t-es="La misma palabra, distinto significado, o socialmente arriesgada." data-t-fr="Le même mot, un sens différent, ou socialement risqué.">Same word, different meaning — or socially risky.</p>
     <ul class="bullet-list">
-      <li><strong>pants</strong> — US: trousers. UK: often underwear. Prefer <em>trousers</em> in UK formal settings.</li>
-      <li><strong>rubber</strong> — US: eraser sometimes; UK: condom. Prefer <em>eraser</em> / be explicit.</li>
-      <li><strong>root / route</strong> — pronunciation and slang vary; AU “root” can be vulgar.</li>
-      <li><strong>table</strong> a motion — US: postpone; UK: bring up for discussion. Clarify in meetings.</li>
-      <li><strong>public school</strong> — US: state school; UK: fee-paying private school.</li>
+      <li data-t-en-html="<strong>pants</strong> — US: trousers. UK: often underwear. Prefer <em>trousers</em> in UK formal settings." data-t-es-html="<strong>pants</strong> — EE. UU.: pantalones. RU: a menudo ropa interior. Prefiere <em>trousers</em> en contextos formales británicos." data-t-fr-html="<strong>pants</strong> — É.-U. : pantalon. RU : souvent sous-vêtements. Préférez <em>trousers</em> dans un contexte formel britannique."><strong>pants</strong> — US: trousers. UK: often underwear. Prefer <em>trousers</em> in UK formal settings.</li>
+      <li data-t-en-html="<strong>rubber</strong> — US: eraser sometimes; UK: condom. Prefer <em>eraser</em> / be explicit." data-t-es-html="<strong>rubber</strong> — EE. UU.: a veces goma de borrar; RU: condón. Prefiere <em>eraser</em> o sé explícito." data-t-fr-html="<strong>rubber</strong> — É.-U. : parfois gomme ; RU : préservatif. Préférez <em>eraser</em> ou soyez explicite."><strong>rubber</strong> — US: eraser sometimes; UK: condom. Prefer <em>eraser</em> / be explicit.</li>
+      <li data-t-en="root / route — pronunciation and slang vary; AU “root” can be vulgar." data-t-es="root / route — la pronunciación y el argot varían; en Australia «root» puede ser vulgar." data-t-fr="root / route — la prononciation et l’argot varient ; en Australie, « root » peut être vulgaire.">root / route — pronunciation and slang vary; AU “root” can be vulgar.</li>
+      <li data-t-en-html="<strong>table</strong> a motion — US: postpone; UK: bring up for discussion. Clarify in meetings." data-t-es-html="<strong>table</strong> una moción — EE. UU.: posponerla; RU: presentarla para debate. Aclara en reuniones." data-t-fr-html="<strong>table</strong> une motion — É.-U. : la reporter ; RU : la mettre en discussion. Précisez en réunion."><strong>table</strong> a motion — US: postpone; UK: bring up for discussion. Clarify in meetings.</li>
+      <li data-t-en="public school — US: state school; UK: fee-paying private school." data-t-es="public school — EE. UU.: escuela pública; RU: escuela privada de pago." data-t-fr="public school — É.-U. : école publique ; RU : école privée payante.">public school — US: state school; UK: fee-paying private school.</li>
     </ul>
   </section>
 
   <section class="section" id="regions">
-    <h2>Regional profiles</h2>
-    <p class="subtitle">At a glance for interpreters.</p>
+    <h2 data-t-en="Regional profiles" data-t-es="Perfiles regionales" data-t-fr="Profils régionaux">Regional profiles</h2>
+    <p class="subtitle" data-t-en="At a glance for interpreters." data-t-es="De un vistazo, para intérpretes." data-t-fr="En un coup d’œil, pour les interprètes.">At a glance for interpreters.</p>
     <ul class="bullet-list">
-      <li><strong>United States</strong> — rhotic accents common; -or/-ize spelling; healthcare/legal vocabulary often Latinate + insurance jargon.</li>
-      <li><strong>United Kingdom</strong> — non-rhotic accents common; -our/-re spelling; NHS and court terminology differ from US.</li>
-      <li><strong>Australia</strong> — often UK-aligned spelling; distinctive slang and intonation; “chips” ambiguity.</li>
-      <li><strong>Canada</strong> — mix of US/UK spelling; vocabulary closer to US in speech; formal writing often UK-leaning.</li>
+      <li data-t-en-html="<strong>United States</strong> — rhotic accents common; -or/-ize spelling; healthcare/legal vocabulary often Latinate + insurance jargon." data-t-es-html="<strong>Estados Unidos</strong> — acentos róticos comunes; ortografía -or/-ize; vocabulario médico/legal a menudo latino + jerga de seguros." data-t-fr-html="<strong>États-Unis</strong> — accents rhotiques fréquents ; orthographe -or/-ize ; vocabulaire médical/juridique souvent latin + jargon des assurances."><strong>United States</strong> — rhotic accents common; -or/-ize spelling; healthcare/legal vocabulary often Latinate + insurance jargon.</li>
+      <li data-t-en-html="<strong>United Kingdom</strong> — non-rhotic accents common; -our/-re spelling; NHS and court terminology differ from US." data-t-es-html="<strong>Reino Unido</strong> — acentos no róticos comunes; ortografía -our/-re; la terminología del NHS y los tribunales difiere de la de EE. UU." data-t-fr-html="<strong>Royaume-Uni</strong> — accents non rhotiques fréquents ; orthographe -our/-re ; la terminologie du NHS et des tribunaux diffère de celle des É.-U."><strong>United Kingdom</strong> — non-rhotic accents common; -our/-re spelling; NHS and court terminology differ from US.</li>
+      <li data-t-en-html="<strong>Australia</strong> — often UK-aligned spelling; distinctive slang and intonation; “chips” ambiguity." data-t-es-html="<strong>Australia</strong> — ortografía a menudo alineada con el RU; jerga e intonación distintivas; ambigüedad con «chips»." data-t-fr-html="<strong>Australie</strong> — orthographe souvent alignée sur le RU ; argot et intonation distinctifs ; ambiguïté du mot « chips »."><strong>Australia</strong> — often UK-aligned spelling; distinctive slang and intonation; “chips” ambiguity.</li>
+      <li data-t-en-html="<strong>Canada</strong> — mix of US/UK spelling; vocabulary closer to US in speech; formal writing often UK-leaning." data-t-es-html="<strong>Canadá</strong> — mezcla de ortografía estadounidense y británica; vocabulario más cercano al de EE. UU. al hablar; la escritura formal suele inclinarse hacia el RU." data-t-fr-html="<strong>Canada</strong> — mélange d’orthographe américaine et britannique ; vocabulaire plus proche des É.-U. à l’oral ; l’écrit formel penche souvent vers le RU."><strong>Canada</strong> — mix of US/UK spelling; vocabulary closer to US in speech; formal writing often UK-leaning.</li>
     </ul>
   </section>
 
   <section class="section" id="dont-correct">
-    <h2>Don’t “correct” this</h2>
-    <p class="subtitle">In interpreting, convey meaning — don’t standardize the speaker’s variety.</p>
+    <h2 data-t-en="Don’t “correct” this" data-t-es="No “corrijas” esto" data-t-fr="Ne « corrigez » pas ceci">Don’t “correct” this</h2>
+    <p class="subtitle" data-t-en="In interpreting, convey meaning — don’t standardize the speaker’s variety." data-t-es="Al interpretar, transmite el significado, no estandarices la variedad del hablante." data-t-fr="En interprétation, transmettez le sens, ne standardisez pas la variété du locuteur.">In interpreting, convey meaning — don’t standardize the speaker’s variety.</p>
     <ul class="bullet-list">
-      <li>UK <em>colour</em> / US <em>color</em> is not an error.</li>
-      <li>Australian slang is not “incorrect English.”</li>
-      <li>Canadian spelling mix is normal; don’t “fix” every -our to -or.</li>
-      <li>If the speaker is consistent in their variety, keep their lexical choices unless the listener truly won’t understand.</li>
+      <li data-t-en-html="UK <em>colour</em> / US <em>color</em> is not an error." data-t-es-html="RU <em>colour</em> / EE. UU. <em>color</em> no es un error." data-t-fr-html="RU <em>colour</em> / É.-U. <em>color</em> n’est pas une erreur.">UK <em>colour</em> / US <em>color</em> is not an error.</li>
+      <li data-t-en="Australian slang is not “incorrect English.”" data-t-es="El argot australiano no es «inglés incorrecto»." data-t-fr="L’argot australien n’est pas « du mauvais anglais ».">Australian slang is not “incorrect English.”</li>
+      <li data-t-en="Canadian spelling mix is normal; don’t “fix” every -our to -or." data-t-es="La mezcla ortográfica canadiense es normal; no «corrijas» cada -our a -or." data-t-fr="Le mélange orthographique canadien est normal ; ne « corrigez » pas chaque -our en -or.">Canadian spelling mix is normal; don’t “fix” every -our to -or.</li>
+      <li data-t-en="If the speaker is consistent in their variety, keep their lexical choices unless the listener truly won’t understand." data-t-es="Si el hablante es consistente en su variedad, conserva sus elecciones léxicas salvo que el oyente realmente no vaya a entender." data-t-fr="Si le locuteur est cohérent dans sa variété, conservez ses choix lexicaux sauf si l’auditeur ne comprendra vraiment pas.">If the speaker is consistent in their variety, keep their lexical choices unless the listener truly won’t understand.</li>
     </ul>
   </section>
 </main>
 </div>
 <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeMobileNav()"></div>
-<button class="mobile-nav-btn" onclick="toggleMobileNav()" type="button">☰ Contents</button>
-<button class="back-btn" onclick="window.parent.postMessage('closeGuide', '*')" type="button">Back to Journal</button>
+<button class="mobile-nav-btn" onclick="toggleMobileNav()" type="button"><span data-t-en="☰ Contents" data-t-es="☰ Contenido" data-t-fr="☰ Sommaire">☰ Contents</span></button>
+<button class="back-btn" onclick="window.parent.postMessage('closeGuide', '*')" type="button"><span data-t-en="Back to Journal" data-t-es="Volver al diario" data-t-fr="Retour au journal">Back to Journal</span></button>
+<script src="guide-ui.js"></script>
 <script>
 function toggleMobileNav() {
   document.querySelector('.sidebar').classList.toggle('mobile-open');
@@ -154,49 +163,142 @@ document.querySelectorAll('.nav-item').forEach(item => {
 });
 
 const PAIR_INSIGHTS = {
-  'us|uk': [
-    'apartment → flat; elevator → lift; truck → lorry; vacation → holiday.',
-    'Spelling: color/organize (US) vs colour/organise (UK).',
-    'pants: US trousers vs UK underwear — prefer trousers in UK formal settings.',
-    'public school means opposite things — clarify if education comes up.',
-  ],
-  'us|au': [
-    'Many AU spellings track UK (colour, centre); speech vocab often closer to UK.',
-    'chips can mean fries or crisps — clarify food contexts.',
-    'Watch AU slang; don’t “correct” it to US English when interpreting.',
-  ],
-  'us|ca': [
-    'Speech often US-like; formal writing may use colour/centre.',
-    'Healthcare and legal terms can differ (provincial systems vs US insurance).',
-    'Prefer the speaker’s spelling in writing tasks; don’t force US -or.',
-  ],
-  'uk|au': [
-    'Spelling largely aligned; slang and some vocab differ (ute, thongs = flip-flops).',
-    'Both use lift/flat/holiday more than US elevator/apartment/vacation.',
-  ],
-  'uk|ca': [
-    'Canada sits between US and UK: expect mixed spelling and US-leaning speech vocab.',
-    'Court/medical institutions differ — prefer local official terms.',
-  ],
-  'au|ca': [
-    'Both diverge from US spelling in writing; speech differs regionally.',
-    'When unsure, match the listener’s common vocabulary for everyday objects.',
-  ],
+  en: {
+    'us|uk': [
+      'apartment → flat; elevator → lift; truck → lorry; vacation → holiday.',
+      'Spelling: color/organize (US) vs colour/organise (UK).',
+      'pants: US trousers vs UK underwear — prefer trousers in UK formal settings.',
+      'public school means opposite things — clarify if education comes up.',
+    ],
+    'us|au': [
+      'Many AU spellings track UK (colour, centre); speech vocab often closer to UK.',
+      'chips can mean fries or crisps — clarify food contexts.',
+      'Watch AU slang; don’t “correct” it to US English when interpreting.',
+    ],
+    'us|ca': [
+      'Speech often US-like; formal writing may use colour/centre.',
+      'Healthcare and legal terms can differ (provincial systems vs US insurance).',
+      'Prefer the speaker’s spelling in writing tasks; don’t force US -or.',
+    ],
+    'uk|au': [
+      'Spelling largely aligned; slang and some vocab differ (ute, thongs = flip-flops).',
+      'Both use lift/flat/holiday more than US elevator/apartment/vacation.',
+    ],
+    'uk|ca': [
+      'Canada sits between US and UK: expect mixed spelling and US-leaning speech vocab.',
+      'Court/medical institutions differ — prefer local official terms.',
+    ],
+    'au|ca': [
+      'Both diverge from US spelling in writing; speech differs regionally.',
+      'When unsure, match the listener’s common vocabulary for everyday objects.',
+    ],
+  },
+  es: {
+    'us|uk': [
+      'apartment → flat; elevator → lift; truck → lorry; vacation → holiday.',
+      'Ortografía: color/organize (EE. UU.) vs colour/organise (RU).',
+      'pants: pantalones en EE. UU., ropa interior en RU — prefiere trousers en contextos formales británicos.',
+      'public school significa cosas opuestas — aclara si surge el tema de educación.',
+    ],
+    'us|au': [
+      'Muchas ortografías australianas siguen al RU (colour, centre); el vocabulario hablado suele acercarse más al británico.',
+      'chips puede significar fries o crisps — aclara en contextos de comida.',
+      'Cuidado con el argot australiano; no lo «corrijas» al inglés estadounidense al interpretar.',
+    ],
+    'us|ca': [
+      'El habla suele parecerse a la estadounidense; la escritura formal puede usar colour/centre.',
+      'Los términos de salud y legales pueden diferir (sistemas provinciales vs. seguros de EE. UU.).',
+      'Prefiere la ortografía del hablante en tareas escritas; no impongas el -or estadounidense.',
+    ],
+    'uk|au': [
+      'La ortografía coincide en gran parte; el argot y algo de vocabulario difieren (ute, thongs = sandalias).',
+      'Ambos usan lift/flat/holiday más que los estadounidenses elevator/apartment/vacation.',
+    ],
+    'uk|ca': [
+      'Canadá está entre EE. UU. y el RU: espera ortografía mixta y vocabulario hablado más cercano al estadounidense.',
+      'Las instituciones judiciales/médicas difieren — prefiere los términos oficiales locales.',
+    ],
+    'au|ca': [
+      'Ambos se alejan de la ortografía estadounidense al escribir; el habla varía regionalmente.',
+      'Ante la duda, usa el vocabulario común del oyente para objetos cotidianos.',
+    ],
+  },
+  fr: {
+    'us|uk': [
+      'apartment → flat ; elevator → lift ; truck → lorry ; vacation → holiday.',
+      'Orthographe : color/organize (É.-U.) vs colour/organise (RU).',
+      'pants : pantalon aux É.-U., sous-vêtements au RU — préférez trousers en contexte formel britannique.',
+      'public school signifie l’inverse d’un pays à l’autre — précisez si l’éducation est évoquée.',
+    ],
+    'us|au': [
+      'De nombreuses orthographes australiennes suivent le RU (colour, centre) ; le vocabulaire parlé se rapproche souvent du britannique.',
+      'chips peut désigner des frites ou des chips — précisez selon le contexte culinaire.',
+      'Attention à l’argot australien ; ne le « corrigez » pas en anglais américain en interprétation.',
+    ],
+    'us|ca': [
+      'L’oral ressemble souvent à l’américain ; l’écrit formel peut utiliser colour/centre.',
+      'Les termes médicaux et juridiques peuvent différer (systèmes provinciaux vs assurance américaine).',
+      'Préférez l’orthographe du locuteur pour les tâches écrites ; n’imposez pas le -or américain.',
+    ],
+    'uk|au': [
+      'Orthographe largement alignée ; l’argot et une partie du vocabulaire diffèrent (ute, thongs = tongs).',
+      'Les deux utilisent lift/flat/holiday plus que les américains elevator/apartment/vacation.',
+    ],
+    'uk|ca': [
+      'Le Canada se situe entre les É.-U. et le RU : attendez-vous à une orthographe mixte et un vocabulaire parlé proche de l’américain.',
+      'Les institutions judiciaires/médicales diffèrent — préférez les termes officiels locaux.',
+    ],
+    'au|ca': [
+      'Les deux s’écartent de l’orthographe américaine à l’écrit ; l’oral varie selon la région.',
+      'En cas de doute, utilisez le vocabulaire courant de l’auditeur pour les objets quotidiens.',
+    ],
+  },
 };
 
 const REGION_NAMES = {
-  us: 'United States',
-  uk: 'United Kingdom',
-  au: 'Australia',
-  ca: 'Canada',
+  en: { us: 'United States', uk: 'United Kingdom', au: 'Australia', ca: 'Canada' },
+  es: { us: 'Estados Unidos', uk: 'Reino Unido', au: 'Australia', ca: 'Canadá' },
+  fr: { us: 'États-Unis', uk: 'Royaume-Uni', au: 'Australie', ca: 'Canada' },
 };
+
+const FR_REGION_PREPOSITION = { us: 'des', uk: 'du', au: 'd’', ca: 'du' };
+const SAME_VARIETY_TEXT = {
+  en: (name) => `Both use ${name} English`,
+  es: (name) => `Ambos usan el inglés de ${name}`,
+  fr: (name, code) => `Les deux utilisent l’anglais ${FR_REGION_PREPOSITION[code] || 'de'} ${name}`,
+};
+const SAME_VARIETY_NOTE = {
+  en: 'Same variety: spelling and core vocab usually align. Check Trap words for country-specific slang.',
+  es: 'Misma variedad: la ortografía y el vocabulario básico suelen coincidir. Revisa «Palabras trampa» para el argot local.',
+  fr: 'Même variété : l’orthographe et le vocabulaire de base coïncident généralement. Consultez « Mots pièges » pour l’argot local.',
+};
+const FALLBACK_INSIGHTS = {
+  en: (fromName, toName) => [
+    `Contrast ${fromName} ↔ ${toName}: check Spelling and Vocabulary tables.`,
+    'Match the listener’s everyday words for housing, transport, and food.',
+    'Do not standardize the speaker’s variety unless meaning is unclear.',
+  ],
+  es: (fromName, toName) => [
+    `Compara ${fromName} ↔ ${toName}: revisa las tablas de Ortografía y Vocabulario.`,
+    'Usa las palabras cotidianas del oyente para vivienda, transporte y comida.',
+    'No estandarices la variedad del hablante salvo que el significado no sea claro.',
+  ],
+  fr: (fromName, toName) => [
+    `Comparez ${fromName} ↔ ${toName} : consultez les tableaux Orthographe et Vocabulaire.`,
+    'Utilisez les mots courants de l’auditeur pour le logement, les transports et la nourriture.',
+    'Ne standardisez pas la variété du locuteur sauf si le sens n’est pas clair.',
+  ],
+};
+
+let currentGuideLang = 'en';
 
 function pairKey(a, b) {
   if (!a || !b || a === b) return null;
   const k1 = `${a}|${b}`;
   const k2 = `${b}|${a}`;
-  if (PAIR_INSIGHTS[k1]) return k1;
-  if (PAIR_INSIGHTS[k2]) return k2;
+  const table = PAIR_INSIGHTS[currentGuideLang] || PAIR_INSIGHTS.en;
+  if (table[k1]) return k1;
+  if (table[k2]) return k2;
   return k1;
 }
 
@@ -209,29 +311,42 @@ const list = document.getElementById('pairList');
 function updatePair() {
   const from = fromSel.value;
   const to = toSel.value;
+  const names = REGION_NAMES[currentGuideLang] || REGION_NAMES.en;
   if (!from || !to) {
     result.classList.remove('visible');
     return;
   }
   if (from === to) {
-    title.textContent = `Both use ${REGION_NAMES[from]} English`;
-    list.innerHTML = '<li>Same variety: spelling and core vocab usually align. Check Trap words for country-specific slang.</li>';
+    title.textContent = (SAME_VARIETY_TEXT[currentGuideLang] || SAME_VARIETY_TEXT.en)(names[from], from);
+    list.innerHTML = `<li>${SAME_VARIETY_NOTE[currentGuideLang] || SAME_VARIETY_NOTE.en}</li>`;
     result.classList.add('visible');
     return;
   }
   const key = pairKey(from, to);
-  const items = PAIR_INSIGHTS[key] || [
-    `Contrast ${REGION_NAMES[from]} ↔ ${REGION_NAMES[to]}: check Spelling and Vocabulary tables.`,
-    'Match the listener’s everyday words for housing, transport, and food.',
-    'Do not standardize the speaker’s variety unless meaning is unclear.',
-  ];
-  title.textContent = `${REGION_NAMES[from]} → ${REGION_NAMES[to]}`;
+  const table = PAIR_INSIGHTS[currentGuideLang] || PAIR_INSIGHTS.en;
+  const fallback = (FALLBACK_INSIGHTS[currentGuideLang] || FALLBACK_INSIGHTS.en)(names[from], names[to]);
+  const items = table[key] || fallback;
+  title.textContent = `${names[from]} → ${names[to]}`;
   list.innerHTML = items.map(i => `<li>${i}</li>`).join('');
   result.classList.add('visible');
 }
 
 fromSel.addEventListener('change', updatePair);
 toSel.addEventListener('change', updatePair);
+
+GuideUI.init({
+  langs: ['en', 'es', 'fr'],
+  storageKey: 'parlance_guide_read_en_dialect',
+  titles: {
+    en: 'Regional Guide — English (US / UK / AU / CA)',
+    es: 'Guía regional — Inglés (EE. UU. / RU / Australia / Canadá)',
+    fr: 'Guide régional — Anglais (É.-U. / RU / Australie / Canada)',
+  },
+  onApplied: (lang) => {
+    currentGuideLang = lang;
+    updatePair();
+  },
+});
 </script>
 </body>
 </html>

@@ -24,7 +24,7 @@ Practice language (what the user writes: ES/FR) ≠ interface language
 |---|---|---|
 | Journal, settings, toasts, waiting hints | `Parlance/web/locales/{en,es,fr}.json` | `data-i18n` / `data-i18n-html` / `data-i18n-placeholder` / `data-i18n-title` or `i18n.t('key')` |
 | Offline fallback | `i18n.js` `_embedded` | **Generated** — never hand-edit |
-| Dialect bilingual body/chrome | One DOM node with `data-t-en` + `data-t-native` (or `-html`) | `guide-ui.js` fills on language change |
+| Dialect/guide bilingual or trilingual body/chrome | One DOM node with `data-t-en` + `data-t-native` (2-way) or `data-t-en`/`data-t-es`/`data-t-fr` (3-way, `-html` variants too) | `guide-ui.js` fills on language change |
 | GitHub Pages | `docs/` | Must stay byte-identical to `Parlance/web/` for shared assets |
 | Xcode bundle | `project.pbxproj` | New web files via `scripts/xcode_add_web_resources.py` |
 
@@ -126,6 +126,39 @@ python3 scripts/convert_dialect_bilingual.py
 Parent journal must keep passing `?ui=` / `?theme=` and posting
 `{ type: 'parlanceGuideEnv', ui, theme }` when UI language or theme changes.
 
+### Content pages whose audience isn't binary (e.g. teaching English to both
+### ES and FR L1 speakers): use `langs` mode, not `nativeLang`
+
+`nativeLang` only toggles EN vs. one other language — wrong for pages like
+`guide-en.html` / `dialect-en.html` / `domain-medical.html` /
+`domain-legal.html`, where the interface language can be en **or** es **or**
+fr regardless of what's being taught. Use three-way attributes instead:
+
+```html
+<h1 data-t-en="English" data-t-es="Inglés" data-t-fr="Anglais">English</h1>
+<p data-t-en-html="<strong>Tip</strong> …" data-t-es-html="…" data-t-fr-html="…"></p>
+```
+
+```html
+<script src="guide-ui.js"></script>
+<script>
+GuideUI.init({
+  langs: ['en', 'es', 'fr'],
+  storageKey: 'parlance_guide_read_en',
+  titles: { en: 'English Guide', es: 'Guía de inglés', fr: "Guide d'anglais" },
+  onApplied: (lang) => { /* lang is 'en'|'es'|'fr'; re-render dynamic bits here */ },
+});
+</script>
+```
+
+Untranslated elements fall back to `data-t-en`. Content that's inherently
+multi-language already (e.g. an English/Español/Français vocab table) doesn't
+need `data-t-*` — leave it as static markup. Dynamically generated strings
+(e.g. a JS picker that fills `innerHTML` after a `<select>` change) need their
+own `{en, es, fr}` lookup tables and must be re-rendered from `onApplied`, not
+just on first load, since users change the UI language without reloading the
+iframe.
+
 ## Adding a new UI language (e.g. German menus)
 
 1. Copy `locales/en.json` → `locales/de.json` and translate values (same keys).
@@ -146,6 +179,9 @@ Practice languages (new writing language) use `ADDING_A_LANGUAGE.md` /
 - Hand-editing `i18n.js` `_embedded`
 - Fixing “Feedback stays English” by changing the HTML default text without a locale key + `data-i18n`
 - Shipping without `check_i18n.py` exit 0
+- Adding a new guide/dialect/domain HTML page under `Parlance/web/` with plain
+  hardcoded English chrome and no `guide-ui.js` wiring — every guide page must
+  react to the app's interface language, not just `index.html`/`journal.js`
 
 ## Related docs
 
