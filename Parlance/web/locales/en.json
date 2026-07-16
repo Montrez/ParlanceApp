@@ -102,5 +102,21 @@
   "waitingSetupProvider": "Set up an AI provider to get feedback. Groq is free.",
   "waitingAddKey": "Add your {name} API key to enable feedback.",
   "waitingCloudReady": "{icon} <strong>{name}</strong> — cloud AI via your Parlance account. Write to get feedback.",
-  "waitingProviderWrite": "{icon} {name} — write to get feedback."
+  "waitingProviderWrite": "{icon} {name} — write to get feedback.",
+  "interfaceLangLabel": "App",
+  "practiceLangLabel": "Write",
+  "langControlsTitle": "Language settings",
+  "errCloudEmpty": "Empty response from cloud analysis",
+  "errCloudTimeout": "Cloud AI via Parlance account timed out. Try again or switch provider in AI settings.",
+  "errFirebaseNotConfigured": "Firebase is not configured.",
+  "errWebgpuUnavailable": "WebGPU is not available in your browser. Please use Chrome 113+ or Edge 113+, or switch to a cloud provider in AI settings.",
+  "errParlanceStillWorking": "Parlance Coach is still working. The first on-device run can take 1–2 minutes while the model loads — keep the app open and wait, or try a shorter sentence.",
+  "errParlanceTimeout": "Parlance Coach timed out. Check that the dev server is running, or switch provider in AI settings.",
+  "errProviderTimeout": "{name} timed out. Check your connection or try another provider in AI settings.",
+  "errParlanceNotBundled": "Parlance Coach model is not bundled in this build. Re-archive after preparing models, or use another provider in AI settings.",
+  "errWebgpuBrowser": "Your browser does not support WebGPU (needed for Browser AI). Switch to a cloud provider like Groq (free) in AI settings.",
+  "errNoApiKey": "No {name} API key. Add one in AI settings.",
+  "errMonthlyLimit": "Monthly limit reached (30 calls). Get 100 more calls for $0.99 in the app.",
+  "errPurchaseFailed": "Purchase failed: {err}. You can try again or switch to Parlance Coach in Settings.",
+  "errSignInTimeout": "Sign-in timed out"
 }

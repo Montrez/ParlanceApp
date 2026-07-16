@@ -102,5 +102,21 @@
   "waitingSetupProvider": "Configura un proveedor de IA para obtener feedback. Groq es gratis.",
   "waitingAddKey": "Añade tu clave API de {name} para activar el feedback.",
   "waitingCloudReady": "{icon} <strong>{name}</strong> — IA en la nube con tu cuenta Parlance. Escribe para obtener feedback.",
-  "waitingProviderWrite": "{icon} {name} — escribe para obtener feedback."
+  "waitingProviderWrite": "{icon} {name} — escribe para obtener feedback.",
+  "interfaceLangLabel": "App",
+  "practiceLangLabel": "Escribir",
+  "langControlsTitle": "Ajustes de idioma",
+  "errCloudEmpty": "Respuesta vacía del análisis en la nube",
+  "errCloudTimeout": "La IA en la nube con tu cuenta Parlance agotó el tiempo. Reintenta o cambia de proveedor en IA.",
+  "errFirebaseNotConfigured": "Firebase no está configurado.",
+  "errWebgpuUnavailable": "WebGPU no está disponible en tu navegador. Usa Chrome 113+ o Edge 113+, o cambia a un proveedor en la nube en IA.",
+  "errParlanceStillWorking": "Parlance Coach sigue trabajando. La primera ejecución en el dispositivo puede tardar 1–2 minutos mientras se carga el modelo — mantén la app abierta o prueba una oración más corta.",
+  "errParlanceTimeout": "Parlance Coach agotó el tiempo. Comprueba que el servidor de desarrollo esté en marcha, o cambia de proveedor en IA.",
+  "errProviderTimeout": "{name} agotó el tiempo. Comprueba tu conexión o prueba otro proveedor en IA.",
+  "errParlanceNotBundled": "El modelo de Parlance Coach no está en esta build. Vuelve a archivar tras preparar los modelos, o usa otro proveedor en IA.",
+  "errWebgpuBrowser": "Tu navegador no admite WebGPU (necesario para IA en el navegador). Cambia a un proveedor en la nube como Groq (gratis) en IA.",
+  "errNoApiKey": "No hay clave API de {name}. Añádela en IA.",
+  "errMonthlyLimit": "Límite mensual alcanzado (30 análisis). Consigue 100 más por $0.99 en la app.",
+  "errPurchaseFailed": "Compra fallida: {err}. Puedes reintentar o cambiar a Parlance Coach en Ajustes.",
+  "errSignInTimeout": "Inicio de sesión agotó el tiempo"
 }

@@ -6,7 +6,7 @@
 <title>Parlance</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Spectral:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css?v=1">
-<link rel="stylesheet" href="styles.css?v=14">
+<link rel="stylesheet" href="styles.css?v=15">
 </head>
 <body>
 
@@ -16,15 +16,24 @@
     <div class="date-badge" id="dateBadge"></div>
   </div>
   <div class="header-right">
-    <select class="header-select" id="uiLangSelect" onchange="onUILangChange()" data-i18n-title="interfaceLangTitle" title="App language (menus and guides)">
-      <option value="en">EN</option>
-      <option value="es">ES</option>
-      <option value="fr">FR</option>
-    </select>
-    <select class="header-select" id="langSelect" onchange="onLanguageChange()" data-i18n-title="practiceLangTitle" title="Practice language (what you write)">
-      <option value="es">Español</option>
-      <option value="fr">Français</option>
-    </select>
+    <div class="header-langs" role="group" data-i18n-title="langControlsTitle" title="Language settings">
+      <label class="lang-control lang-control-app" for="uiLangSelect">
+        <span class="lang-control-label" id="uiLangLabel" data-i18n="interfaceLangLabel">App</span>
+        <select class="header-select" id="uiLangSelect" onchange="onUILangChange()" data-i18n-title="interfaceLangTitle" title="App language (menus and guides)" aria-labelledby="uiLangLabel">
+          <option value="en">EN</option>
+          <option value="es">ES</option>
+          <option value="fr">FR</option>
+        </select>
+      </label>
+      <span class="lang-control-sep" aria-hidden="true"></span>
+      <label class="lang-control lang-control-write" for="langSelect">
+        <span class="lang-control-label" id="practiceLangLabel" data-i18n="practiceLangLabel">Write</span>
+        <select class="header-select" id="langSelect" onchange="onLanguageChange()" data-i18n-title="practiceLangTitle" title="Practice language (what you write)" aria-labelledby="practiceLangLabel">
+          <option value="es">Español</option>
+          <option value="fr">Français</option>
+        </select>
+      </label>
+    </div>
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" data-i18n-title="toggleTheme" aria-label="Toggle theme">☀</button>
     <button class="privacy-link ai-settings-btn" id="aiSettingsBtn" onclick="openAISettings()" data-i18n-title="aiSettingsTitle" title="AI settings"><span data-i18n="aiSettings">AI</span></button>
   </div>

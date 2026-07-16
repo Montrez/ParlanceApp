@@ -102,5 +102,21 @@
   "waitingSetupProvider": "Configurez un fournisseur d'IA pour obtenir un retour. Groq est gratuit.",
   "waitingAddKey": "Ajoutez votre clé API {name} pour activer le retour.",
   "waitingCloudReady": "{icon} <strong>{name}</strong> — IA cloud via votre compte Parlance. Écrivez pour obtenir un retour.",
-  "waitingProviderWrite": "{icon} {name} — écrivez pour obtenir un retour."
+  "waitingProviderWrite": "{icon} {name} — écrivez pour obtenir un retour.",
+  "interfaceLangLabel": "App",
+  "practiceLangLabel": "Écrire",
+  "langControlsTitle": "Réglages de langue",
+  "errCloudEmpty": "Réponse vide de l'analyse cloud",
+  "errCloudTimeout": "L'IA cloud via votre compte Parlance a expiré. Réessayez ou changez de fournisseur dans IA.",
+  "errFirebaseNotConfigured": "Firebase n'est pas configuré.",
+  "errWebgpuUnavailable": "WebGPU n'est pas disponible dans votre navigateur. Utilisez Chrome 113+ ou Edge 113+, ou passez à un fournisseur cloud dans IA.",
+  "errParlanceStillWorking": "Parlance Coach travaille encore. La première exécution sur l'appareil peut prendre 1 à 2 minutes pendant le chargement du modèle — gardez l'app ouverte ou essayez une phrase plus courte.",
+  "errParlanceTimeout": "Parlance Coach a expiré. Vérifiez que le serveur de développement tourne, ou changez de fournisseur dans IA.",
+  "errProviderTimeout": "{name} a expiré. Vérifiez votre connexion ou essayez un autre fournisseur dans IA.",
+  "errParlanceNotBundled": "Le modèle Parlance Coach n'est pas inclus dans cette build. Réarchivez après préparation des modèles, ou utilisez un autre fournisseur dans IA.",
+  "errWebgpuBrowser": "Votre navigateur ne prend pas en charge WebGPU (requis pour l'IA navigateur). Passez à un fournisseur cloud comme Groq (gratuit) dans IA.",
+  "errNoApiKey": "Pas de clé API {name}. Ajoutez-en une dans IA.",
+  "errMonthlyLimit": "Limite mensuelle atteinte (30 analyses). Obtenez 100 analyses de plus pour 0,99 $ dans l'app.",
+  "errPurchaseFailed": "Achat échoué : {err}. Vous pouvez réessayer ou passer à Parlance Coach dans Réglages.",
+  "errSignInTimeout": "Connexion expirée"
 }

@@ -493,7 +493,7 @@ async function refreshUsageDisplay() {
 }
 
 function normalizeFirebaseAnalyzeResult(data, sentence, language = 'es') {
-  if (!data) throw new Error('Empty response from cloud analysis');
+  if (!data) throw new Error(i18n.t('errCloudEmpty'));
   if (data.status === 'Excellent' || data.status === 'Needs Improvement') {
     return normalizeResult(data, sentence, language);
   }
@@ -513,7 +513,7 @@ function callNativeFirebaseAnalyze(sentence, language, providerId) {
     }
     const requestId = 'fb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
     const timeoutId = setTimeout(() => {
-      reject(new Error('Cloud AI via Parlance account timed out. Try again or switch provider in ⚙ AI.'));
+      reject(new Error(i18n.t('errCloudTimeout')));
     }, TIMEOUT_MS.cloud);
     const ragContext = typeof getRAGContext === 'function'
       ? getRAGContext(language, null, sentence) : '';
@@ -553,7 +553,7 @@ async function callFirebaseCloudAnalyze(sentence, language, providerId) {
   }
   const ready = await ensureFirebaseReady();
   if (!ready || !analyzeTextCallable) {
-    throw new Error('Firebase is not configured.');
+    throw new Error(i18n.t('errFirebaseNotConfigured'));
   }
   const ragContext = typeof getRAGContext === 'function'
     ? getRAGContext(language, null, sentence) : '';
@@ -583,10 +583,7 @@ async function ensureWebLLM(modelId, progressCallback) {
   webLLMEngine = null;
 
   if (!navigator.gpu) {
-    throw new Error(
-      'WebGPU is not available in your browser. Please use Chrome 113+ or Edge 113+, ' +
-      'or switch to a cloud provider in ⚙ AI settings.'
-    );
+    throw new Error(i18n.t('errWebgpuUnavailable'));
   }
 
   webLLMLoadingPromise = (async () => {
@@ -866,9 +863,9 @@ function callNativeParlanceSLM(sentence, language, ragContext = '') {
 
 function parlanceTimeoutMessage(nativeOnDevice) {
   if (nativeOnDevice) {
-    return 'Parlance Coach is still working. The first on-device run can take 1–2 minutes while the model loads — keep the app open and wait, or try a shorter sentence.';
+    return i18n.t('errParlanceStillWorking');
   }
-  return 'Parlance Coach timed out. Check that the dev server is running, or switch provider in ⚙ AI.';
+  return i18n.t('errParlanceTimeout');
 }
 
 function analysisTimeoutMs(providerId) {
@@ -884,7 +881,7 @@ function analysisTimeoutMessage(providerId) {
     return parlanceTimeoutMessage(isNativeParlanceApp());
   }
   const provider = AI_PROVIDERS[providerId];
-  return `${provider?.name || 'AI'} timed out. Check your connection or try another provider in ⚙ AI.`;
+  return i18n.t('errProviderTimeout', { name: provider?.name || 'AI' });
 }
 
 async function checkParlanceSLMServer() {
@@ -1015,7 +1012,7 @@ async function analyzeWithAI(sentence, language, progressCallback) {
 
     if (providerId === 'parlance') {
       if (isNativeParlanceApp() && !parlanceCoachAvailableForLanguage(language)) {
-        throw new Error(`Parlance Coach model is not bundled in this build. Run ./training/prepare_ios_coach_model.sh and re-archive, or use another provider in ⚙ AI.`);
+        throw new Error(i18n.t('errParlanceNotBundled'));
       }
       if (isNativeParlanceApp()) {
         const nativeRaw = await callNativeParlanceSLM(sentence, language, ragContext);
@@ -1027,7 +1024,7 @@ async function analyzeWithAI(sentence, language, progressCallback) {
 
     } else if (providerId === 'webllm') {
       if (!navigator.gpu) {
-        throw new Error('Your browser does not support WebGPU (needed for Browser AI). Switch to a cloud provider like Groq (free) in ⚙ AI settings.');
+        throw new Error(i18n.t('errWebgpuBrowser'));
       }
       const modelId = getProviderModel('webllm');
       const engine  = await ensureWebLLM(modelId, progressCallback);
@@ -1036,14 +1033,14 @@ async function analyzeWithAI(sentence, language, progressCallback) {
     } else if (providerId === 'anthropic') {
       const key   = getProviderKey('anthropic');
       if (effectiveRequiresKey('anthropic') && !key) {
-        throw new Error('No Anthropic API key. Add one in ⚙ AI settings.');
+        throw new Error(i18n.t('errNoApiKey', { name: 'Anthropic' }));
       }
       rawContent  = await callAnthropic(getProviderModel('anthropic'), key, systemPrompt, userMessage);
 
     } else if (providerId === 'gemini') {
       const key   = getProviderKey('gemini');
       if (effectiveRequiresKey('gemini') && !key) {
-        throw new Error('No Gemini API key. Add one in ⚙ AI settings.');
+        throw new Error(i18n.t('errNoApiKey', { name: 'Gemini' }));
       }
       rawContent  = await callGemini(getProviderModel('gemini'), key, systemPrompt, userMessage);
 
@@ -1051,7 +1048,7 @@ async function analyzeWithAI(sentence, language, progressCallback) {
       // OpenAI-compatible: groq, openai, kimi, deepseek, openrouter
       const key   = getProviderKey(providerId);
       if (effectiveRequiresKey(providerId) && !key) {
-        throw new Error(`No ${provider.name} API key. Add one in ⚙ AI settings.`);
+        throw new Error(i18n.t('errNoApiKey', { name: provider.name }));
       }
       rawContent  = await callOpenAIFormat(
         provider.endpoint, getProviderModel(providerId), key, systemPrompt, userMessage
@@ -1224,7 +1221,7 @@ function callNativeAuth(action) {
     const requestId = 'auth_' + Date.now() + '_' + Math.random().toString(36).slice(2);
     const timeoutId = setTimeout(() => {
       delete window.__parlanceAuthResult;
-      reject(new Error('Sign-in timed out'));
+      reject(new Error(i18n.t('errSignInTimeout')));
     }, 120000);
     window.__parlanceAuthResult = (id, err) => {
       if (id !== requestId) return;
@@ -1245,7 +1242,7 @@ function closeAISettings() {
 
 function triggerCallPackPurchase() {
   if (!isNativeParlanceApp()) {
-    showErrorInPanel('Monthly limit reached (30 calls). Get 100 more calls for $0.99 in the app.');
+    showErrorInPanel(i18n.t('errMonthlyLimit'));
     return;
   }
   const requestId = 'purchase_' + Date.now() + '_' + Math.random().toString(36).slice(2);
@@ -1257,7 +1254,7 @@ function triggerCallPackPurchase() {
       return;
     }
     if (err) {
-      showErrorInPanel('Purchase failed: ' + err + '. You can try again or switch to Parlance Coach in Settings.');
+      showErrorInPanel(i18n.t('errPurchaseFailed', { err }));
       return;
     }
     refreshUsageDisplay();

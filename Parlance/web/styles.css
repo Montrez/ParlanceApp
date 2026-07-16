@@ -58,13 +58,45 @@ header {
   flex-shrink: 0;
 }
 .logo span { color: #5ec4e6; font-style: italic; }
-.header-right { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; flex-wrap: wrap; }
+.header-right { display: flex; align-items: center; gap: 0.55rem; flex-shrink: 0; flex-wrap: wrap; }
 .date-badge {
   font-family: 'DM Mono', monospace;
   font-size: 0.68rem;
   color: #9b9189;
   letter-spacing: 0.06em;
   white-space: nowrap;
+}
+
+/* App language vs practice language — two clear controls, one job each */
+.header-langs {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+.lang-control {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.14rem;
+  margin: 0;
+  cursor: pointer;
+}
+.lang-control-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.52rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #8a827a;
+  line-height: 1;
+  padding-left: 0.12rem;
+  user-select: none;
+}
+.lang-control-sep {
+  width: 1px;
+  align-self: stretch;
+  margin: 0.2rem 0;
+  background: #4a443e;
+  flex-shrink: 0;
 }
 .header-select {
   background: #2c2825;
@@ -76,6 +108,14 @@ header {
   border-radius: 4px;
   cursor: pointer;
 }
+.lang-control-write .header-select {
+  border-color: #4a6a78;
+}
+.lang-control-write .lang-control-label {
+  color: #7a9eab;
+}
+[data-theme="dark"] .lang-control-sep { background: #4a4a52; }
+[data-theme="dark"] .lang-control-write .header-select { border-color: #3a6a7e; }
 
 /* ── THEME TOGGLE ── */
 .theme-toggle {
@@ -1304,6 +1344,12 @@ header {
   }
   .header-right {
     gap: 0.3rem;
+  }
+  .header-langs {
+    gap: 0.35rem;
+  }
+  .lang-control-label {
+    font-size: 0.48rem;
   }
   .header-select {
     font-size: 0.65rem;
