@@ -594,7 +594,50 @@ enum ParlanceSLMFeedbackValidator {
     }
 
     private static func knownFrenchErrorFeedback(sentence: String, level: String) -> [String: Any]? {
-        siClauseFrenchFeedback(sentence: sentence, level: level)
+        if let si = siClauseFrenchFeedback(sentence: sentence, level: level) {
+            return si
+        }
+        return coachRulesEngineFeedback(sentence: sentence, level: level, language: "fr")
+    }
+
+    /// Additive coverage from the shared JSON rule packs (`shared/coach-rules/{es,fr}.json`)
+    /// via `CoachRulesEngine` — the same engine `FeedbackSanitizer` uses. Checked last, after
+    /// the hand-tuned checks above, so it only fires on patterns this validator didn't already
+    /// have a bespoke branch for. Closes the gap noted in `docs/coach-heuristic-consolidation.md`
+    /// Phase 2: this file previously hand-ported only ~5 ES / 1 FR rules instead of the full
+    /// packs (~20 ES / ~18 FR).
+    private static func coachRulesEngineFeedback(sentence: String, level: String, language: String) -> [String: Any]? {
+        let (issues, correction) = CoachRulesEngine.analyze(sentence: sentence, language: language)
+        guard !issues.isEmpty,
+              let correction,
+              correction != sentence.trimmingCharacters(in: .whitespacesAndNewlines) else {
+            return nil
+        }
+        let grammar = issues.map(\.grammarRule).joined(separator: "; ")
+        let bullets = issues.map { "• \($0.issue)" }.joined(separator: "\n")
+        let mentionHint = issues.flatMap(\.mentions).prefix(3).joined(separator: ", ")
+        let tip = mentionHint.isEmpty
+            ? "Compare your sentence with the correction to see what changed."
+            : "Focus on: \(mentionHint)."
+        let register = language == "fr"
+            ? "Confirm tu/vous matches the interpreting context (clinical, legal, or casual)."
+            : "Match tú/usted and formality to the setting (clinical, legal, or casual)."
+
+        var result: [String: Any] = [
+            "status": "Needs Improvement",
+            "grammar_rule": grammar,
+            "explanation": "Issues in your sentence:\n\(bullets)",
+            "correction": correction,
+            "register": register,
+            "tip": tip,
+            "_coach_repaired": true,
+        ]
+        if !["C1", "C2"].contains(level.uppercased()) {
+            result["next_level_alt"] = correction
+            result["target_level_alt"] = correction
+        }
+        preserveInferredFields(&result, sentence: sentence, language: language)
+        return result
     }
 
     private static func siClauseFrenchFeedback(sentence: String, level: String) -> [String: Any]? {
@@ -1015,7 +1058,7 @@ enum ParlanceSLMFeedbackValidator {
         if let leismo = echarDeMenosLeismoFeedback(sentence: sentence, level: level) {
             return leismo
         }
-        return nil
+        return coachRulesEngineFeedback(sentence: sentence, level: level, language: "es")
     }
 
     /// Shared coach-rules patterns (keep in sync with shared/coach-rules/es.json).
