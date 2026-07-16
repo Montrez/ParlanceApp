@@ -1,0 +1,24 @@
+name: i18n guard
+
+on:
+  push:
+    paths:
+      - 'Parlance/web/**'
+      - 'docs/**'
+  pull_request:
+    paths:
+      - 'Parlance/web/**'
+      - 'docs/**'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Interface-language coverage (locales, data-i18n keys)
+        run: python3 scripts/check_i18n.py
+      - name: Guide/dialect/domain page wiring + docs/ mirror
+        run: python3 scripts/check_guide_i18n.py

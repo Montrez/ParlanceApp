@@ -37,11 +37,17 @@ i18n progress:
 - [ ] Key added to locales/en.json AND es.json AND fr.json (same keys)
 - [ ] Wired with data-i18n* OR i18n.t('key') — no leftover English literal in that path
 - [ ] Dynamic UI (buttons created in JS, waiting card, open guide iframe) refreshes via i18n.onChange / refreshDynamicI18nUI — not only on first paint
+- [ ] New guide-*.html / dialect-*.html / domain-*.html file: wired to guide-ui.js (see below) — not plain hardcoded HTML
 - [ ] python3 scripts/sync_i18n_embedded.py
 - [ ] python3 scripts/check_i18n.py  (must exit 0)
+- [ ] python3 scripts/check_guide_i18n.py  (must exit 0)
 - [ ] Mirrored changed files into docs/
 - [ ] If new .js/.html under Parlance/web/: python3 scripts/xcode_add_web_resources.py <file>
 ```
+
+CI (`.github/workflows/i18n-guard.yml`) runs both check scripts on every push/PR
+touching `Parlance/web/**` or `docs/**` — it does not require remembering to
+run them locally, but do it anyway so failures surface before pushing.
 
 ### Commands
 
@@ -49,6 +55,9 @@ i18n progress:
 # After editing locales/*.json
 python3 scripts/sync_i18n_embedded.py
 python3 scripts/check_i18n.py
+
+# Guard against un-wired guide pages + Parlance/web <-> docs/ drift
+python3 scripts/check_guide_i18n.py
 
 # Mirror (example — sync every file you touched)
 cp Parlance/web/locales/*.json docs/locales/
@@ -186,4 +195,5 @@ Practice languages (new writing language) use `ADDING_A_LANGUAGE.md` /
 ## Related docs
 
 - Dev overview: `ADDING_A_LANGUAGE.md` → section **Interface language (i18n)**
-- Scripts: `scripts/check_i18n.py`, `scripts/sync_i18n_embedded.py`, `scripts/convert_dialect_bilingual.py`
+- Scripts: `scripts/check_i18n.py`, `scripts/check_guide_i18n.py`, `scripts/sync_i18n_embedded.py`, `scripts/convert_dialect_bilingual.py`
+- CI: `.github/workflows/i18n-guard.yml`
