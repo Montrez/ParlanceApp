@@ -334,11 +334,11 @@ async function signInWithApple() {
   if (isNativeParlanceApp()) {
     try {
       await callNativeAuth('signInApple');
-      showToast('Signed in with Apple. ✓');
+      showToast(i18n.t('signedInApple'));
     } catch (e) {
       const msg = e?.message || '';
       if (msg && msg !== 'cancelled' && !msg.includes('canceled')) {
-        showToast(msg || 'Apple sign-in failed');
+        showToast(msg || i18n.t('appleSignInFailed'));
       }
     }
     updateFirebaseAuthUI();
@@ -353,10 +353,10 @@ async function signInWithApple() {
   provider.addScope('name');
   try {
     await firebaseAuth.signInWithPopup(provider);
-    showToast('Signed in with Apple. ✓');
+    showToast(i18n.t('signedInApple'));
   } catch (e) {
     if (e?.code !== 'auth/popup-closed-by-user') {
-      showToast(e?.message || 'Apple sign-in failed');
+      showToast(e?.message || i18n.t('appleSignInFailed'));
     }
   }
   updateFirebaseAuthUI();
@@ -366,11 +366,11 @@ async function signInWithGoogle() {
   if (isNativeParlanceApp()) {
     try {
       await callNativeAuth('signInGoogle');
-      showToast('Signed in with Google. ✓');
+      showToast(i18n.t('signedInGoogle'));
     } catch (e) {
       const msg = e?.message || '';
       if (msg && msg !== 'cancelled' && !msg.includes('canceled')) {
-        showToast(msg || 'Google sign-in failed');
+        showToast(msg || i18n.t('googleSignInFailed'));
       }
     }
     updateFirebaseAuthUI();
@@ -382,10 +382,10 @@ async function signInWithGoogle() {
   await ensureFirebaseReady();
   try {
     await firebaseAuth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-    showToast('Signed in with Google. ✓');
+    showToast(i18n.t('signedInGoogle'));
   } catch (e) {
     if (e?.code !== 'auth/popup-closed-by-user') {
-      showToast(e?.message || 'Google sign-in failed');
+      showToast(e?.message || i18n.t('googleSignInFailed'));
     }
   }
   updateFirebaseAuthUI();
@@ -395,9 +395,9 @@ async function signOutFirebase() {
   if (isNativeParlanceApp()) {
     try {
       await callNativeAuth('signOut');
-      showToast('Signed out.');
+      showToast(i18n.t('signedOut'));
     } catch (e) {
-      showToast(e?.message || 'Sign out failed');
+      showToast(e?.message || i18n.t('signOutFailed'));
     }
     updateFirebaseAuthUI();
     updateModalForProvider(modalSelectedProvider);
@@ -412,7 +412,7 @@ async function signOutFirebase() {
   updateFirebaseAuthUI();
   updateModalForProvider(modalSelectedProvider);
   updateWaitingCard();
-  showToast('Signed out.');
+  showToast(i18n.t('signedOut'));
 }
 
 function updateFirebaseAuthUI() {
@@ -473,7 +473,7 @@ async function refreshUsageDisplay() {
     if (!el) return;
 
     if (u.tier === 'plus') {
-      el.textContent = 'Unlimited cloud AI — Parlance Plus';
+      el.textContent = i18n.t('plusUnlimited');
       el.style.display = '';
       return;
     }
@@ -1114,22 +1114,32 @@ function refreshOpenGuideLanguage() {
   } catch (_) { /* ignore */ }
 }
 
+/** Refresh every dynamic UI surface that locales don't cover via data-i18n. */
+function refreshDynamicI18nUI() {
+  if (!document.getElementById('uiLangSelect')) return;
+  updateCounts();
+  renderPrompts();
+  updateDateBadge();
+  updateWaitingCard();
+  document.querySelectorAll('.analyze-btn').forEach(btn => {
+    btn.textContent = i18n.t('getFeedback');
+  });
+  document.querySelectorAll('.sentence-input').forEach(ta => {
+    const hint = i18n.t('analyzeHint');
+    if (hint && hint !== 'analyzeHint') ta.title = hint;
+  });
+  const loadAll = document.getElementById('loadAllToEditorBtn');
+  if (loadAll) loadAll.textContent = i18n.t('loadAllToEditor');
+  refreshOpenGuideLanguage();
+}
+
 function onUILangChange() {
   const lang = document.getElementById('uiLangSelect').value;
-  i18n.load(lang).then(() => {
-    updateCounts();
-    renderPrompts();
-    updateDateBadge();
-    // Re-apply dynamic Feedback buttons created after initial load
-    document.querySelectorAll('.analyze-btn').forEach(btn => {
-      btn.textContent = i18n.t('getFeedback');
-    });
-    document.querySelectorAll('.sentence-input').forEach(ta => {
-      const hint = i18n.t('analyzeHint');
-      if (hint && hint !== 'analyzeHint') ta.title = hint;
-    });
-    refreshOpenGuideLanguage();
-  });
+  i18n.load(lang);
+}
+
+if (typeof i18n !== 'undefined' && i18n.onChange) {
+  i18n.onChange(refreshDynamicI18nUI);
 }
 
 // ── DARK MODE ────────────────────────────────────────────────────
@@ -1243,7 +1253,7 @@ function triggerCallPackPurchase() {
     if (id !== requestId) return;
     delete window.__parlancePurchaseResult;
     if (err === 'cancelled') {
-      showToast('Purchase cancelled.');
+      showToast(i18n.t('purchaseCancelled'));
       return;
     }
     if (err) {
@@ -1251,7 +1261,7 @@ function triggerCallPackPurchase() {
       return;
     }
     refreshUsageDisplay();
-    showToast('100 calls added! Analyzing now...');
+    showToast(i18n.t('callPackAdded'));
   };
   window.webkit.messageHandlers.parlance.postMessage({ action: 'purchaseCallPack', requestId });
 }
@@ -1352,7 +1362,7 @@ function saveAISettingsFromModal() {
 
   closeAISettings();
   updateWaitingCard();
-  showToast(`AI provider set to ${AI_PROVIDERS[id].name}. ✓`);
+  showToast(i18n.t('providerSet', { name: AI_PROVIDERS[id].name }));
 }
 
 // ── PLATFORM DETECTION ────────────────────────────────────────────
@@ -1416,38 +1426,35 @@ function updateWaitingCard() {
   const id   = getSelectedProvider();
   const p    = AI_PROVIDERS[id];
   const hint = document.getElementById('waitingProviderHint');
-  const text = document.getElementById('waitingText');
-  if (!hint || !p) return;
+  if (!hint || !p || typeof i18n === 'undefined') return;
+
+  const linkStyle = 'background:none;border:none;color:var(--accent);font-family:inherit;font-size:inherit;cursor:pointer;padding:0;text-decoration:underline';
+  const settingsBtn = (label) =>
+    `<button type="button" onclick="openAISettings()" style="${linkStyle}">${label}</button>`;
 
   if (id === 'parlance') {
     const cfg = window.__PARLANCE_CONFIG__ || {};
     const lang = state.currentLanguage;
     if (cfg.parlanceCoachAvailable && isNativeParlanceApp()) {
-      if (parlanceCoachAvailableForLanguage(lang)) {
-        hint.innerHTML = `${p.icon} <strong>Parlance Coach</strong> — fine-tuned model runs on this device. First analysis may take 1–2 minutes while the model loads.`;
-      } else {
-        hint.innerHTML = `${p.icon} <strong>Parlance Coach</strong> — model not in this build. Re-archive after <code style="font-size:0.85em">./training/prepare_ios_coach_model.sh</code>, or switch provider in ⚙ AI.`;
-      }
+      const key = parlanceCoachAvailableForLanguage(lang)
+        ? 'waitingParlanceOnDevice'
+        : 'waitingParlanceMissing';
+      hint.innerHTML = i18n.t(key, { icon: p.icon });
     } else {
-      hint.innerHTML = `${p.icon} <strong>Parlance Coach</strong> — on your Mac run <code style="font-size:0.85em">python3 training/parlance_slm_server.py</code>, or use the iOS app build with bundled models.`;
+      hint.innerHTML = i18n.t('waitingParlanceServer', { icon: p.icon });
     }
   } else if (id === 'webllm') {
     if (canUseWebLLM) {
-      hint.innerHTML = `${p.icon} <strong>Browser AI</strong> — first use downloads ~380 MB (cached after). Or <button onclick="openAISettings()" style="background:none;border:none;color:var(--accent);font-family:inherit;font-size:inherit;cursor:pointer;padding:0;text-decoration:underline">switch to a cloud API</button> for instant feedback.`;
+      hint.innerHTML = i18n.t('waitingWebLLM', { icon: p.icon });
     } else {
-      hint.innerHTML = `⚙ <button onclick="openAISettings()" style="background:none;border:none;color:var(--accent);font-family:inherit;font-size:inherit;cursor:pointer;padding:0;text-decoration:underline">Set up an AI provider</button> to get feedback. Groq is free — get a key at <a href="https://console.groq.com/keys" target="_blank" style="color:var(--accent)">console.groq.com</a>.`;
+      hint.innerHTML = `⚙ ${settingsBtn(i18n.t('waitingSetupProvider'))}`;
     }
+  } else if (isFirebaseSignedIn() && isCloudProvider(id)) {
+    hint.innerHTML = i18n.t('waitingCloudReady', { icon: p.icon, name: p.name });
+  } else if (getProviderKey(id)) {
+    hint.innerHTML = i18n.t('waitingProviderWrite', { icon: p.icon, name: p.name });
   } else {
-    if (isFirebaseSignedIn() && isCloudProvider(id)) {
-      hint.textContent = `${p.icon} ${p.name} — cloud AI via your Parlance account. Write a sentence to get feedback.`;
-    } else {
-      const hasKey = !!getProviderKey(id);
-      if (hasKey) {
-        hint.textContent = `${p.icon} ${p.name} — write a sentence to get feedback.`;
-      } else {
-        hint.innerHTML = `⚙ <button onclick="openAISettings()" style="background:none;border:none;color:var(--accent);font-family:inherit;font-size:inherit;cursor:pointer;padding:0;text-decoration:underline">Add your ${p.name} API key</button> to enable feedback.`;
-      }
-    }
+    hint.innerHTML = `⚙ ${settingsBtn(i18n.t('waitingAddKey', { name: p.name }))}`;
   }
 }
 
@@ -1963,7 +1970,7 @@ function openGuideOverlay(kind = 'grammar') {
   const frame   = document.getElementById('guideFrame');
   const file = kind === 'dialect' ? lang.dialectFile : lang.guideFile;
 
-  if (!file) { showToast('Guide coming soon for this language.'); return; }
+  if (!file) { showToast(i18n.t('guideComingSoon')); return; }
 
   // Pass interface language so dialect pages show English when the app UI is
   // English. Prefer the live <select> value so a just-changed language sticks
@@ -2062,7 +2069,7 @@ function viewEntry(entry) {
   loadAllRow.style.cssText = 'margin-bottom: 1rem; text-align: right;';
   const loadAllBtn = document.createElement('button');
   loadAllBtn.className = 'entry-load-btn';
-  loadAllBtn.textContent = 'Load All to Editor';
+  loadAllBtn.textContent = i18n.t('loadAllToEditor');
   loadAllBtn.onclick = () => loadEntryToEditor(entry);
   loadAllRow.appendChild(loadAllBtn);
   body.appendChild(loadAllRow);

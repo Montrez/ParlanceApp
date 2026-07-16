@@ -59,5 +59,10 @@ android/.idea/
 # macOS
 .DS_Store
 
-# Cursor agent session state (plans, local rules drafts) — local-only
-.cursor/
+# Cursor agent session state (plans, caches) — local-only
+.cursor/*
+# Shared agent skills + project rules must be versioned
+!.cursor/skills/
+!.cursor/skills/**
+!.cursor/rules/
+!.cursor/rules/**

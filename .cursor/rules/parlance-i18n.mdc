@@ -1,0 +1,14 @@
+---
+description: Enforce complete Parlance i18n updates — never leave UI strings English-only.
+globs: Parlance/web/**/*.{html,js,json},docs/**/*.{html,js,json},scripts/*i18n*
+alwaysApply: false
+---
+
+# Interface language completeness
+
+When adding or changing any user-visible string in the web app:
+
+1. Read and follow `.cursor/skills/parlance-i18n/SKILL.md` before editing.
+2. Update **all three** locale files (`en` / `es` / `fr`), wire `data-i18n*` or `i18n.t`, sync embedded, run `check_i18n.py`, mirror `docs/`.
+3. Do not ship English-only literals in `journal.js` / `index.html` for chrome the user sees after changing app language.
+4. Dialect pages: one node with `data-t-en` / `data-t-native` + `guide-ui.js` — never twin `.ui-en` / `.ui-native` siblings.

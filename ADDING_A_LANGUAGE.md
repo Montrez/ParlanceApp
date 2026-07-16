@@ -10,8 +10,8 @@ that added this doc; see "Why this exists" below). Use the scripts.
 This doc is scoped to *practice* languages (Spanish, French, and whatever's
 next) — the language the user is learning to write in. That's a different
 concern from the app's *interface* language (the EN/ES/FR the buttons and
-menus are in), which is `Parlance/web/locales/*.json` + `i18n.js` and isn't
-touched by anything below.
+menus are in). See **Interface language (i18n)** below for that system;
+scaffold scripts do not touch it.
 
 ## The short version
 
@@ -183,3 +183,32 @@ hand-edit any of those generated files — they say so at the top, and your
 edit will be silently overwritten the next time someone runs the generator.
 Run `python3 scripts/generate_theme.py --check` in CI-like contexts to catch
 a `theme.json` edit that wasn't followed by regenerating.
+
+## Interface language (i18n)
+
+App chrome (buttons, menus, toasts, settings, waiting hints) is **not**
+hand-patched file by file. One dictionary per UI language drives everything:
+
+| Concern | Source of truth | How it applies |
+|---|---|---|
+| Journal / settings strings | `Parlance/web/locales/{en,es,fr}.json` | `data-i18n` / `data-i18n-html` / `data-i18n-placeholder` / `data-i18n-title` in HTML, or `i18n.t('key')` in JS |
+| Offline fallback | `i18n.js` `_embedded` | Regenerated from locale JSON via `python3 scripts/sync_i18n_embedded.py` — do not hand-edit `_embedded` |
+| Language change | `#uiLangSelect` → `i18n.load` → `apply()` + `onChange` listeners | Dynamic bits (Feedback buttons, waiting card, open dialect iframe) refresh through `refreshDynamicI18nUI` |
+| Dialect bilingual body | One DOM node with `data-t-en` / `data-t-native` (or `-html`) | `guide-ui.js` fills text when UI / read-language changes — never twin `.ui-en` / `.ui-native` siblings |
+
+**Adding a string:** put it in all three locale JSON files, mark the element
+with `data-i18n="yourKey"` (or call `i18n.t`), run:
+
+```bash
+python3 scripts/sync_i18n_embedded.py
+python3 scripts/check_i18n.py
+# mirror locales + i18n.js into docs/
+```
+
+**Adding a UI language** (e.g. German menus): add `locales/de.json` (same
+keys as `en.json`), an `<option>` on `#uiLangSelect`, sync embedded, check.
+
+**Dialect pages:** write bilingual content once as `data-t-*` attributes (or
+run `scripts/convert_dialect_bilingual.py` if you still have dual siblings).
+Include `guide-ui.js` and `GuideUI.init({ nativeLang, storageKey, titleEn, titleNative })`.
+

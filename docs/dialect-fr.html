@@ -1,287 +1,216 @@
 <!DOCTYPE html>
+
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport"/>
 <title>Regional Guide — French</title>
-<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="content-theme.css?v=1">
-<link rel="stylesheet" href="content-guide.css?v=2">
-<style>
-  [data-guide-ui="native"] .ui-en { display: none !important; }
-  [data-guide-ui="en"] .ui-native { display: none !important; }
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="content-theme.css?v=1" rel="stylesheet"/>
+<link href="content-guide.css?v=2" rel="stylesheet"/>
 </head>
 <body class="dialect lang-fr" data-guide-ui="en">
 <div class="layout">
 <nav class="sidebar">
-  <div class="sidebar-logo">
-    <h1 class="ui-en">🌍 Regional Guide</h1>
-    <h1 class="ui-native">🌍 Dialectes</h1>
-    <p class="ui-en">For fluent speakers and interpreters</p>
-    <p class="ui-native">Pour locuteurs natifs et interprètes</p>
-  </div>
-  <div class="guide-lang-switch">
-    <div class="nav-section-label ui-en">Read guide in</div>
-    <div class="nav-section-label ui-native">Lire le guide en</div>
-    <div class="guide-lang-btns">
-      <button type="button" class="guide-lang-btn" data-guide-read="en" onclick="setGuideReadLang('en')">EN</button>
-      <button type="button" class="guide-lang-btn" data-guide-read="native" onclick="setGuideReadLang('native')">FR</button>
-    </div>
-  </div>
-  <div class="nav-section-label ui-en">Tool</div>
-  <div class="nav-section-label ui-native">Outil</div>
-  <a class="nav-item active ui-en" href="#picker">Your region → theirs</a>
-  <a class="nav-item active ui-native" href="#picker">Ta région → la sienne</a>
-  <div class="nav-section-label ui-en">Quick reference</div>
-  <div class="nav-section-label ui-native">Référence rapide</div>
-  <a class="nav-item ui-en" href="#pronouns">Pronouns</a>
-  <a class="nav-item ui-native" href="#pronouns">Pronoms</a>
-  <a class="nav-item ui-en" href="#vocab">Vocabulary</a>
-  <a class="nav-item ui-native" href="#vocab">Vocabulaire</a>
-  <a class="nav-item ui-en" href="#traps">Trap words</a>
-  <a class="nav-item ui-native" href="#traps">Mots pièges</a>
-  <a class="nav-item ui-en" href="#regions">Regional profiles</a>
-  <a class="nav-item ui-native" href="#regions">Profils régionaux</a>
-  <a class="nav-item ui-en" href="#dont-correct">Don't correct this</a>
-  <a class="nav-item ui-native" href="#dont-correct">Ne corrige pas ça</a>
-  <div class="lang-switch ui-en">Practicing Spanish → <a href="dialect-es.html">Spanish regional guide</a></div>
-  <div class="lang-switch ui-native">Tu pratiques l'espagnol → <a href="dialect-es.html">Guide dialectes ES</a></div>
+<div class="sidebar-logo">
+<h1 data-t-en="🌍 Regional Guide" data-t-native="🌍 Dialectes">🌍 Regional Guide</h1>
+<p data-t-en="For fluent speakers and interpreters" data-t-native="Pour locuteurs natifs et interprètes">For fluent speakers and interpreters</p>
+</div>
+<div class="guide-lang-switch">
+<div class="nav-section-label" data-t-en="Read guide in" data-t-native="Lire le guide en">Read guide in</div>
+<div class="guide-lang-btns">
+<button class="guide-lang-btn" data-guide-read="en" onclick="setGuideReadLang('en')" type="button">EN</button>
+<button class="guide-lang-btn" data-guide-read="native" onclick="setGuideReadLang('native')" type="button">FR</button>
+</div>
+</div>
+<div class="nav-section-label" data-t-en="Tool" data-t-native="Outil">Tool</div>
+<a class="nav-item active" data-t-en="Your region → theirs" data-t-native="Ta région → la sienne" href="#picker">Your region → theirs</a>
+<div class="nav-section-label" data-t-en="Quick reference" data-t-native="Référence rapide">Quick reference</div>
+<a class="nav-item" data-t-en="Pronouns" data-t-native="Pronoms" href="#pronouns">Pronouns</a>
+<a class="nav-item" data-t-en="Vocabulary" data-t-native="Vocabulaire" href="#vocab">Vocabulary</a>
+<a class="nav-item" data-t-en="Trap words" data-t-native="Mots pièges" href="#traps">Trap words</a>
+<a class="nav-item" data-t-en="Regional profiles" data-t-native="Profils régionaux" href="#regions">Regional profiles</a>
+<a class="nav-item" data-t-en="Don't correct this" data-t-native="Ne corrige pas ça" href="#dont-correct">Don't correct this</a>
+<div class="lang-switch" data-t-en-html='Practicing Spanish → &lt;a href="dialect-es.html"&gt;Spanish regional guide&lt;/a&gt;' data-t-native-html="Tu pratiques l'espagnol → &lt;a href=&quot;dialect-es.html&quot;&gt;Guide dialectes ES&lt;/a&gt;">Practicing Spanish → <a href="dialect-es.html">Spanish regional guide</a></div>
 </nav>
-
 <main class="content">
-  <div class="rule-box ui-en">
-    <strong>How to use this guide</strong> — It does not teach basic grammar; it assumes you already know French. First use the <strong>tool</strong> below to compare your region with the other person's. Then open the <strong>quick reference</strong> sections as needed: pronouns, vocabulary, trap words, and short regional profiles.
-  </div>
-  <div class="rule-box ui-native">
-    <strong>Comment utiliser ce guide</strong> — Il n'enseigne pas la grammaire de base ; il suppose que tu maîtrises déjà le français. Utilise d'abord l'<strong>outil</strong> ci-dessous pour comparer ta région à celle de l'autre personne. Ensuite, ouvre la <strong>référence rapide</strong> du menu quand tu en as besoin : pronoms, vocabulaire, mots pièges et résumés par région.
-  </div>
-
-  <section class="section" id="picker">
-    <h2 class="ui-en">Your region → theirs</h2>
-    <h2 class="ui-native">Ta région → la sienne</h2>
-    <p class="subtitle ui-en">Pick where you speak from and where the other person is from. You'll only see what matters for that pairing.</p>
-    <p class="subtitle ui-native">Choisis d'où tu parles et d'où vient l'autre personne. Tu verras seulement ce qui compte pour cette conversation.</p>
-
-    <div class="picker-card">
-      <div class="picker-row">
-        <div>
-          <label for="fromRegion" class="ui-en">I speak like people from…</label>
-          <label for="fromRegion" class="ui-native">Je parle comme en…</label>
-          <select id="fromRegion">
-            <option value="" data-en="Select your region" data-fr="Choisis ta région">Select your region</option>
-            <option value="france" data-en="Metropolitan France" data-fr="France métropolitaine">Metropolitan France</option>
-            <option value="quebec" data-en="Quebec" data-fr="Québec">Quebec</option>
-            <option value="belgium" data-en="Belgium" data-fr="Belgique">Belgium</option>
-            <option value="swiss" data-en="French-speaking Switzerland" data-fr="Suisse romande">French-speaking Switzerland</option>
-            <option value="africa" data-en="Francophone Africa" data-fr="Afrique francophone">Francophone Africa</option>
-            <option value="caribbean" data-en="Francophone Caribbean" data-fr="Caraïbe francophone">Francophone Caribbean</option>
-          </select>
-        </div>
-        <div>
-          <label for="toRegion" class="ui-en">The other person is from…</label>
-          <label for="toRegion" class="ui-native">L'autre personne vient de…</label>
-          <select id="toRegion">
-            <option value="" data-en="Select their region" data-fr="Choisis sa région">Select their region</option>
-            <option value="france" data-en="Metropolitan France" data-fr="France métropolitaine">Metropolitan France</option>
-            <option value="quebec" data-en="Quebec" data-fr="Québec">Quebec</option>
-            <option value="belgium" data-en="Belgium" data-fr="Belgique">Belgium</option>
-            <option value="swiss" data-en="French-speaking Switzerland" data-fr="Suisse romande">French-speaking Switzerland</option>
-            <option value="africa" data-en="Francophone Africa" data-fr="Afrique francophone">Francophone Africa</option>
-            <option value="caribbean" data-en="Francophone Caribbean" data-fr="Caraïbe francophone">Francophone Caribbean</option>
-          </select>
-        </div>
-      </div>
-      <p class="picker-note ui-en">Tip: in interpreting, match your output to the speaker's register, not yours.</p>
-      <p class="picker-note ui-native">Conseil : en interprétation, adapte ta sortie au registre du locuteur, pas au tien.</p>
-    </div>
-
-    <div id="pairResult" class="pair-result">
-      <h3 id="pairTitle"></h3>
-      <ul id="pairList"></ul>
-    </div>
-  </section>
-
-  <section class="section" id="pronouns">
-    <h2 class="ui-en">Pronouns and address</h2>
-    <h2 class="ui-native">Pronoms et tutoiement</h2>
-    <p class="subtitle ui-en">The most practical difference between countries.</p>
-    <p class="subtitle ui-native">La différence la plus pratique entre pays.</p>
-    <div class="table-scroll"><table class="data">
-      <thead>
-        <tr class="ui-en"><th>Region</th><th>tu / vous</th><th>Quick note</th></tr>
-        <tr class="ui-native"><th>Région</th><th>Tu / vous</th><th>Note rapide</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><span class="ui-en">France</span><span class="ui-native">France</span></td>
-          <td class="mono">tu / vous</td>
-          <td><span class="ui-en"><em>Vous</em> for formal, <em>tu</em> with people close to you. Plural: <em>vous</em> (formal and informal).</span><span class="ui-native"><em>Vous</em> formel, <em>tu</em> entre proches. Pluriel : <em>vous</em> (formel et informel).</span></td>
-        </tr>
-        <tr>
-          <td><span class="ui-en">Quebec</span><span class="ui-native">Québec</span></td>
-          <td class="mono">tu / vous</td>
-          <td><span class="ui-en"><em>Tu</em> is very common, even in semi-formal settings. <em>Vous</em> for real distance or respect.</span><span class="ui-native"><em>Tu</em> très répandu, même en contexte semi-formel. <em>Vous</em> pour vraie distance ou respect.</span></td>
-        </tr>
-        <tr>
-          <td><span class="ui-en">Belgium</span><span class="ui-native">Belgique</span></td>
-          <td class="mono">tu / vous</td>
-          <td><span class="ui-en">Close to France, but numbers and some vocabulary differ (septante, nonante).</span><span class="ui-native">Proche de la France, mais vocabulaire et chiffres différents (septante, nonante).</span></td>
-        </tr>
-        <tr>
-          <td><span class="ui-en">French-speaking Switzerland</span><span class="ui-native">Suisse romande</span></td>
-          <td class="mono">tu / vous</td>
-          <td><span class="ui-en">Like France/Belgium. Numbers: septante, huitante/octante, nonante.</span><span class="ui-native">Comme la France/Belgique. Nombres : septante, huitante/octante, nonante.</span></td>
-        </tr>
-        <tr>
-          <td><span class="ui-en">Africa</span><span class="ui-native">Afrique</span></td>
-          <td class="mono">tu / vous</td>
-          <td><span class="ui-en"><em>Vous</em> often marks respect toward elders. Register is highly contextual.</span><span class="ui-native"><em>Vous</em> souvent marque de respect envers les aînés. Registre très contextuel.</span></td>
-        </tr>
-        <tr>
-          <td><span class="ui-en">Caribbean</span><span class="ui-native">Caraïbe</span></td>
-          <td class="mono">tu / vous</td>
-          <td><span class="ui-en">Strong Creole influence. Local rhythm and lexicon (Haiti, Antilles).</span><span class="ui-native">Influence créole. Rythme et lexique locaux forts (Haïti, Antilles).</span></td>
-        </tr>
-      </tbody>
-    </table></div>
-  </section>
-
-  <section class="section" id="vocab">
-    <h2 class="ui-en">Same thing, different word</h2>
-    <h2 class="ui-native">Même chose, mot différent</h2>
-    <p class="subtitle ui-en">The equivalences that create the most confusion.</p>
-    <p class="subtitle ui-native">Les équivalences qui créent le plus de confusion.</p>
-    <div class="table-scroll"><table class="data">
-      <thead>
-        <tr class="ui-en"><th>Concept</th><th>Regional variants</th></tr>
-        <tr class="ui-native"><th>Concept</th><th>Variantes par région</th></tr>
-      </thead>
-      <tbody>
-        <tr><td><span class="ui-en">Car</span><span class="ui-native">Voiture</span></td>
-          <td><span class="mono">voiture</span> (FR) · <span class="mono">char</span> (QC, casual) · <span class="mono">auto</span> (QC, formal)</td></tr>
-        <tr><td><span class="ui-en">Girlfriend</span><span class="ui-native">Petite amie</span></td>
-          <td><span class="mono">petite amie / copine</span> (FR) · <span class="mono">blonde</span> (QC) · watch context</td></tr>
-        <tr><td><span class="ui-en">Email</span><span class="ui-native">Courriel</span></td>
-          <td><span class="mono">mail / e-mail</span> (FR) · <span class="mono">courriel</span> (QC, official)</td></tr>
-        <tr><td><span class="ui-en">Weekend</span><span class="ui-native">Fin de semaine</span></td>
-          <td><span class="mono">week-end</span> (FR) · <span class="mono">fin de semaine</span> (QC)</td></tr>
-        <tr><td><span class="ui-en">Meal names</span><span class="ui-native">Déjeuner / dîner / souper</span></td>
-          <td><span class="ui-en">France: déjeuner=morning, dîner=midday, souper=evening. Quebec: often déjeuner=morning, dîner=evening.</span><span class="ui-native">France : déj=matin, dîner=midi, souper=soir. Québec : souvent déj=matin, dîner=soir.</span></td></tr>
-        <tr><td>70 / 90</td>
-          <td><span class="mono">soixante-dix, quatre-vingt-dix</span> (FR) · <span class="mono">septante, nonante</span> (BE/CH/QC)</td></tr>
-        <tr><td><span class="ui-en">Parking</span><span class="ui-native">Stationnement</span></td>
-          <td><span class="mono">parking</span> (FR) · <span class="mono">stationnement</span> (QC)</td></tr>
-        <tr><td><span class="ui-en">To shop</span><span class="ui-native">Magasiner</span></td>
-          <td><span class="mono">faire les courses / shopping</span> (FR) · <span class="mono">magasiner</span> (QC)</td></tr>
-        <tr><td><span class="ui-en">Cell phone</span><span class="ui-native">Cellulaire</span></td>
-          <td><span class="mono">portable / mobile</span> (FR) · <span class="mono">cellulaire</span> (QC)</td></tr>
-        <tr><td><span class="ui-en">Now</span><span class="ui-native">Maintenant</span></td>
-          <td><span class="mono">maintenant</span> (FR) · <span class="mono">là / là présentement</span> (QC oral)</td></tr>
-      </tbody>
-    </table></div>
-  </section>
-
-  <section class="section" id="traps">
-    <h2 class="ui-en">Trap words</h2>
-    <h2 class="ui-native">Mots pièges</h2>
-    <p class="subtitle ui-en">Neutral in one country, problematic or misunderstood in another.</p>
-    <p class="subtitle ui-native">Neutre dans un pays, problématique ou incompris dans un autre.</p>
-    <div class="warn-box ui-en"><strong>blonde</strong> — In Quebec: girlfriend (f.). In France: blonde hair. Do not translate literally.</div>
-    <div class="warn-box ui-native"><strong>blonde</strong> — Au Québec : petite amie (f.). En France : cheveux blonds. Ne traduis pas littéralement.</div>
-    <div class="warn-box ui-en"><strong>char</strong> — In Quebec: car (casual). In France: tank (military) or old-fashioned tram.</div>
-    <div class="warn-box ui-native"><strong>char</strong> — Au Québec : voiture (familier). En France : char = tank (militaire) ou tramway (vieilli).</div>
-    <div class="warn-box ui-en"><strong>déjeuner / dîner</strong> — Meal times do not line up the same way in France vs Quebec. Clarify if it is an appointment.</div>
-    <div class="warn-box ui-native"><strong>déjeuner / dîner</strong> — Les repas ne tombent pas aux mêmes heures selon France vs Québec. Clarifie si c'est un rendez-vous.</div>
-    <div class="warn-box ui-en"><strong>gosse</strong> — In France: kid (casual). In Quebec: can be vulgar (testicles). Avoid in formal contexts.</div>
-    <div class="warn-box ui-native"><strong>gosse</strong> — En France : enfant (familier). Au Québec : peut être vulgaire (testicules). Évite en contexte formel.</div>
-    <div class="warn-box ui-en"><strong>sac</strong> — In France: handbag. In Quebec: can mean different things depending on context.</div>
-    <div class="warn-box ui-native"><strong>sac / sac banane</strong> — En France : sac à main. Au Québec : sac peut désigner des choses très différentes selon le contexte.</div>
-    <div class="warn-box ui-en"><strong>jaser</strong> — Quebec: to chat. France: rarer; « bavarder » or « discuter » lands better.</div>
-    <div class="warn-box ui-native"><strong>jaser</strong> — Québec : bavarder. France : le mot existe mais est moins courant; « bavarder » ou « discuter » passent mieux.</div>
-  </section>
-
-  <section class="section" id="regions">
-    <h2 class="ui-en">Regional profiles</h2>
-    <h2 class="ui-native">Profils régionaux</h2>
-    <p class="subtitle ui-en">All six regions at a glance. If you only care about two, use the tool above.</p>
-    <p class="subtitle ui-native">Les 6 régions à la fois, à parcourir. Si tu ne t'intéresses qu'à deux, utilise l'outil ci-dessus.</p>
-
-    <div class="region-card">
-      <div class="tag">France</div>
-      <h3 class="ui-en">Metropolitan France</h3>
-      <h3 class="ui-native">France métropolitaine</h3>
-      <p class="ui-en"><strong>Address:</strong> <em>tu</em> widely with peers. <strong>Vocabulary:</strong> <em>voiture, portable, mail, week-end, soixante-dix</em>. <strong>Typography:</strong> space before ? ! ; :</p>
-      <p class="ui-native"><strong>Tutoiement :</strong> <em>tu</em> large entre pairs. <strong>Vocabulaire :</strong> <em>voiture, portable, mail, week-end, soixante-dix</em>. <strong>Typographie :</strong> espace avant ? ! ; :</p>
-    </div>
-    <div class="region-card">
-      <div class="tag">Québec</div>
-      <h3>Québec</h3>
-      <p class="ui-en"><strong>Address:</strong> <em>tu</em> very frequent. <strong>Vocabulary:</strong> <em>char, courriel, fin de semaine, cellulaire, magasiner, blonde</em>. <strong>Speech:</strong> <em>chu</em> (je suis), <em>pis</em> (et puis). <strong>Interpreting:</strong> standard Quebec French is not "bad French."</p>
-      <p class="ui-native"><strong>Tutoiement :</strong> <em>tu</em> très fréquent. <strong>Vocabulaire :</strong> <em>char, courriel, fin de semaine, cellulaire, magasiner, blonde</em>. <strong>Oral :</strong> <em>chu</em> (je suis), <em>pis</em> (et puis). <strong>Interprétation :</strong> le québécois standard n'est pas du « mauvais français ».</p>
-    </div>
-    <div class="region-card">
-      <div class="tag ui-en">Belgium</div>
-      <div class="tag ui-native">Belgique</div>
-      <h3 class="ui-en">Belgium</h3>
-      <h3 class="ui-native">Belgique</h3>
-      <p class="ui-en"><strong>Numbers:</strong> <em>septante, nonante</em> (not soixante-dix / quatre-vingt-dix). <strong>Vocabulary:</strong> <em>une fois</em> around Brussels can mean "please." Otherwise close to France.</p>
-      <p class="ui-native"><strong>Chiffres :</strong> <em>septante, nonante</em> (pas soixante-dix / quatre-vingt-dix). <strong>Vocabulaire :</strong> <em>septante, une fois</em> (pour « s'il te plaît » à Bruxelles). Proche de la France sinon.</p>
-    </div>
-    <div class="region-card">
-      <div class="tag ui-en">Switzerland</div>
-      <div class="tag ui-native">Suisse</div>
-      <h3 class="ui-en">French-speaking Switzerland</h3>
-      <h3 class="ui-native">Suisse romande</h3>
-      <p class="ui-en"><strong>Numbers:</strong> <em>septante, huitante/octante, nonante</em>. <strong>Vocabulary:</strong> <em>natel</em> (older word for cell phone), <em>adieu</em> (hello, not a final goodbye). Measured rhythm.</p>
-      <p class="ui-native"><strong>Chiffres :</strong> <em>septante, huitante/octante, nonante</em>. <strong>Vocabulaire :</strong> <em>natel</em> (téléphone portable, vieilli), <em>adieu</em> (salut, pas « au revoir définitif »). Rythme mesuré.</p>
-    </div>
-    <div class="region-card">
-      <div class="tag ui-en">Africa</div>
-      <div class="tag ui-native">Afrique</div>
-      <h3 class="ui-en">Francophone Africa</h3>
-      <h3 class="ui-native">Afrique francophone</h3>
-      <p class="ui-en"><strong>Register:</strong> <em>vous</em> often marks respect. <strong>Lexicon:</strong> borrowings from local languages, vivid expressions. <strong>Interpreting:</strong> do not force Parisian French if the local variant is clear.</p>
-      <p class="ui-native"><strong>Registre :</strong> <em>vous</em> marque souvent le respect. <strong>Lexique :</strong> emprunts aux langues locales, expressions très imagées. <strong>Interprétation :</strong> ne standardise pas vers le français parisien si le sens passe en variant locale.</p>
-    </div>
-    <div class="region-card">
-      <div class="tag ui-en">Caribbean</div>
-      <div class="tag ui-native">Caraïbe</div>
-      <h3 class="ui-en">Francophone Caribbean (Haiti, Antilles)</h3>
-      <h3 class="ui-native">Caraïbe francophone (Haïti, Antilles)</h3>
-      <p class="ui-en"><strong>Contact:</strong> strong Creole influence. <strong>Rhythm:</strong> fast, with reductions. <strong>Interpreting:</strong> listen for false friends and cultural context before "correcting."</p>
-      <p class="ui-native"><strong>Contact :</strong> fort influence créole. <strong>Rythme :</strong> rapide, réductions. <strong>Interprétation :</strong> écoute les faux amis et le contexte culturel avant de « corriger ».</p>
-    </div>
-  </section>
-
-  <section class="section" id="dont-correct">
-    <h2 class="ui-en">Don't correct this</h2>
-    <h2 class="ui-native">Ne corrige pas ça</h2>
-    <p class="subtitle ui-en">In interpreting, you convey meaning. You do not homogenize.</p>
-    <p class="subtitle ui-native">En interprétation, tu transmets, tu n'uniformises pas.</p>
-    <ul class="bullet-list ui-en">
-      <li><strong>Septante / nonante</strong> (BE, CH, QC) are not errors. They are standard regional French.</li>
-      <li><strong>char, courriel, fin de semaine</strong> in Quebec are correct in a Quebec context.</li>
-      <li><strong>Wider Quebec tutoiement</strong> is not impoliteness by default.</li>
-      <li><strong>African or Creole borrowings</strong> are not "mistakes" if the speaker is consistent.</li>
-      <li>If the speaker is a native and clear, <strong>do not swap their word for yours</strong> unless meaning requires it.</li>
-    </ul>
-    <ul class="bullet-list ui-native">
-      <li><strong>Septante / nonante</strong> (BE, CH, QC) ne sont pas des erreurs. C'est du français régional standard.</li>
-      <li><strong>Char, courriel, fin de semaine</strong> au Québec sont corrects en contexte québécois.</li>
-      <li><strong>Le tutoiement québécois</strong> plus large n'est pas de l'impolitesse par défaut.</li>
-      <li><strong>Les emprunts africains</strong> ou créoles ne sont pas des « fautes » si le locuteur est cohérent.</li>
-      <li>Si le locuteur est natif et clair, <strong>ne remplace pas son mot par le tien</strong> sauf si le sens l'exige.</li>
-    </ul>
-  </section>
+<div class="rule-box" data-t-en-html="&lt;strong&gt;How to use this guide&lt;/strong&gt; — It does not teach basic grammar; it assumes you already know French. First use the &lt;strong&gt;tool&lt;/strong&gt; below to compare your region with the other person's. Then open the &lt;strong&gt;quick reference&lt;/strong&gt; sections as needed: pronouns, vocabulary, trap words, and short regional profiles." data-t-native-html="&lt;strong&gt;Comment utiliser ce guide&lt;/strong&gt; — Il n'enseigne pas la grammaire de base ; il suppose que tu maîtrises déjà le français. Utilise d'abord l'&lt;strong&gt;outil&lt;/strong&gt; ci-dessous pour comparer ta région à celle de l'autre personne. Ensuite, ouvre la &lt;strong&gt;référence rapide&lt;/strong&gt; du menu quand tu en as besoin : pronoms, vocabulaire, mots pièges et résumés par région."><strong>How to use this guide</strong> — It does not teach basic grammar; it assumes you already know French. First use the <strong>tool</strong> below to compare your region with the other person's. Then open the <strong>quick reference</strong> sections as needed: pronouns, vocabulary, trap words, and short regional profiles.</div>
+<section class="section" id="picker">
+<h2 data-t-en="Your region → theirs" data-t-native="Ta région → la sienne">Your region → theirs</h2>
+<p class="subtitle" data-t-en="Pick where you speak from and where the other person is from. You'll only see what matters for that pairing." data-t-native="Choisis d'où tu parles et d'où vient l'autre personne. Tu verras seulement ce qui compte pour cette conversation.">Pick where you speak from and where the other person is from. You'll only see what matters for that pairing.</p>
+<div class="picker-card">
+<div class="picker-row">
+<div>
+<label data-t-en="I speak like people from…" data-t-native="Je parle comme en…" for="fromRegion">I speak like people from…</label>
+<select id="fromRegion">
+<option data-en="Select your region" data-fr="Choisis ta région" value="">Select your region</option>
+<option data-en="Metropolitan France" data-fr="France métropolitaine" value="france">Metropolitan France</option>
+<option data-en="Quebec" data-fr="Québec" value="quebec">Quebec</option>
+<option data-en="Belgium" data-fr="Belgique" value="belgium">Belgium</option>
+<option data-en="French-speaking Switzerland" data-fr="Suisse romande" value="swiss">French-speaking Switzerland</option>
+<option data-en="Francophone Africa" data-fr="Afrique francophone" value="africa">Francophone Africa</option>
+<option data-en="Francophone Caribbean" data-fr="Caraïbe francophone" value="caribbean">Francophone Caribbean</option>
+</select>
+</div>
+<div>
+<label data-t-en="The other person is from…" data-t-native="L'autre personne vient de…" for="toRegion">The other person is from…</label>
+<select id="toRegion">
+<option data-en="Select their region" data-fr="Choisis sa région" value="">Select their region</option>
+<option data-en="Metropolitan France" data-fr="France métropolitaine" value="france">Metropolitan France</option>
+<option data-en="Quebec" data-fr="Québec" value="quebec">Quebec</option>
+<option data-en="Belgium" data-fr="Belgique" value="belgium">Belgium</option>
+<option data-en="French-speaking Switzerland" data-fr="Suisse romande" value="swiss">French-speaking Switzerland</option>
+<option data-en="Francophone Africa" data-fr="Afrique francophone" value="africa">Francophone Africa</option>
+<option data-en="Francophone Caribbean" data-fr="Caraïbe francophone" value="caribbean">Francophone Caribbean</option>
+</select>
+</div>
+</div>
+<p class="picker-note" data-t-en="Tip: in interpreting, match your output to the speaker's register, not yours." data-t-native="Conseil : en interprétation, adapte ta sortie au registre du locuteur, pas au tien.">Tip: in interpreting, match your output to the speaker's register, not yours.</p>
+</div>
+<div class="pair-result" id="pairResult">
+<h3 id="pairTitle"></h3>
+<ul id="pairList"></ul>
+</div>
+</section>
+<section class="section" id="pronouns">
+<h2 data-t-en="Pronouns and address" data-t-native="Pronoms et tutoiement">Pronouns and address</h2>
+<p class="subtitle" data-t-en="The most practical difference between countries." data-t-native="La différence la plus pratique entre pays.">The most practical difference between countries.</p>
+<div class="table-scroll"><table class="data">
+<thead>
+<tr data-t-en-html="&lt;th&gt;Region&lt;/th&gt;&lt;th&gt;tu / vous&lt;/th&gt;&lt;th&gt;Quick note&lt;/th&gt;" data-t-native-html="&lt;th&gt;Région&lt;/th&gt;&lt;th&gt;Tu / vous&lt;/th&gt;&lt;th&gt;Note rapide&lt;/th&gt;"><th>Region</th><th>tu / vous</th><th>Quick note</th></tr>
+</thead>
+<tbody>
+<tr>
+<td><span data-t-en="France" data-t-native="France">France</span></td>
+<td class="mono">tu / vous</td>
+<td><span data-t-en-html="&lt;em&gt;Vous&lt;/em&gt; for formal, &lt;em&gt;tu&lt;/em&gt; with people close to you. Plural: &lt;em&gt;vous&lt;/em&gt; (formal and informal)." data-t-native-html="&lt;em&gt;Vous&lt;/em&gt; formel, &lt;em&gt;tu&lt;/em&gt; entre proches. Pluriel : &lt;em&gt;vous&lt;/em&gt; (formel et informel)."><em>Vous</em> for formal, <em>tu</em> with people close to you. Plural: <em>vous</em> (formal and informal).</span></td>
+</tr>
+<tr>
+<td><span data-t-en="Quebec" data-t-native="Québec">Quebec</span></td>
+<td class="mono">tu / vous</td>
+<td><span data-t-en-html="&lt;em&gt;Tu&lt;/em&gt; is very common, even in semi-formal settings. &lt;em&gt;Vous&lt;/em&gt; for real distance or respect." data-t-native-html="&lt;em&gt;Tu&lt;/em&gt; très répandu, même en contexte semi-formel. &lt;em&gt;Vous&lt;/em&gt; pour vraie distance ou respect."><em>Tu</em> is very common, even in semi-formal settings. <em>Vous</em> for real distance or respect.</span></td>
+</tr>
+<tr>
+<td><span data-t-en="Belgium" data-t-native="Belgique">Belgium</span></td>
+<td class="mono">tu / vous</td>
+<td><span data-t-en="Close to France, but numbers and some vocabulary differ (septante, nonante)." data-t-native="Proche de la France, mais vocabulaire et chiffres différents (septante, nonante).">Close to France, but numbers and some vocabulary differ (septante, nonante).</span></td>
+</tr>
+<tr>
+<td><span data-t-en="French-speaking Switzerland" data-t-native="Suisse romande">French-speaking Switzerland</span></td>
+<td class="mono">tu / vous</td>
+<td><span data-t-en="Like France/Belgium. Numbers: septante, huitante/octante, nonante." data-t-native="Comme la France/Belgique. Nombres : septante, huitante/octante, nonante.">Like France/Belgium. Numbers: septante, huitante/octante, nonante.</span></td>
+</tr>
+<tr>
+<td><span data-t-en="Africa" data-t-native="Afrique">Africa</span></td>
+<td class="mono">tu / vous</td>
+<td><span data-t-en-html="&lt;em&gt;Vous&lt;/em&gt; often marks respect toward elders. Register is highly contextual." data-t-native-html="&lt;em&gt;Vous&lt;/em&gt; souvent marque de respect envers les aînés. Registre très contextuel."><em>Vous</em> often marks respect toward elders. Register is highly contextual.</span></td>
+</tr>
+<tr>
+<td><span data-t-en="Caribbean" data-t-native="Caraïbe">Caribbean</span></td>
+<td class="mono">tu / vous</td>
+<td><span data-t-en="Strong Creole influence. Local rhythm and lexicon (Haiti, Antilles)." data-t-native="Influence créole. Rythme et lexique locaux forts (Haïti, Antilles).">Strong Creole influence. Local rhythm and lexicon (Haiti, Antilles).</span></td>
+</tr>
+</tbody>
+</table></div>
+</section>
+<section class="section" id="vocab">
+<h2 data-t-en="Same thing, different word" data-t-native="Même chose, mot différent">Same thing, different word</h2>
+<p class="subtitle" data-t-en="The equivalences that create the most confusion." data-t-native="Les équivalences qui créent le plus de confusion.">The equivalences that create the most confusion.</p>
+<div class="table-scroll"><table class="data">
+<thead>
+<tr data-t-en-html="&lt;th&gt;Concept&lt;/th&gt;&lt;th&gt;Regional variants&lt;/th&gt;" data-t-native-html="&lt;th&gt;Concept&lt;/th&gt;&lt;th&gt;Variantes par région&lt;/th&gt;"><th>Concept</th><th>Regional variants</th></tr>
+</thead>
+<tbody>
+<tr><td><span data-t-en="Car" data-t-native="Voiture">Car</span></td>
+<td><span class="mono">voiture</span> (FR) · <span class="mono">char</span> (QC, casual) · <span class="mono">auto</span> (QC, formal)</td></tr>
+<tr><td><span data-t-en="Girlfriend" data-t-native="Petite amie">Girlfriend</span></td>
+<td><span class="mono">petite amie / copine</span> (FR) · <span class="mono">blonde</span> (QC) · watch context</td></tr>
+<tr><td><span data-t-en="Email" data-t-native="Courriel">Email</span></td>
+<td><span class="mono">mail / e-mail</span> (FR) · <span class="mono">courriel</span> (QC, official)</td></tr>
+<tr><td><span data-t-en="Weekend" data-t-native="Fin de semaine">Weekend</span></td>
+<td><span class="mono">week-end</span> (FR) · <span class="mono">fin de semaine</span> (QC)</td></tr>
+<tr><td><span data-t-en="Meal names" data-t-native="Déjeuner / dîner / souper">Meal names</span></td>
+<td><span data-t-en="France: déjeuner=morning, dîner=midday, souper=evening. Quebec: often déjeuner=morning, dîner=evening." data-t-native="France : déj=matin, dîner=midi, souper=soir. Québec : souvent déj=matin, dîner=soir.">France: déjeuner=morning, dîner=midday, souper=evening. Quebec: often déjeuner=morning, dîner=evening.</span></td></tr>
+<tr><td>70 / 90</td>
+<td><span class="mono">soixante-dix, quatre-vingt-dix</span> (FR) · <span class="mono">septante, nonante</span> (BE/CH/QC)</td></tr>
+<tr><td><span data-t-en="Parking" data-t-native="Stationnement">Parking</span></td>
+<td><span class="mono">parking</span> (FR) · <span class="mono">stationnement</span> (QC)</td></tr>
+<tr><td><span data-t-en="To shop" data-t-native="Magasiner">To shop</span></td>
+<td><span class="mono">faire les courses / shopping</span> (FR) · <span class="mono">magasiner</span> (QC)</td></tr>
+<tr><td><span data-t-en="Cell phone" data-t-native="Cellulaire">Cell phone</span></td>
+<td><span class="mono">portable / mobile</span> (FR) · <span class="mono">cellulaire</span> (QC)</td></tr>
+<tr><td><span data-t-en="Now" data-t-native="Maintenant">Now</span></td>
+<td><span class="mono">maintenant</span> (FR) · <span class="mono">là / là présentement</span> (QC oral)</td></tr>
+</tbody>
+</table></div>
+</section>
+<section class="section" id="traps">
+<h2 data-t-en="Trap words" data-t-native="Mots pièges">Trap words</h2>
+<p class="subtitle" data-t-en="Neutral in one country, problematic or misunderstood in another." data-t-native="Neutre dans un pays, problématique ou incompris dans un autre.">Neutral in one country, problematic or misunderstood in another.</p>
+<div class="warn-box" data-t-en-html="&lt;strong&gt;blonde&lt;/strong&gt; — In Quebec: girlfriend (f.). In France: blonde hair. Do not translate literally." data-t-native-html="&lt;strong&gt;blonde&lt;/strong&gt; — Au Québec : petite amie (f.). En France : cheveux blonds. Ne traduis pas littéralement."><strong>blonde</strong> — In Quebec: girlfriend (f.). In France: blonde hair. Do not translate literally.</div>
+<div class="warn-box" data-t-en-html="&lt;strong&gt;char&lt;/strong&gt; — In Quebec: car (casual). In France: tank (military) or old-fashioned tram." data-t-native-html="&lt;strong&gt;char&lt;/strong&gt; — Au Québec : voiture (familier). En France : char = tank (militaire) ou tramway (vieilli)."><strong>char</strong> — In Quebec: car (casual). In France: tank (military) or old-fashioned tram.</div>
+<div class="warn-box" data-t-en-html="&lt;strong&gt;déjeuner / dîner&lt;/strong&gt; — Meal times do not line up the same way in France vs Quebec. Clarify if it is an appointment." data-t-native-html="&lt;strong&gt;déjeuner / dîner&lt;/strong&gt; — Les repas ne tombent pas aux mêmes heures selon France vs Québec. Clarifie si c'est un rendez-vous."><strong>déjeuner / dîner</strong> — Meal times do not line up the same way in France vs Quebec. Clarify if it is an appointment.</div>
+<div class="warn-box" data-t-en-html="&lt;strong&gt;gosse&lt;/strong&gt; — In France: kid (casual). In Quebec: can be vulgar (testicles). Avoid in formal contexts." data-t-native-html="&lt;strong&gt;gosse&lt;/strong&gt; — En France : enfant (familier). Au Québec : peut être vulgaire (testicules). Évite en contexte formel."><strong>gosse</strong> — In France: kid (casual). In Quebec: can be vulgar (testicles). Avoid in formal contexts.</div>
+<div class="warn-box" data-t-en-html="&lt;strong&gt;sac&lt;/strong&gt; — In France: handbag. In Quebec: can mean different things depending on context." data-t-native-html="&lt;strong&gt;sac / sac banane&lt;/strong&gt; — En France : sac à main. Au Québec : sac peut désigner des choses très différentes selon le contexte."><strong>sac</strong> — In France: handbag. In Quebec: can mean different things depending on context.</div>
+<div class="warn-box" data-t-en-html="&lt;strong&gt;jaser&lt;/strong&gt; — Quebec: to chat. France: rarer; « bavarder » or « discuter » lands better." data-t-native-html="&lt;strong&gt;jaser&lt;/strong&gt; — Québec : bavarder. France : le mot existe mais est moins courant; « bavarder » ou « discuter » passent mieux."><strong>jaser</strong> — Quebec: to chat. France: rarer; « bavarder » or « discuter » lands better.</div>
+</section>
+<section class="section" id="regions">
+<h2 data-t-en="Regional profiles" data-t-native="Profils régionaux">Regional profiles</h2>
+<p class="subtitle" data-t-en="All six regions at a glance. If you only care about two, use the tool above." data-t-native="Les 6 régions à la fois, à parcourir. Si tu ne t'intéresses qu'à deux, utilise l'outil ci-dessus.">All six regions at a glance. If you only care about two, use the tool above.</p>
+<div class="region-card">
+<div class="tag">France</div>
+<h3 data-t-en="Metropolitan France" data-t-native="France métropolitaine">Metropolitan France</h3>
+<p data-t-en-html="&lt;strong&gt;Address:&lt;/strong&gt; &lt;em&gt;tu&lt;/em&gt; widely with peers. &lt;strong&gt;Vocabulary:&lt;/strong&gt; &lt;em&gt;voiture, portable, mail, week-end, soixante-dix&lt;/em&gt;. &lt;strong&gt;Typography:&lt;/strong&gt; space before ? ! ; :" data-t-native-html="&lt;strong&gt;Tutoiement :&lt;/strong&gt; &lt;em&gt;tu&lt;/em&gt; large entre pairs. &lt;strong&gt;Vocabulaire :&lt;/strong&gt; &lt;em&gt;voiture, portable, mail, week-end, soixante-dix&lt;/em&gt;. &lt;strong&gt;Typographie :&lt;/strong&gt; espace avant ? ! ; :"><strong>Address:</strong> <em>tu</em> widely with peers. <strong>Vocabulary:</strong> <em>voiture, portable, mail, week-end, soixante-dix</em>. <strong>Typography:</strong> space before ? ! ; :</p>
+</div>
+<div class="region-card">
+<div class="tag">Québec</div>
+<h3>Québec</h3>
+<p data-t-en-html='&lt;strong&gt;Address:&lt;/strong&gt; &lt;em&gt;tu&lt;/em&gt; very frequent. &lt;strong&gt;Vocabulary:&lt;/strong&gt; &lt;em&gt;char, courriel, fin de semaine, cellulaire, magasiner, blonde&lt;/em&gt;. &lt;strong&gt;Speech:&lt;/strong&gt; &lt;em&gt;chu&lt;/em&gt; (je suis), &lt;em&gt;pis&lt;/em&gt; (et puis). &lt;strong&gt;Interpreting:&lt;/strong&gt; standard Quebec French is not "bad French."' data-t-native-html="&lt;strong&gt;Tutoiement :&lt;/strong&gt; &lt;em&gt;tu&lt;/em&gt; très fréquent. &lt;strong&gt;Vocabulaire :&lt;/strong&gt; &lt;em&gt;char, courriel, fin de semaine, cellulaire, magasiner, blonde&lt;/em&gt;. &lt;strong&gt;Oral :&lt;/strong&gt; &lt;em&gt;chu&lt;/em&gt; (je suis), &lt;em&gt;pis&lt;/em&gt; (et puis). &lt;strong&gt;Interprétation :&lt;/strong&gt; le québécois standard n'est pas du « mauvais français »."><strong>Address:</strong> <em>tu</em> very frequent. <strong>Vocabulary:</strong> <em>char, courriel, fin de semaine, cellulaire, magasiner, blonde</em>. <strong>Speech:</strong> <em>chu</em> (je suis), <em>pis</em> (et puis). <strong>Interpreting:</strong> standard Quebec French is not "bad French."</p>
+</div>
+<div class="region-card">
+<div class="tag" data-t-en="Belgium" data-t-native="Belgique">Belgium</div>
+<h3 data-t-en="Belgium" data-t-native="Belgique">Belgium</h3>
+<p data-t-en-html='&lt;strong&gt;Numbers:&lt;/strong&gt; &lt;em&gt;septante, nonante&lt;/em&gt; (not soixante-dix / quatre-vingt-dix). &lt;strong&gt;Vocabulary:&lt;/strong&gt; &lt;em&gt;une fois&lt;/em&gt; around Brussels can mean "please." Otherwise close to France.' data-t-native-html="&lt;strong&gt;Chiffres :&lt;/strong&gt; &lt;em&gt;septante, nonante&lt;/em&gt; (pas soixante-dix / quatre-vingt-dix). &lt;strong&gt;Vocabulaire :&lt;/strong&gt; &lt;em&gt;septante, une fois&lt;/em&gt; (pour « s'il te plaît » à Bruxelles). Proche de la France sinon."><strong>Numbers:</strong> <em>septante, nonante</em> (not soixante-dix / quatre-vingt-dix). <strong>Vocabulary:</strong> <em>une fois</em> around Brussels can mean "please." Otherwise close to France.</p>
+</div>
+<div class="region-card">
+<div class="tag" data-t-en="Switzerland" data-t-native="Suisse">Switzerland</div>
+<h3 data-t-en="French-speaking Switzerland" data-t-native="Suisse romande">French-speaking Switzerland</h3>
+<p data-t-en-html="&lt;strong&gt;Numbers:&lt;/strong&gt; &lt;em&gt;septante, huitante/octante, nonante&lt;/em&gt;. &lt;strong&gt;Vocabulary:&lt;/strong&gt; &lt;em&gt;natel&lt;/em&gt; (older word for cell phone), &lt;em&gt;adieu&lt;/em&gt; (hello, not a final goodbye). Measured rhythm." data-t-native-html="&lt;strong&gt;Chiffres :&lt;/strong&gt; &lt;em&gt;septante, huitante/octante, nonante&lt;/em&gt;. &lt;strong&gt;Vocabulaire :&lt;/strong&gt; &lt;em&gt;natel&lt;/em&gt; (téléphone portable, vieilli), &lt;em&gt;adieu&lt;/em&gt; (salut, pas « au revoir définitif »). Rythme mesuré."><strong>Numbers:</strong> <em>septante, huitante/octante, nonante</em>. <strong>Vocabulary:</strong> <em>natel</em> (older word for cell phone), <em>adieu</em> (hello, not a final goodbye). Measured rhythm.</p>
+</div>
+<div class="region-card">
+<div class="tag" data-t-en="Africa" data-t-native="Afrique">Africa</div>
+<h3 data-t-en="Francophone Africa" data-t-native="Afrique francophone">Francophone Africa</h3>
+<p data-t-en-html="&lt;strong&gt;Register:&lt;/strong&gt; &lt;em&gt;vous&lt;/em&gt; often marks respect. &lt;strong&gt;Lexicon:&lt;/strong&gt; borrowings from local languages, vivid expressions. &lt;strong&gt;Interpreting:&lt;/strong&gt; do not force Parisian French if the local variant is clear." data-t-native-html="&lt;strong&gt;Registre :&lt;/strong&gt; &lt;em&gt;vous&lt;/em&gt; marque souvent le respect. &lt;strong&gt;Lexique :&lt;/strong&gt; emprunts aux langues locales, expressions très imagées. &lt;strong&gt;Interprétation :&lt;/strong&gt; ne standardise pas vers le français parisien si le sens passe en variant locale."><strong>Register:</strong> <em>vous</em> often marks respect. <strong>Lexicon:</strong> borrowings from local languages, vivid expressions. <strong>Interpreting:</strong> do not force Parisian French if the local variant is clear.</p>
+</div>
+<div class="region-card">
+<div class="tag" data-t-en="Caribbean" data-t-native="Caraïbe">Caribbean</div>
+<h3 data-t-en="Francophone Caribbean (Haiti, Antilles)" data-t-native="Caraïbe francophone (Haïti, Antilles)">Francophone Caribbean (Haiti, Antilles)</h3>
+<p data-t-en-html='&lt;strong&gt;Contact:&lt;/strong&gt; strong Creole influence. &lt;strong&gt;Rhythm:&lt;/strong&gt; fast, with reductions. &lt;strong&gt;Interpreting:&lt;/strong&gt; listen for false friends and cultural context before "correcting."' data-t-native-html="&lt;strong&gt;Contact :&lt;/strong&gt; fort influence créole. &lt;strong&gt;Rythme :&lt;/strong&gt; rapide, réductions. &lt;strong&gt;Interprétation :&lt;/strong&gt; écoute les faux amis et le contexte culturel avant de « corriger »."><strong>Contact:</strong> strong Creole influence. <strong>Rhythm:</strong> fast, with reductions. <strong>Interpreting:</strong> listen for false friends and cultural context before "correcting."</p>
+</div>
+</section>
+<section class="section" id="dont-correct">
+<h2 data-t-en="Don't correct this" data-t-native="Ne corrige pas ça">Don't correct this</h2>
+<p class="subtitle" data-t-en="In interpreting, you convey meaning. You do not homogenize." data-t-native="En interprétation, tu transmets, tu n'uniformises pas.">In interpreting, you convey meaning. You do not homogenize.</p>
+<ul class="bullet-list" data-t-en-html='&lt;li&gt;&lt;strong&gt;Septante / nonante&lt;/strong&gt; (BE, CH, QC) are not errors. They are standard regional French.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;char, courriel, fin de semaine&lt;/strong&gt; in Quebec are correct in a Quebec context.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Wider Quebec tutoiement&lt;/strong&gt; is not impoliteness by default.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;African or Creole borrowings&lt;/strong&gt; are not "mistakes" if the speaker is consistent.&lt;/li&gt;
+&lt;li&gt;If the speaker is a native and clear, &lt;strong&gt;do not swap their word for yours&lt;/strong&gt; unless meaning requires it.&lt;/li&gt;' data-t-native-html="&lt;li&gt;&lt;strong&gt;Septante / nonante&lt;/strong&gt; (BE, CH, QC) ne sont pas des erreurs. C'est du français régional standard.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Char, courriel, fin de semaine&lt;/strong&gt; au Québec sont corrects en contexte québécois.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Le tutoiement québécois&lt;/strong&gt; plus large n'est pas de l'impolitesse par défaut.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Les emprunts africains&lt;/strong&gt; ou créoles ne sont pas des « fautes » si le locuteur est cohérent.&lt;/li&gt;
+&lt;li&gt;Si le locuteur est natif et clair, &lt;strong&gt;ne remplace pas son mot par le tien&lt;/strong&gt; sauf si le sens l'exige.&lt;/li&gt;"><li><strong>Septante / nonante</strong> (BE, CH, QC) are not errors. They are standard regional French.</li>
+<li><strong>char, courriel, fin de semaine</strong> in Quebec are correct in a Quebec context.</li>
+<li><strong>Wider Quebec tutoiement</strong> is not impoliteness by default.</li>
+<li><strong>African or Creole borrowings</strong> are not "mistakes" if the speaker is consistent.</li>
+<li>If the speaker is a native and clear, <strong>do not swap their word for yours</strong> unless meaning requires it.</li></ul>
+</section>
 </main>
 </div>
-
 <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeMobileNav()"></div>
-<button class="mobile-nav-btn ui-en" type="button" onclick="toggleMobileNav()">☰ Contents</button>
-<button class="mobile-nav-btn ui-native" type="button" onclick="toggleMobileNav()">☰ Menu</button>
-<button class="back-btn ui-en" type="button" onclick="window.parent.postMessage('closeGuide', '*')">Back to Journal</button>
-<button class="back-btn ui-native" type="button" onclick="window.parent.postMessage('closeGuide', '*')">Retour au journal</button>
+<button class="mobile-nav-btn" data-t-en="☰ Contents" data-t-native="☰ Menu" onclick="toggleMobileNav()" type="button">☰ Contents</button>
+<button class="back-btn" data-t-en="Back to Journal" data-t-native="Retour au journal" onclick="window.parent.postMessage('closeGuide', '*')" type="button">Back to Journal</button>
+<script src="guide-ui.js"></script>
 <script>
 function toggleMobileNav() {
   document.querySelector('.sidebar').classList.toggle('mobile-open');
@@ -298,56 +227,15 @@ document.querySelectorAll('.nav-item').forEach(item => {
     closeMobileNav();
   });
 });
-
-window.applyGuideEnv = function applyGuideEnv(ui, theme) {
-  const useNative = ui === 'fr';
-  document.body.setAttribute('data-guide-ui', useNative ? 'native' : 'en');
-  document.documentElement.lang = useNative ? 'fr' : 'en';
-  if (theme === 'dark') {
-    document.documentElement.setAttribute('data-theme', 'dark');
-    document.body.classList.add('dark');
-  } else {
-    document.documentElement.removeAttribute('data-theme');
-    document.body.classList.remove('dark');
+window.GuideUI.init({
+  nativeLang: 'fr',
+  storageKey: 'parlance_guide_read_fr',
+  titleEn: 'Regional Guide — French',
+  titleNative: 'Guide des dialectes — Français',
+  onApplied: function () {
+    if (typeof updatePair === 'function') updatePair();
   }
-  document.querySelectorAll('select option[data-en]').forEach(opt => {
-    opt.textContent = useNative ? (opt.dataset.fr || opt.dataset.en) : opt.dataset.en;
-  });
-  document.querySelectorAll('.lang-switch a').forEach(a => {
-    const url = new URL(a.getAttribute('href'), location.href);
-    url.searchParams.set('ui', useNative ? 'fr' : 'en');
-    url.searchParams.set('theme', theme === 'dark' ? 'dark' : 'light');
-    a.setAttribute('href', url.pathname.split('/').pop() + '?' + url.searchParams.toString());
-  });
-  document.querySelectorAll('.guide-lang-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.guideRead === (useNative ? 'native' : 'en'));
-  });
-  document.title = useNative ? 'Guide des dialectes — Français' : 'Regional Guide — French';
-}
-
-window.setGuideReadLang = function setGuideReadLang(mode) {
-  const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-  const ui = mode === 'native' ? 'fr' : 'en';
-  applyGuideEnv(ui, theme);
-  try { localStorage.setItem('parlance_guide_read_fr', ui); } catch (_) {}
-};
-
-(function initGuideEnv() {
-  const params = new URLSearchParams(location.search);
-  let ui = params.get('ui');
-  if (!ui) {
-    try { ui = localStorage.getItem('parlance_guide_read_fr'); } catch (_) {}
-  }
-  if (!ui) {
-    try { ui = localStorage.getItem('parlance_ui_lang'); } catch (_) {}
-  }
-  applyGuideEnv(ui || 'en', params.get('theme') || 'light');
-  window.addEventListener('message', (e) => {
-    if (e.data && e.data.type === 'parlanceGuideEnv') {
-      applyGuideEnv(e.data.ui || 'en', e.data.theme || 'light');
-    }
-  });
-})();
+});
 </script>
 <script>
 const PAIR_INSIGHTS = {

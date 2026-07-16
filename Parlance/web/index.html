@@ -125,45 +125,45 @@
 <div id="aiSettingsOverlay" style="display:none" class="modal-overlay" onclick="if(event.target===this)closeAISettings()">
   <div class="modal-card ai-settings-card">
     <div class="modal-header">
-      <h2>AI Provider</h2>
+      <h2 data-i18n="aiProviderTitle">AI Provider</h2>
       <button class="modal-close" onclick="closeAISettings()">&times;</button>
     </div>
     <div class="modal-body">
       <div class="settings-section" id="authSection" style="display:none">
-        <div class="settings-label">Parlance account</div>
+        <div class="settings-label" data-i18n="parlanceAccount">Parlance account</div>
         <div id="authSignedOut">
-          <p class="settings-hint" id="authSetupHint">Sign in to use cloud AI without API keys.</p>
+          <p class="settings-hint" id="authSetupHint" data-i18n="authSetupHint">Sign in to use cloud AI without API keys.</p>
           <div class="auth-buttons" id="authButtons">
-            <button type="button" class="auth-btn" id="signInAppleBtn" onclick="signInWithApple()">Sign in with Apple</button>
-            <button type="button" class="auth-btn auth-btn-google" id="signInGoogleBtn" onclick="signInWithGoogle()">Sign in with Google</button>
+            <button type="button" class="auth-btn" id="signInAppleBtn" onclick="signInWithApple()" data-i18n="signInApple">Sign in with Apple</button>
+            <button type="button" class="auth-btn auth-btn-google" id="signInGoogleBtn" onclick="signInWithGoogle()" data-i18n="signInGoogle">Sign in with Google</button>
           </div>
         </div>
         <div id="authSignedIn" style="display:none">
-          <p class="auth-signed-in-label">Signed in as <span id="authUserLabel"></span></p>
-          <button type="button" class="auth-btn auth-btn-outline" onclick="signOutFirebase()">Sign out</button>
-          <p class="settings-hint" id="authCloudNote" style="display:none">Cloud providers use your Parlance account — no API key needed.</p>
+          <p class="auth-signed-in-label"><span data-i18n="signedInAs">Signed in as</span> <span id="authUserLabel"></span></p>
+          <button type="button" class="auth-btn auth-btn-outline" onclick="signOutFirebase()" data-i18n="signOut">Sign out</button>
+          <p class="settings-hint" id="authCloudNote" style="display:none" data-i18n="authCloudNote">Cloud providers use your Parlance account — no API key needed.</p>
         </div>
       </div>
       <div class="settings-section">
-        <div class="settings-label">Select a provider</div>
+        <div class="settings-label" data-i18n="selectProvider">Select a provider</div>
         <div class="ai-provider-grid" id="providerGrid"></div>
       </div>
       <div class="settings-section" id="apiKeySection" style="display:none">
-        <label class="settings-label" for="apiKeyInput">API Key</label>
-        <input type="password" id="apiKeyInput" class="settings-input" placeholder="Paste your API key…" autocomplete="off" spellcheck="false" />
+        <label class="settings-label" for="apiKeyInput" data-i18n="apiKey">API Key</label>
+        <input type="password" id="apiKeyInput" class="settings-input" data-i18n-placeholder="apiKeyPlaceholder" placeholder="Paste your API key…" autocomplete="off" spellcheck="false" />
         <div class="settings-hint" id="apiKeyHint"></div>
       </div>
       <div class="settings-section" id="modelSection">
-        <label class="settings-label" for="modalModelSelect">Model</label>
+        <label class="settings-label" for="modalModelSelect" data-i18n="model">Model</label>
         <select id="modalModelSelect" class="settings-select"></select>
       </div>
-      <div class="settings-warning" id="corsWarning" style="display:none">
-        ⚠ This provider may block direct browser requests due to CORS restrictions. If analysis fails, try Groq, OpenAI, or Gemini — they all support browser access.
+      <div class="settings-warning" id="corsWarning" style="display:none" data-i18n="corsWarning">
+        This provider may block direct browser requests due to CORS restrictions. If analysis fails, try Groq, OpenAI, or Gemini — they all support browser access.
       </div>
     </div>
     <div class="modal-footer">
       <button class="settings-privacy-link" onclick="closeAISettings();showPrivacyPolicy()" data-i18n="privacy">Privacy Policy</button>
-      <button class="settings-save-btn" onclick="saveAISettingsFromModal()">Save &amp; Close</button>
+      <button class="settings-save-btn" onclick="saveAISettingsFromModal()" data-i18n="saveAndClose">Save &amp; Close</button>
     </div>
   </div>
 </div>

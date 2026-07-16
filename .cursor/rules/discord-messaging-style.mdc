@@ -1,0 +1,15 @@
+---
+description: Style rules for Discord messages and announcements posted to Parlance server
+alwaysApply: true
+---
+
+# Discord Messaging Style
+
+When writing any message, announcement, or post that will be sent to the Parlance Discord server:
+
+- Do NOT use em dashes (—) or en dashes (–) anywhere in the text
+- Use commas, periods, or line breaks instead
+- Keep tone warm and direct
+
+**Bad:** "We built this for aspiring interpreters — people serious about language."
+**Good:** "We built this for aspiring interpreters, people serious about language."
