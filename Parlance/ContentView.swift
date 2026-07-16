@@ -4,6 +4,7 @@ import Network
 
 struct ContentView: View {
     @Environment(AuthManager.self) private var authManager
+    @ObservedObject private var storeKit = StoreKitManager.shared
     @State private var showPrivacyPolicy = false
     @State private var showAISettings   = false
     @State private var aiSettingsRefreshId = UUID()
@@ -40,6 +41,30 @@ struct ContentView: View {
         .onChange(of: authManager.displayLabel) { _, _ in
             authManager.injectAuth(into: ParlanceWebView.activeWebView)
         }
+        .onChange(of: storeKit.isPlusActive) { _, active in
+            Self.pushPlusStatus(active, webView: ParlanceWebView.activeWebView)
+        }
+        .onChange(of: storeKit.plusMonthlyDisplayPrice) { _, price in
+            Self.pushPlusPrice(price, webView: ParlanceWebView.activeWebView)
+        }
+    }
+
+    private static func pushPlusStatus(_ active: Bool, webView: WKWebView?) {
+        pushConfigPatch(["isPlusActive": active], webView: webView)
+    }
+
+    private static func pushPlusPrice(_ price: String?, webView: WKWebView?) {
+        guard let price else { return }
+        pushConfigPatch(["plusMonthlyPriceDisplay": price], webView: webView)
+    }
+
+    private static func pushConfigPatch(_ patch: [String: Any], webView: WKWebView?) {
+        guard let webView,
+              let data = try? JSONSerialization.data(withJSONObject: patch),
+              let json = String(data: data, encoding: .utf8) else { return }
+        webView.evaluateJavaScript(
+            "window.__parlanceUpdateConfig && window.__parlanceUpdateConfig(\(json))"
+        ) { _, _ in }
     }
 
     private func syncAISettingsFromWeb(completion: (() -> Void)? = nil) {
@@ -234,8 +259,17 @@ struct ParlanceWebView: UIViewRepresentable {
         let coachLangs = ParlanceSLMAnalyzer.availableCoachLanguages()
         let coachAvailable = !coachLangs.isEmpty
         let langsJSON = coachLangs.map { "\"\($0)\"" }.joined(separator: ",")
+        let isPlusActive = StoreKitManager.shared.isPlusActive
+        let plusPriceJSON: String
+        if let price = StoreKitManager.shared.plusMonthlyDisplayPrice,
+           let data = try? JSONSerialization.data(withJSONObject: [price]),
+           let json = String(data: data, encoding: .utf8) {
+            plusPriceJSON = String(json.dropFirst().dropLast())
+        } else {
+            plusPriceJSON = "null"
+        }
         return """
-        {"mode":"unified","onDeviceAvailable":\(onDeviceAvail),"groqAvailable":true,"activeProvider":"\(providerName)","parlanceCoachAvailable":\(coachAvailable),"parlanceCoachLanguages":[\(langsJSON)]}
+        {"mode":"unified","onDeviceAvailable":\(onDeviceAvail),"groqAvailable":true,"activeProvider":"\(providerName)","parlanceCoachAvailable":\(coachAvailable),"parlanceCoachLanguages":[\(langsJSON)],"isPlusActive":\(isPlusActive),"plusMonthlyPriceDisplay":\(plusPriceJSON)}
         """
     }
 
@@ -317,6 +351,10 @@ struct ParlanceWebView: UIViewRepresentable {
                 handleSignOut(body)
             } else if action == "purchaseCallPack" {
                 handlePurchaseCallPack(body)
+            } else if action == "purchasePlus" {
+                handlePurchasePlus(body)
+            } else if action == "restorePlus" {
+                handleRestorePlus(body)
             }
         }
 
@@ -559,6 +597,39 @@ struct ParlanceWebView: UIViewRepresentable {
                         "window.__parlancePurchaseResult(\"\(requestId)\", null, \"\(escaped)\")"
                     ) { _, _ in }
                 }
+            }
+        }
+
+        private func handlePurchasePlus(_ body: [String: Any]) {
+            guard let requestId = body["requestId"] as? String else { return }
+            Task { @MainActor in
+                let result = await StoreKitManager.shared.purchasePlus()
+                switch result {
+                case .success(let transactionId):
+                    let escaped = Self.jsonEscaped(transactionId)
+                    self.webView?.evaluateJavaScript(
+                        "window.__parlancePlusPurchaseResult(\"\(requestId)\", {success:true,transactionId:\"\(escaped)\"}, null)"
+                    ) { _, _ in }
+                case .cancelled:
+                    self.webView?.evaluateJavaScript(
+                        "window.__parlancePlusPurchaseResult(\"\(requestId)\", null, \"cancelled\")"
+                    ) { _, _ in }
+                case .failed(let msg):
+                    let escaped = Self.jsonEscaped(msg)
+                    self.webView?.evaluateJavaScript(
+                        "window.__parlancePlusPurchaseResult(\"\(requestId)\", null, \"\(escaped)\")"
+                    ) { _, _ in }
+                }
+            }
+        }
+
+        private func handleRestorePlus(_ body: [String: Any]) {
+            guard let requestId = body["requestId"] as? String else { return }
+            Task { @MainActor in
+                let restored = await StoreKitManager.shared.restorePlus()
+                self.webView?.evaluateJavaScript(
+                    "window.__parlancePlusRestoreResult(\"\(requestId)\", {restored:\(restored)}, null)"
+                ) { _, _ in }
             }
         }
 

@@ -97,12 +97,12 @@
         </button>
         <button type="button" class="guide-picker-card" onclick="openGuideOverlay('medical')">
           <span class="guide-picker-icon">🩺</span>
-          <span class="guide-picker-title" data-i18n="medicalGuideTitle">Medical Interpreting</span>
+          <span class="guide-picker-title"><span data-i18n="medicalGuideTitle">Medical Interpreting</span> <span class="plus-badge" data-i18n="plusBadge">Plus</span></span>
           <span class="guide-picker-desc" data-i18n="medicalGuideDesc">Clinical vocabulary, register, and ethics.</span>
         </button>
         <button type="button" class="guide-picker-card" onclick="openGuideOverlay('legal')">
           <span class="guide-picker-icon">⚖️</span>
-          <span class="guide-picker-title" data-i18n="legalGuideTitle">Legal Interpreting</span>
+          <span class="guide-picker-title"><span data-i18n="legalGuideTitle">Legal Interpreting</span> <span class="plus-badge" data-i18n="plusBadge">Plus</span></span>
           <span class="guide-picker-desc" data-i18n="legalGuideDesc">Court roles, rights language, and protocol.</span>
         </button>
       </div>
@@ -139,6 +139,23 @@
 <!-- Guide overlay -->
 <div id="guideOverlay" style="display:none;position:fixed;inset:0;z-index:200;background:#0e0e0f;">
   <iframe id="guideFrame" style="width:100%;height:100%;border:none;" sandbox="allow-scripts allow-same-origin"></iframe>
+</div>
+
+<!-- ── PARLANCE PLUS PAYWALL ── -->
+<div id="plusPaywallOverlay" style="display:none" class="modal-overlay" onclick="if(event.target===this)closePlusPaywall()">
+  <div class="modal-card plus-paywall-card">
+    <div class="modal-header">
+      <h2 data-i18n="plusPaywallTitle">Parlance Plus</h2>
+      <button class="modal-close" onclick="closePlusPaywall()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p data-i18n="plusPaywallDesc">Medical and legal interpreting guides are part of Parlance Plus — unlimited AI coaching plus domain-specific vocabulary, register, and practice scenarios.</p>
+      <p class="plus-paywall-price" id="plusPaywallPrice" data-i18n="plusPaywallPrice">$9.99/month</p>
+      <button type="button" class="plus-paywall-subscribe" id="plusPaywallSubscribeBtn" onclick="triggerPlusPurchase()" data-i18n="plusPaywallSubscribe">Subscribe to Parlance Plus</button>
+      <button type="button" class="plus-paywall-restore" onclick="triggerPlusRestore()" data-i18n="plusPaywallRestore">Restore purchase</button>
+      <button type="button" class="plus-paywall-cancel" onclick="closePlusPaywall()" data-i18n="plusPaywallCancel">Not now</button>
+    </div>
+  </div>
 </div>
 
 <!-- ── AI SETTINGS MODAL ── -->

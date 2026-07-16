@@ -2,7 +2,7 @@
  * Provider routing — mirrors Parlance/ExternalAnalyzer, AnthropicAnalyzer, GeminiAnalyzer.
  */
 
-const { buildSystemPrompt } = require("./prompts");
+const { buildSystemPrompt, langNameFromCode } = require("./prompts");
 const { parseAndNormalize } = require("./parse");
 
 const ENDPOINTS = {
@@ -114,7 +114,7 @@ async function callGemini(model, apiKey, systemPrompt, userMessage) {
 /**
  * @param {object} params
  * @param {string} params.sentence
- * @param {string} params.language - "es" | "fr"
+ * @param {string} params.language - "es" | "fr" | "en"
  * @param {string} params.level
  * @param {string} [params.ragContext]
  * @param {string} params.provider
@@ -129,7 +129,7 @@ async function analyzeWithProvider(params, secrets) {
     throw new Error(`Server API key not configured for provider: ${provider}`);
   }
 
-  const langName = language === "fr" ? "French" : "Spanish";
+  const langName = langNameFromCode(language);
   const systemPrompt = buildSystemPrompt(langName, ragContext);
   const userMessage = `Analyze this ${langName} sentence: "${sentence}"`;
 

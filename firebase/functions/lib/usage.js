@@ -7,9 +7,13 @@
  *   plus        — unlimited (future $9.99/month subscription)
  *
  * Firestore schema:
- *   users/{uid} — { tier: "free"|"starter"|"plus", createdAt, ... }
+ *   users/{uid} — { tier: "free"|"starter"|"plus", plusExpiresAt, createdAt, ... }
  *   users/{uid}/usage/{YYYY-MM} — { count: number, updatedAt }
  *   users/{uid}/packs/{packId} — { remaining: number, purchasedAt }
+ *
+ * There's no App Store Server Notifications webhook wired up yet, so an
+ * expired "plus" subscription is only caught lazily here (on next usage
+ * check) by comparing plusExpiresAt — see effectiveTier().
  */
 
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
@@ -44,6 +48,21 @@ function currentMonthKey() {
 }
 
 /**
+ * "plus" tier self-heals to "free" once plusExpiresAt has passed, so a
+ * lapsed/cancelled subscription stops granting unlimited calls even without
+ * a server notification webhook telling us it ended.
+ */
+function effectiveTier(user) {
+  const tier = user.tier || "free";
+  if (tier !== "plus") return tier;
+  const expiresAt = user.plusExpiresAt;
+  if (!expiresAt) return tier;
+  const expiresMs = typeof expiresAt.toMillis === "function" ? expiresAt.toMillis() : new Date(expiresAt).getTime();
+  if (Number.isFinite(expiresMs) && expiresMs < Date.now()) return "free";
+  return tier;
+}
+
+/**
  * Check whether the user can make a cloud AI call, and if so,
  * atomically increment their usage counter.
  *
@@ -55,7 +74,7 @@ function currentMonthKey() {
 async function checkAndIncrementUsage(uid) {
   const db = getFirestore();
   const user = await getOrCreateUser(db, uid);
-  const tier = user.tier || "free";
+  const tier = effectiveTier(user);
 
   // Plus tier: unlimited
   if (tier === "plus") {
@@ -121,7 +140,7 @@ async function checkAndIncrementUsage(uid) {
 async function getUsageSummary(uid) {
   const db = getFirestore();
   const user = await getOrCreateUser(db, uid);
-  const tier = user.tier || "free";
+  const tier = effectiveTier(user);
   const monthKey = currentMonthKey();
 
   const usageSnap = await db.doc(`users/${uid}/usage/${monthKey}`).get();
@@ -149,4 +168,4 @@ async function getUsageSummary(uid) {
   };
 }
 
-module.exports = { checkAndIncrementUsage, getUsageSummary, getOrCreateUser };
+module.exports = { checkAndIncrementUsage, getUsageSummary, getOrCreateUser, effectiveTier };

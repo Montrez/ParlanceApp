@@ -29,6 +29,8 @@ const appleRootCerts = defineSecret("APPLE_ROOT_CERTS_BASE64");
 
 const BUNDLE_ID = "com.parlance.interpreterguide";
 const CALL_PACK_PRODUCT_ID = "com.parlance.interpreterguide.callpack100";
+const PLUS_MONTHLY_PRODUCT_ID = "com.parlance.interpreterguide.plusmonthly";
+const KNOWN_PRODUCT_IDS = new Set([CALL_PACK_PRODUCT_ID, PLUS_MONTHLY_PRODUCT_ID]);
 
 const CLOUD_PROVIDERS = new Set([
   "groq", "deepSeek", "deepseek",
@@ -175,7 +177,7 @@ function verifySignedTransactionInfo(signedTransactionInfo) {
   if (payload.bundleId !== BUNDLE_ID) {
     throw new HttpsError("permission-denied", "Apple transaction bundle ID does not match Parlance.");
   }
-  if (payload.productId !== CALL_PACK_PRODUCT_ID) {
+  if (!KNOWN_PRODUCT_IDS.has(payload.productId)) {
     throw new HttpsError("invalid-argument", `Unknown product: ${payload.productId}`);
   }
   if (!payload.transactionId) {
@@ -218,8 +220,8 @@ exports.analyzeText = onCall(
     if (!sentence) {
       throw new HttpsError("invalid-argument", "sentence is required");
     }
-    if (language !== "es" && language !== "fr") {
-      throw new HttpsError("invalid-argument", "language must be es or fr");
+    if (language !== "es" && language !== "fr" && language !== "en") {
+      throw new HttpsError("invalid-argument", "language must be es, fr, or en");
     }
     if (!CLOUD_PROVIDERS.has(providerRaw) && !CLOUD_PROVIDERS.has(provider)) {
       throw new HttpsError("invalid-argument", `Unsupported provider: ${providerRaw}`);
@@ -341,6 +343,69 @@ exports.grantCallPack = onCall(
     } catch (err) {
       console.error("grantCallPack error:", err);
       throw new HttpsError("internal", "Could not grant call pack.");
+    }
+  }
+);
+
+// ── grantPlusSubscription ────────────────────────────────────────────────────
+//
+// Called by the iOS app after a successful StoreKit 2 Parlance Plus purchase
+// (and again on renewal, via the Transaction.updates listener). Sets
+// users/{uid}.tier = "plus" with an expiry so usage.js can grant unlimited
+// cloud AI calls, matching the local StoreKit entitlement that already
+// gates bundled content (medical/legal guides) client-side.
+//
+// Idempotent: re-applying the same or a newer transaction just overwrites
+// the stored expiry — unlike call packs there's no counter to double-credit.
+
+exports.grantPlusSubscription = onCall(
+  { timeoutSeconds: 30, memory: "256MiB", secrets: [appleRootCerts] },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Sign in required.");
+    }
+
+    const uid = request.auth.uid;
+    const { signedTransactionInfo } = request.data || {};
+    const transaction = verifySignedTransactionInfo(signedTransactionInfo);
+
+    if (transaction.productId !== PLUS_MONTHLY_PRODUCT_ID) {
+      throw new HttpsError(
+        "invalid-argument",
+        `Expected Parlance Plus subscription, got: ${transaction.productId}`
+      );
+    }
+
+    const revoked = !!transaction.revocationDate;
+    const expiresAtMs = Number(transaction.expiresDate) || null;
+    const tier = revoked ? "free" : "plus";
+
+    const db = getFirestore();
+    const userRef = db.doc(`users/${uid}`);
+
+    try {
+      await userRef.set(
+        {
+          tier,
+          plusProductId: transaction.productId,
+          plusOriginalTransactionId:
+            transaction.originalTransactionId || String(transaction.transactionId),
+          plusExpiresAt: expiresAtMs ? new Date(expiresAtMs) : null,
+          plusEnvironment: transaction.environment || null,
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+      console.log(
+        `Granted Plus (tier=${tier}) to uid=${uid} expiresAt=${
+          expiresAtMs ? new Date(expiresAtMs).toISOString() : "unknown"
+        }`
+      );
+      return { tier, expiresAt: expiresAtMs };
+    } catch (err) {
+      console.error("grantPlusSubscription error:", err);
+      throw new HttpsError("internal", "Could not grant Parlance Plus.");
     }
   }
 );

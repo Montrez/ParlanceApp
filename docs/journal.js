@@ -799,6 +799,21 @@ function isNativeParlanceApp() {
   return !!(window.__PARLANCE_CONFIG__ && window.webkit?.messageHandlers?.parlance);
 }
 
+/**
+ * Native bridge calls this after config injected at document-start becomes
+ * stale — e.g. StoreKit entitlement check resolves async, or a price loads
+ * after the webview boots. Merges into window.__PARLANCE_CONFIG__ in place.
+ */
+window.__parlanceUpdateConfig = function (patch) {
+  if (!patch) return;
+  window.__PARLANCE_CONFIG__ = Object.assign({}, window.__PARLANCE_CONFIG__ || {}, patch);
+  if ('isPlusActive' in patch) {
+    plusActiveOverride = null; // defer back to the (now current) config value
+    if (patch.isPlusActive) refreshPlusPaywallPrice();
+  }
+  if ('plusMonthlyPriceDisplay' in patch) refreshPlusPaywallPrice();
+};
+
 function parlanceAuthSignedIn() {
   return isFirebaseSignedIn();
 }
@@ -1153,6 +1168,7 @@ function refreshDynamicI18nUI() {
   const loadAll = document.getElementById('loadAllToEditorBtn');
   if (loadAll) loadAll.textContent = i18n.t('loadAllToEditor');
   refreshOpenGuideLanguage();
+  refreshPlusPaywallPrice();
   requestAnimationFrame(syncHeaderOffset);
 }
 
@@ -1287,6 +1303,93 @@ function triggerCallPackPurchase() {
     showToast(i18n.t('callPackAdded'));
   };
   window.webkit.messageHandlers.parlance.postMessage({ action: 'purchaseCallPack', requestId });
+}
+
+// ── Parlance Plus subscription (gates medical/legal guides) ──────────────────
+
+// Session-level override so a successful purchase/restore unlocks immediately
+// without waiting for the native config bridge to be re-injected.
+let plusActiveOverride = null;
+let pendingPlusGuideKind = null;
+
+function isPlusActive() {
+  if (plusActiveOverride !== null) return plusActiveOverride;
+  const cfg = window.__PARLANCE_CONFIG__ || {};
+  return !!cfg.isPlusActive;
+}
+
+function showPlusPaywall(kind) {
+  pendingPlusGuideKind = kind;
+  const overlay = document.getElementById('plusPaywallOverlay');
+  if (!overlay) return;
+  const subscribeBtn = document.getElementById('plusPaywallSubscribeBtn');
+  if (subscribeBtn) subscribeBtn.style.display = isNativeParlanceApp() ? '' : 'none';
+  overlay.style.display = 'flex';
+  refreshPlusPaywallPrice();
+}
+
+function closePlusPaywall() {
+  pendingPlusGuideKind = null;
+  const overlay = document.getElementById('plusPaywallOverlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+function refreshPlusPaywallPrice() {
+  const cfg = window.__PARLANCE_CONFIG__ || {};
+  const priceEl = document.getElementById('plusPaywallPrice');
+  if (priceEl && cfg.plusMonthlyPriceDisplay) {
+    priceEl.textContent = cfg.plusMonthlyPriceDisplay;
+  }
+}
+
+function triggerPlusPurchase() {
+  if (!isNativeParlanceApp()) {
+    showToast(i18n.t('plusPaywallWebNotAvailable'));
+    return;
+  }
+  const requestId = 'purchasePlus_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+  window.__parlancePlusPurchaseResult = (id, data, err) => {
+    if (id !== requestId) return;
+    delete window.__parlancePlusPurchaseResult;
+    if (err === 'cancelled') {
+      showToast(i18n.t('purchaseCancelled'));
+      return;
+    }
+    if (err) {
+      showErrorInPanel(i18n.t('errPlusPurchaseFailed', { err }));
+      return;
+    }
+    plusActiveOverride = true;
+    showToast(i18n.t('plusSubscribed'));
+    closePlusPaywall();
+    if (pendingPlusGuideKind) openGuideOverlay(pendingPlusGuideKind);
+  };
+  window.webkit.messageHandlers.parlance.postMessage({ action: 'purchasePlus', requestId });
+}
+
+function triggerPlusRestore() {
+  if (!isNativeParlanceApp()) {
+    showToast(i18n.t('plusPaywallWebNotAvailable'));
+    return;
+  }
+  const requestId = 'restorePlus_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+  window.__parlancePlusRestoreResult = (id, data, err) => {
+    if (id !== requestId) return;
+    delete window.__parlancePlusRestoreResult;
+    if (err) {
+      showErrorInPanel(i18n.t('errPlusPurchaseFailed', { err }));
+      return;
+    }
+    if (data && data.restored) {
+      plusActiveOverride = true;
+      showToast(i18n.t('plusRestored'));
+      closePlusPaywall();
+      if (pendingPlusGuideKind) openGuideOverlay(pendingPlusGuideKind);
+    } else {
+      showToast(i18n.t('plusNoneToRestore'));
+    }
+  };
+  window.webkit.messageHandlers.parlance.postMessage({ action: 'restorePlus', requestId });
 }
 
 function renderProviderGrid() {
@@ -2058,6 +2161,10 @@ function loadGuide() {
 }
 
 function openGuideOverlay(kind = 'grammar') {
+  if ((kind === 'medical' || kind === 'legal') && !isPlusActive()) {
+    showPlusPaywall(kind);
+    return;
+  }
   const lang    = currentLang();
   const overlay = document.getElementById('guideOverlay');
   const frame   = document.getElementById('guideFrame');

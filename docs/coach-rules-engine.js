@@ -5,7 +5,8 @@
  * the same patterns regardless of WebLLM, cloud API, Firebase, or on-device SLM.
  */
 (function (root) {
-  const RULES = { es: null, fr: null };
+  const RULES = { es: null, fr: null, en: null };
+  const SUPPORTED_LANGS = new Set(['es', 'fr', 'en']);
 
   function normalizeTextForCompare(text) {
     return String(text || '')
@@ -78,15 +79,12 @@
   }
 
   function loadRules(lang) {
-    const key = lang === 'fr' ? 'fr' : 'es';
+    const key = SUPPORTED_LANGS.has(lang) ? lang : 'es';
     if (RULES[key]) return RULES[key];
-    if (key === 'es' && root.ParlanceCoachRulesES) {
-      RULES.es = root.ParlanceCoachRulesES;
-      return RULES.es;
-    }
-    if (key === 'fr' && root.ParlanceCoachRulesFR) {
-      RULES.fr = root.ParlanceCoachRulesFR;
-      return RULES.fr;
+    const globalName = { es: 'ParlanceCoachRulesES', fr: 'ParlanceCoachRulesFR', en: 'ParlanceCoachRulesEN' }[key];
+    if (globalName && root[globalName]) {
+      RULES[key] = root[globalName];
+      return RULES[key];
     }
     return null;
   }
@@ -166,6 +164,12 @@
     if (lang === 'fr') {
       return !/[àâäéèêëîïôöùûüç]|(?:\b(le|la|les|un|une|que|qui|pour|par|est|il|elle|je|tu|vous|de|du|des|ne|pas)\b)/i.test(t);
     }
+    if (lang === 'en') {
+      // The target language IS English here, so (unlike ES/FR) real corrections look exactly
+      // like the labels we're guarding against — only reject genuine placeholder phrasing
+      // (already handled above), not "lacks accented/Spanish words".
+      return false;
+    }
     return !/[áéíóúñü]|(?:\b(el|la|los|las|que|por|para|tengo|tenemos|hacer|trabajo|aplicaci)\b)/i.test(t);
   }
 
@@ -214,7 +218,7 @@
   function mergeWithAI(sentence, aiFeedback, lang) {
     if (aiFeedback && aiFeedback._coach_repaired) return aiFeedback;
     const out = aiFeedback && typeof aiFeedback === 'object' ? { ...aiFeedback } : {};
-    if (lang !== 'es' && lang !== 'fr') return out;
+    if (!SUPPORTED_LANGS.has(lang)) return out;
 
     const ground = analyzeSentence(sentence, lang);
     if (!ground.hasErrors) return out;

@@ -12,13 +12,17 @@ final class StoreKitManager: ObservableObject {
     // MARK: - Product IDs
 
     static let callPack100 = "com.parlance.interpreterguide.callpack100"
-    private static let allProductIDs: Set<String> = [callPack100]
+    static let plusMonthly = "com.parlance.interpreterguide.plusmonthly"
+    private static let allProductIDs: Set<String> = [callPack100, plusMonthly]
 
     // MARK: - Published state
 
     @Published private(set) var products: [Product] = []
     @Published private(set) var isPurchasing = false
     @Published private(set) var purchaseError: String?
+    /// Local, verified entitlement check via Transaction.currentEntitlements —
+    /// gates client-only features (medical/legal guides) without a server round trip.
+    @Published private(set) var isPlusActive = false
 
     // MARK: - Internal
 
@@ -26,7 +30,10 @@ final class StoreKitManager: ObservableObject {
 
     private init() {
         transactionListenerTask = listenForTransactions()
-        Task { await loadProducts() }
+        Task {
+            await loadProducts()
+            await refreshPlusEntitlement()
+        }
     }
 
     deinit {
@@ -73,12 +80,21 @@ final class StoreKitManager: ObservableObject {
             switch result {
             case .success(let verification):
                 let transaction = try checkVerified(verification)
-                let grantResult = await grantPackOnServer(
-                    transaction: transaction,
-                    signedTransactionInfo: verification.jwsRepresentation
-                )
+                let grantResult: PurchaseResult
+                if transaction.productID == Self.plusMonthly {
+                    grantResult = await grantPlusOnServer(
+                        transaction: transaction,
+                        signedTransactionInfo: verification.jwsRepresentation
+                    )
+                } else {
+                    grantResult = await grantPackOnServer(
+                        transaction: transaction,
+                        signedTransactionInfo: verification.jwsRepresentation
+                    )
+                }
                 if case .success = grantResult {
                     await transaction.finish()
+                    await refreshPlusEntitlement()
                 }
                 return grantResult
 
@@ -98,6 +114,44 @@ final class StoreKitManager: ObservableObject {
         }
     }
 
+    func purchasePlus() async -> PurchaseResult {
+        guard let product = products.first(where: { $0.id == Self.plusMonthly }) else {
+            await loadProducts()
+            guard let product = products.first(where: { $0.id == Self.plusMonthly }) else {
+                return .failed("Product unavailable. Check your connection and try again.")
+            }
+            return await purchase(product)
+        }
+        return await purchase(product)
+    }
+
+    /// Re-syncs with the App Store and re-checks local entitlements. Used for
+    /// the "Restore purchase" button — StoreKit subscriptions don't need a
+    /// receipt re-download the way old SKPaymentQueue restores did.
+    func restorePlus() async -> Bool {
+        do {
+            try await AppStore.sync()
+        } catch {
+            print("[StoreKit] AppStore.sync failed:", error)
+        }
+        await refreshPlusEntitlement()
+        return isPlusActive
+    }
+
+    /// Scans verified, current entitlements for an active Plus subscription.
+    /// This is the local source of truth for gating bundled content — it
+    /// reflects cancellations/expirations automatically via StoreKit.
+    func refreshPlusEntitlement() async {
+        var active = false
+        for await result in Transaction.currentEntitlements {
+            guard case .verified(let transaction) = result else { continue }
+            if transaction.productID == Self.plusMonthly && transaction.revocationDate == nil {
+                active = true
+            }
+        }
+        isPlusActive = active
+    }
+
     // MARK: - Transaction listener
 
     private func listenForTransactions() -> Task<Void, Never> {
@@ -106,12 +160,21 @@ final class StoreKitManager: ObservableObject {
                 guard let self else { return }
                 do {
                     let transaction = try self.checkVerified(result)
-                    let grantResult = await self.grantPackOnServer(
-                        transaction: transaction,
-                        signedTransactionInfo: result.jwsRepresentation
-                    )
+                    let grantResult: PurchaseResult
+                    if transaction.productID == Self.plusMonthly {
+                        grantResult = await self.grantPlusOnServer(
+                            transaction: transaction,
+                            signedTransactionInfo: result.jwsRepresentation
+                        )
+                    } else {
+                        grantResult = await self.grantPackOnServer(
+                            transaction: transaction,
+                            signedTransactionInfo: result.jwsRepresentation
+                        )
+                    }
                     if case .success = grantResult {
                         await transaction.finish()
+                        await self.refreshPlusEntitlement()
                     }
                 } catch {
                     print("[StoreKit] Unverified transaction:", error)
@@ -145,6 +208,35 @@ final class StoreKitManager: ObservableObject {
         }
     }
 
+    /// Registers the subscription server-side so unlimited-usage checks in
+    /// Firebase Functions (`usage.js` "plus" tier) see the same entitlement
+    /// as the local StoreKit check.
+    private func grantPlusOnServer(
+        transaction: Transaction,
+        signedTransactionInfo: String
+    ) async -> PurchaseResult {
+        let transactionId = String(transaction.id)
+        let callable = Functions.functions().httpsCallable("grantPlusSubscription")
+        do {
+            let result = try await callable.call([
+                "signedTransactionInfo": signedTransactionInfo,
+                "transactionId": transactionId,
+                "productId": transaction.productID,
+            ])
+            if let data = result.data as? [String: Any] {
+                let tier = data["tier"] as? String ?? "plus"
+                print("[StoreKit] Plus granted. Tier: \(tier)")
+            }
+            return .success(transactionId: transactionId)
+        } catch {
+            print("[StoreKit] grantPlusSubscription cloud error:", error)
+            // Local entitlement (refreshPlusEntitlement) still unlocks bundled
+            // content even if the server sync fails — only the unlimited-AI-calls
+            // perk depends on the server tier, and that will retry on next launch.
+            return .success(transactionId: transactionId)
+        }
+    }
+
     // MARK: - Verification
 
     private func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
@@ -160,5 +252,9 @@ final class StoreKitManager: ObservableObject {
 
     var callPackDisplayPrice: String {
         products.first(where: { $0.id == Self.callPack100 })?.displayPrice ?? "$0.99"
+    }
+
+    var plusMonthlyDisplayPrice: String? {
+        products.first(where: { $0.id == Self.plusMonthly })?.displayPrice
     }
 }

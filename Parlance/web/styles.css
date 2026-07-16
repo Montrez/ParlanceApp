@@ -761,6 +761,66 @@ header {
   line-height: 1.45;
 }
 
+.plus-badge {
+  display: inline-block;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  padding: 0.05rem 0.3rem;
+  vertical-align: middle;
+}
+
+/* ── PARLANCE PLUS PAYWALL ── */
+.plus-paywall-card { max-width: 440px; }
+.plus-paywall-card .modal-body p {
+  font-family: 'Spectral', serif;
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 0 0 0.75rem;
+}
+.plus-paywall-price {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.35rem;
+  color: var(--ink);
+  margin: 0 0 1.1rem;
+}
+.plus-paywall-subscribe {
+  display: block;
+  width: 100%;
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  padding: 0.65rem 1rem;
+  border-radius: 6px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.plus-paywall-subscribe:hover { opacity: 0.85; }
+.plus-paywall-restore,
+.plus-paywall-cancel {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  padding: 0.55rem 0;
+  cursor: pointer;
+  text-align: center;
+}
+.plus-paywall-restore:hover,
+.plus-paywall-cancel:hover { color: var(--ink); }
+[data-theme="dark"] .plus-paywall-subscribe { background: var(--accent); color: #111114; }
+
 /* ── DEEP ANALYSIS BUTTON ── */
 .deep-analysis-footer {
   padding: 0.75rem 1rem;
