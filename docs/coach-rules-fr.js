@@ -456,7 +456,7 @@
       "category": "orthography",
       "priority": 22,
       "detect": {
-        "pattern": "\\b(suis|es|est|sommes|êtes|sont)\\s+la\\b(?=\\s*[.!?]|\\s*$)",
+        "pattern": "(?:^|(?<=[^a-zA-ZÀ-ÿ]))(suis|es|est|sommes|êtes|sont)\\s+la\\b(?=\\s*[.!?]|\\s*$)",
         "flags": "i"
       },
       "issue": "Use «là» (there, with a grave accent) for location, not «la» (the/her).",
@@ -467,7 +467,7 @@
       ],
       "repair": [
         {
-          "pattern": "\\b(suis|es|est|sommes|êtes|sont)\\s+la\\b",
+          "pattern": "(?:^|(?<=[^a-zA-ZÀ-ÿ]))(suis|es|est|sommes|êtes|sont)\\s+la\\b",
           "replace": "\\1 là",
           "flags": "gi"
         }
@@ -601,7 +601,7 @@
       "category": "agreement",
       "priority": 29,
       "detect": {
-        "pattern": "\\belle est\\s+(allé|parti|venu|arrivé)\\b",
+        "pattern": "\\belle est\\s+(allé|parti|venu|arrivé)(?![a-zA-ZÀ-ÿ])",
         "flags": "i"
       },
       "issue": "Past participles agree in gender with the subject when using «être»: «elle est allée», not «elle est allé».",
@@ -612,7 +612,7 @@
       ],
       "repair": [
         {
-          "pattern": "\\belle est\\s+allé\\b",
+          "pattern": "\\belle est\\s+allé(?![a-zA-ZÀ-ÿ])",
           "replace": "elle est allée",
           "flags": "gi"
         },
@@ -627,7 +627,7 @@
           "flags": "gi"
         },
         {
-          "pattern": "\\belle est\\s+arrivé\\b",
+          "pattern": "\\belle est\\s+arrivé(?![a-zA-ZÀ-ÿ])",
           "replace": "elle est arrivée",
           "flags": "gi"
         }
