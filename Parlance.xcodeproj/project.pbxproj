@@ -63,6 +63,11 @@
 		00366AAF97E741748FB640B1 /* guide-ui.js in Resources */ = {isa = PBXBuildFile; fileRef = DD2A8B9884FE4AEFA6B6778E /* guide-ui.js */; };
 		630DB43893084953958C78B3 /* privacy.html in Resources */ = {isa = PBXBuildFile; fileRef = 8FE06A1F4B0044C19951A114 /* privacy.html */; };
 		007621291D03480C806486B6 /* coach-rules-fr.js in Resources */ = {isa = PBXBuildFile; fileRef = A89BCCDC4ECB488D8F481878 /* coach-rules-fr.js */; };
+		0A8475BDFFF34870A5195082 /* guide-en.html in Resources */ = {isa = PBXBuildFile; fileRef = C209906311E747FB8FBF6ACC /* guide-en.html */; };
+		B4DC3BCDE3144B09BFB8C775 /* dialect-en.html in Resources */ = {isa = PBXBuildFile; fileRef = 8355206855574E89B1FF2247 /* dialect-en.html */; };
+		38488591AA25475EBCE9F500 /* coach-standard-en.js in Resources */ = {isa = PBXBuildFile; fileRef = 5CA474DB8C6F41F0B03F2C07 /* coach-standard-en.js */; };
+		8EC53A0A681D4DC4A50FC8A8 /* domain-medical.html in Resources */ = {isa = PBXBuildFile; fileRef = 64A289553972460C9833426C /* domain-medical.html */; };
+		3A711952A45D4632BBAD77BB /* domain-legal.html in Resources */ = {isa = PBXBuildFile; fileRef = 5087EB470E814C3D851A57F4 /* domain-legal.html */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -119,6 +124,11 @@
 		DD2A8B9884FE4AEFA6B6778E /* guide-ui.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "guide-ui.js"; sourceTree = "<group>"; };
 		8FE06A1F4B0044C19951A114 /* privacy.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = privacy.html; sourceTree = "<group>"; };
 		A89BCCDC4ECB488D8F481878 /* coach-rules-fr.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "coach-rules-fr.js"; sourceTree = "<group>"; };
+		C209906311E747FB8FBF6ACC /* guide-en.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "guide-en.html"; sourceTree = "<group>"; };
+		8355206855574E89B1FF2247 /* dialect-en.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "dialect-en.html"; sourceTree = "<group>"; };
+		5CA474DB8C6F41F0B03F2C07 /* coach-standard-en.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "coach-standard-en.js"; sourceTree = "<group>"; };
+		64A289553972460C9833426C /* domain-medical.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "domain-medical.html"; sourceTree = "<group>"; };
+		5087EB470E814C3D851A57F4 /* domain-legal.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "domain-legal.html"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -226,6 +236,11 @@
 				DD2A8B9884FE4AEFA6B6778E /* guide-ui.js */,
 				8FE06A1F4B0044C19951A114 /* privacy.html */,
 				A89BCCDC4ECB488D8F481878 /* coach-rules-fr.js */,
+				C209906311E747FB8FBF6ACC /* guide-en.html */,
+				8355206855574E89B1FF2247 /* dialect-en.html */,
+				5CA474DB8C6F41F0B03F2C07 /* coach-standard-en.js */,
+				64A289553972460C9833426C /* domain-medical.html */,
+				5087EB470E814C3D851A57F4 /* domain-legal.html */,
 			);
 			path = web;
 			sourceTree = "<group>";
@@ -340,6 +355,11 @@
 				00366AAF97E741748FB640B1 /* guide-ui.js in Resources */,
 				630DB43893084953958C78B3 /* privacy.html in Resources */,
 				007621291D03480C806486B6 /* coach-rules-fr.js in Resources */,
+				0A8475BDFFF34870A5195082 /* guide-en.html in Resources */,
+				B4DC3BCDE3144B09BFB8C775 /* dialect-en.html in Resources */,
+				38488591AA25475EBCE9F500 /* coach-standard-en.js in Resources */,
+				8EC53A0A681D4DC4A50FC8A8 /* domain-medical.html in Resources */,
+				3A711952A45D4632BBAD77BB /* domain-legal.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

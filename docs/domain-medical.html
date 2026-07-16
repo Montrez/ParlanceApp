@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Medical Interpreting — Parlance</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="content-theme.css?v=1">
+<link rel="stylesheet" href="content-guide.css?v=3">
+</head>
+<body class="guide lang-en">
+<div class="layout">
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <h1>Medical</h1>
+    <p>Interpreter domain reference</p>
+  </div>
+  <div class="nav-section-label">Sections</div>
+  <a class="nav-item active" href="#register">Register</a>
+  <a class="nav-item" href="#ethics">Ethics</a>
+  <a class="nav-item" href="#vocab">Core vocabulary</a>
+  <a class="nav-item" href="#scenarios">Scenarios</a>
+</nav>
+<div class="content">
+<div class="intro-box">
+  <div class="intro-flag">🩺</div>
+  <div>
+    <div class="intro-title">Medical interpreting</div>
+    <div class="intro-desc">Vocabulary, register, and ethics for clinical settings. Coach RAG also injects medical context when your journal sentence uses clinical keywords. Plus subscription gating for this page is planned (#6).</div>
+  </div>
+</div>
+
+<section class="tense-section" id="register">
+  <div class="section-chapter">Register</div>
+  <div class="tense-header-row"><h2 class="tense-title">Always formal with providers and patients</h2></div>
+  <div class="rule-box">
+    <div class="rule-box-title">Core rule</div>
+    <p>Default to formal address (usted / vous / formal English). Prefer precise clinical terms over slang. Interpret everything said — nothing added, nothing omitted.</p>
+  </div>
+</section>
+
+<section class="tense-section" id="ethics">
+  <div class="section-chapter">Ethics</div>
+  <div class="tense-header-row"><h2 class="tense-title">HIPAA and role boundaries</h2></div>
+  <ul class="bullet-list">
+    <li><strong>Accuracy</strong> — Interpret everything said; no summarizing away content.</li>
+    <li><strong>Impartiality</strong> — Do not advocate or take sides.</li>
+    <li><strong>Confidentiality</strong> — All information is confidential (HIPAA).</li>
+    <li><strong>Role boundaries</strong> — You are not a cultural broker, advisor, or clinician.</li>
+    <li><strong>Sight translation</strong> — Read the full document first, then translate maintaining register.</li>
+  </ul>
+</section>
+
+<section class="tense-section" id="vocab">
+  <div class="section-chapter">Vocabulary</div>
+  <div class="tense-header-row"><h2 class="tense-title">High-frequency clinical terms</h2></div>
+  <table class="irreg-table">
+    <tr><th>English</th><th>Español</th><th>Français</th></tr>
+    <tr><td>pain / symptom</td><td>dolor / síntoma</td><td>douleur / symptôme</td></tr>
+    <tr><td>prescription</td><td>receta</td><td>ordonnance</td></tr>
+    <tr><td>blood pressure</td><td>presión arterial</td><td>tension artérielle</td></tr>
+    <tr><td>allergy</td><td>alergia</td><td>allergie</td></tr>
+    <tr><td>surgery</td><td>cirugía</td><td>chirurgie</td></tr>
+    <tr><td>emergency</td><td>urgencia</td><td>urgence</td></tr>
+    <tr><td>pregnancy</td><td>embarazo</td><td>grossesse</td></tr>
+    <tr><td>X-ray / MRI</td><td>radiografía / resonancia</td><td>radiographie / IRM</td></tr>
+  </table>
+</section>
+
+<section class="tense-section" id="scenarios">
+  <div class="section-chapter">Practice</div>
+  <div class="tense-header-row"><h2 class="tense-title">Journal prompts</h2></div>
+  <ul class="bullet-list">
+    <li>Describe a patient’s chief complaint and how long symptoms have lasted.</li>
+    <li>Explain medication instructions (dose, frequency, with/without food).</li>
+    <li>Interpret a provider asking about allergies and current medications.</li>
+  </ul>
+</section>
+</div>
+</div>
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeMobileNav()"></div>
+<button class="mobile-nav-btn" onclick="toggleMobileNav()" type="button">☰ Contents</button>
+<button class="back-btn" onclick="window.parent.postMessage('closeGuide', '*')" type="button">Back to Journal</button>
+<script>
+function toggleMobileNav(){document.querySelector('.sidebar').classList.toggle('mobile-open');document.getElementById('sidebarBackdrop').classList.toggle('open');}
+function closeMobileNav(){document.querySelector('.sidebar').classList.remove('mobile-open');document.getElementById('sidebarBackdrop').classList.remove('open');}
+document.querySelectorAll('.nav-item').forEach(item=>{item.addEventListener('click',()=>{document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));item.classList.add('active');closeMobileNav();});});
+</script>
+</body>
+</html>

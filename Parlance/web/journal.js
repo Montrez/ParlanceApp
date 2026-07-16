@@ -606,18 +606,40 @@ async function ensureWebLLM(modelId, progressCallback) {
 }
 
 // ── SYSTEM PROMPT BUILDER ─────────────────────────────────────────
-function buildSystemPrompt(langName, ragContext) {
-  const registerLabel = langName === 'French' ? 'tu/vous' : 'tú/usted';
-  const formalRegister = langName === 'French' ? 'vous' : 'usted';
-  const informalRegister = langName === 'French' ? 'tu' : 'tú';
-  const langKey = langName === 'French' ? 'fr' : 'es';
+function buildSystemPrompt(language, ragContext) {
+  const info = parlanceLanguageInfo(language);
+  const langName = info.coachRole;
+  const langKey = info.code;
+  let registerLabel;
+  let formalRegister;
+  let informalRegister;
+  let evaluateFocus;
+  if (langKey === 'fr') {
+    registerLabel = 'tu/vous';
+    formalRegister = 'vous';
+    informalRegister = 'tu';
+    evaluateFocus = 'verb tense and mood, gender/number agreement, register (tu/vous), Anglicisms, and naturalness for professional interpreting';
+  } else if (langKey === 'en') {
+    registerLabel = 'formal/informal (and US/UK/AU/CA variety)';
+    formalRegister = 'formal';
+    informalRegister = 'informal';
+    evaluateFocus = 'articles, tense aspect, conditionals, false cognates from Spanish/French, preposition calques, register, and naturalness for professional interpreting';
+  } else {
+    registerLabel = 'tú/usted';
+    formalRegister = 'usted';
+    informalRegister = 'tú';
+    evaluateFocus = 'verb tense and mood, gender/number agreement, register (tú/usted), Anglicisms, and naturalness for professional interpreting';
+  }
+  const exampleSentenceRule = langKey === 'en'
+    ? `ALL example sentences (correction, next_level_alt, target_level_alt) MUST be COMPLETE SENTENCES written in English (the practice language). Do NOT return Spanish or French for those fields. Do NOT return short labels — return full, natural sentences.`
+    : `ALL example sentences (correction, next_level_alt, target_level_alt) MUST be COMPLETE SENTENCES written in ${langName}, NEVER in English. Do NOT return short labels or descriptions — return full, natural sentences.`;
   const standardBlock = (typeof ParlanceCoachStandard !== 'undefined' && ParlanceCoachStandard.forLang)
     ? ParlanceCoachStandard.forLang(langKey)
     : '';
 
   let prompt = `You are a ${langName} professor training professional interpreters. Do NOT assume the learner picked a CEFR level.
 
-Evaluate verb tense and mood, gender/number agreement, register (${registerLabel}), Anglicisms, and naturalness for professional interpreting.
+Evaluate ${evaluateFocus}.
 
 `;
   if (standardBlock) {
@@ -646,9 +668,9 @@ ${ragContext}
 - ALWAYS include complexity_note describing THIS sentence's structures.
 - next_level_alt MUST rewrite the sentence at a higher level — never copy the input verbatim.
 - tip MUST include at least one complete example sentence in ${langName} showing a stronger phrasing.
-- ALL example sentences (correction, next_level_alt, target_level_alt) MUST be COMPLETE SENTENCES written in ${langName}, NEVER in English. Do NOT return short labels or descriptions — return full, natural sentences.
+- ${exampleSentenceRule}
 - next_level_alt and target_level_alt must express the SAME idea as the original sentence rephrased with grammar and vocabulary appropriate for that CEFR level. Do NOT add new information or embellish.
-- grammar_rule, explanation, register, and tip must be in English.
+- grammar_rule, explanation, register, and tip must be in English (meta commentary), even when the practice language is English.
 
 MULTIPLE ERRORS (very important for Browser AI):
 - If the sentence has more than one mistake, list EVERY error in explanation as separate bullet points (•), quoting the learner's exact words.
@@ -999,7 +1021,7 @@ async function analyzeWithAI(sentence, language, progressCallback) {
   const ragMeta     = buildRAGMeta(language, null, sentence, providerId === 'parlance');
   const ragContext  = ragMeta.context;
   const langName    = parlanceLanguageInfo(language).coachRole;
-  const systemPrompt = buildSystemPrompt(langName, ragContext);
+  const systemPrompt = buildSystemPrompt(language, ragContext);
   const userMessage  = `Analyze this ${langName} sentence: "${sentence}"`;
 
   const timeoutMs = analysisTimeoutMs(providerId);
@@ -2039,7 +2061,13 @@ function openGuideOverlay(kind = 'grammar') {
   const lang    = currentLang();
   const overlay = document.getElementById('guideOverlay');
   const frame   = document.getElementById('guideFrame');
-  const file = kind === 'dialect' ? lang.dialectFile : lang.guideFile;
+  const fileByKind = {
+    dialect: lang.dialectFile,
+    grammar: lang.guideFile,
+    medical: 'domain-medical.html',
+    legal: 'domain-legal.html',
+  };
+  const file = fileByKind[kind] || lang.guideFile;
 
   if (!file) { showToast(i18n.t('guideComingSoon')); return; }
 

@@ -33,6 +33,19 @@ const PARLANCE_LANGUAGES = {
     hasOnDeviceModel: true,
     coachStandardGlobal: 'ParlanceCoachStandardFR',
   },
+
+  en: {
+    code: 'en',
+    name: 'English',
+    placeholder: 'Write a paragraph in English…',
+    titlePlaceholder: 'Entry title… (e.g. My first day interpreting in English)',
+    coachRole: 'English',
+    guideFile: 'guide-en.html',
+    dialectFile: 'dialect-en.html',
+    examKey: 'toefl',
+    hasOnDeviceModel: false,
+    coachStandardGlobal: 'ParlanceCoachStandardEN',
+  },
 };
 
 const PARLANCE_DEFAULT_LANGUAGE = 'es';

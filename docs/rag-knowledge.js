@@ -111,6 +111,74 @@ const RAG_KNOWLEDGE = {
         ],
         tips: ["At C2, interpreters handle simultaneous register shifts between formal testimony and emotional speech"]
       }
+    },
+    en: {
+      A1: {
+        rules: [
+          "Present simple vs continuous: I work / I am working — Spanish/French learners often overuse progressive.",
+          "Articles: a/an/the — Romance speakers may omit or overuse the."
+        ],
+        tips: ["Keep sentences short; prioritize SVO word order."]
+      },
+      A2: {
+        rules: [
+          "Past simple vs present perfect: I went yesterday / I have been there — Romance past systems map imperfectly.",
+          "Countable/uncountable: much/many, a little/a few — false friends with mucho/beaucoup."
+        ],
+        tips: ["Signal time clearly (yesterday / already / yet) to pick the right past."]
+      },
+      B1: {
+        rules: [
+          "Conditionals: if + present → will; if + past → would — Spanish/French si-clause mood transfer is common.",
+          "Modals for advice/obligation: should / must / have to."
+        ],
+        tips: ["For interpreting, prefer precise modals (must vs should) over soft paraphrases."]
+      },
+      B2: {
+        rules: [
+          "Passive for formality: The patient was informed.",
+          "Gerund vs infinitive after verbs (enjoy doing / decide to)."
+        ],
+        tips: ["False cognates: actually ≠ actualmente; embarrassed ≠ embarazada; library ≠ librería."]
+      },
+      C1: {
+        rules: [
+          "Nominalization and hedging in professional English.",
+          "Register: prefer Latinate verbs over phrasal verbs in clinical/legal English."
+        ],
+        tips: ["Avoid calques: depend on (not of); discuss (not discuss about)."]
+      },
+      C2: {
+        rules: [
+          "Discourse cohesion under interpreting pressure.",
+          "Near-native collocations without Romance word-order transfer."
+        ],
+        tips: ["Preserve speaker intent and register shifts, not word-for-word structure."]
+      }
+    }
+  },
+  // When practice language is English, inject L1-specific transfer rules (issue #10).
+  // Keyed by learner L1 inferred from app UI locale (es/fr); both packs if UI is en.
+  contrastive: {
+    en_from_es: {
+      label: 'English for Spanish L1',
+      rules: [
+        'Articles: Spanish generics often use el/la; English zero article for general plurals/uncountables (I like music, not *the music*).',
+        'False friends: actually ≠ actualmente; embarrassed ≠ embarazada; library ≠ librería; exit ≠ éxito; assist ≠ asistir (attend).',
+        'do-support: ¿Hablas inglés? → Do you speak English? (not *Speak you English?).',
+        'Prepositions: depend on (not of); married to (not with); discuss X (not discuss about).',
+        'Conditionals: never would in the if-clause (*If I would have… → If I had…).'
+      ]
+    },
+    en_from_fr: {
+      label: 'English for French L1',
+      rules: [
+        'Articles: J’aime le café → I like coffee (zero article for the drink in general).',
+        'False friends: actually ≠ actuellement; library ≠ librairie; sensible ≠ sensible (sensitive); deception ≠ déception (disappointment); realize ≠ réaliser (carry out).',
+        'Prepositions: interested in (not *by from intéressé par); depend on (not of).',
+        'Present perfect vs passé composé: English needs time-marker logic (yesterday → past simple).',
+        'Conditionals: Si j’avais… je ferais… maps to If I had… I would… — not would in the if-clause.'
+      ]
     }
   },
   exam: {
@@ -135,6 +203,17 @@ const RAG_KNOWLEDGE = {
         C1: "DALF C1: Text synthesis from two sources, structured essay. Academic register and argumentation.",
         C2: "DALF C2: Integrated production from a dossier. Near-native mastery in all registers."
       }
+    },
+    toefl: {
+      general: "TOEFL iBT (ETS) — English proficiency for academic/professional settings. Map bands loosely to CEFR for coaching.",
+      levels: {
+        A1: "A1: survival phrases, introductions, form fields.",
+        A2: "A2: short routine descriptions; simple past narratives.",
+        B1: "B1: opinions, explanations, workplace email tone.",
+        B2: "B2: argument structure, paraphrase, academic vocabulary.",
+        C1: "C1: synthesis, hedging, professional register.",
+        C2: "C2: flexible register and idiomatic precision under time pressure."
+      }
     }
   },
   medical: {
@@ -148,6 +227,11 @@ const RAG_KNOWLEDGE = {
         body: "tête (head), cœur (heart), poumons (lungs), estomac (stomach), foie (liver), reins (kidneys), sang (blood)",
         conditions: "diabète, hypertension, asthme, cancer, infection, fracture, allergie, grossesse (pregnancy)",
         procedures: "chirurgie (surgery), biopsie, radiographie (X-ray), IRM (MRI), analyse de sang (blood test)"
+      },
+      en: {
+        body: "head, heart, lungs, stomach, liver, kidneys, blood",
+        conditions: "diabetes, hypertension, asthma, cancer, infection, fracture, allergy, pregnancy",
+        procedures: "surgery, biopsy, X-ray, MRI, blood test"
       }
     },
     ethics: [
@@ -169,6 +253,11 @@ const RAG_KNOWLEDGE = {
         court: "tribunal (court), juge (judge), avocat (lawyer), procureur (prosecutor), accusé (defendant), témoin (witness), jury",
         proceedings: "audience (hearing), mise en accusation (arraignment), caution (bail), jugement (sentence), appel (appeal)",
         rights: "droit de garder le silence, droit à un avocat, présomption d'innocence"
+      },
+      en: {
+        court: "court, judge, lawyer, prosecutor, defendant, witness, jury",
+        proceedings: "hearing, arraignment, bail, sentence, appeal",
+        rights: "right to remain silent, right to an attorney, presumption of innocence"
       }
     },
     protocol: [
@@ -496,7 +585,37 @@ const GRAMMAR_TRIGGERS = {
         'Simultaneous vs consecutive modes — maintain speaker intent, register, and technical terms'
       ]
     }
+  ],
+  en: [
+    {
+      id: 'articles',
+      label: 'Articles (a/an/the)',
+      test: s => /\b(a|an|the)\b/i.test(s),
+      rules: [
+        'English requires articles more often than Spanish/French zero-article generics.',
+        'Use a/an for first mention; the for known/unique referents.'
+      ]
+    },
+    {
+      id: 'conditionals',
+      label: 'Conditionals',
+      test: s => /\bif\b/i.test(s) && /\b(will|would|can|could)\b/i.test(s),
+      rules: [
+        'Real: If + present, will + verb. Unreal: If + past, would + verb — do not copy Spanish/French si + conditional into the if-clause.',
+        'Avoid *If I would have…* (use If I had…).'
+      ]
+    },
+    {
+      id: 'false_cognates',
+      label: 'False cognates (ES/FR L1)',
+      test: s => /\b(actually|library|embarrassed|sensible|realize|assist)\b/i.test(s),
+      rules: [
+        'actually ≠ actualmente; embarrassed ≠ embarazada; library ≠ librería (bookstore).',
+        'sensible (EN: reasonable) ≠ sensible (ES/FR: sensitive).'
+      ]
+    }
   ]
+
 };
 
 const MEDICAL_KEYWORDS = {
@@ -622,6 +741,26 @@ function getRAGContextWithMeta(language, level, sentence, options = {}) {
     }
   }
 
+  if (langKey === 'en' && RAG_KNOWLEDGE.contrastive) {
+    let ui = 'en';
+    try {
+      if (typeof i18n !== 'undefined' && typeof i18n.getLocale === 'function') {
+        ui = i18n.getLocale();
+      }
+    } catch (_) {}
+    const keys = (ui === 'es' || ui === 'fr')
+      ? ['en_from_' + ui]
+      : ['en_from_es', 'en_from_fr'];
+    keys.forEach(key => {
+      const pack = RAG_KNOWLEDGE.contrastive[key];
+      if (!pack) return;
+      topics.push(key);
+      parts.push('L1 CONTRAST — ' + pack.label + ':');
+      const rules = condensed ? pack.rules.slice(0, 2) : pack.rules;
+      rules.forEach(r => parts.push('- ' + r));
+    });
+  }
+
   const examKey = parlanceLanguageInfo(langKey).examKey;
   const examLine = levelNorm ? RAG_KNOWLEDGE.exam[examKey]?.levels?.[levelNorm] : null;
   if (examLine) {
@@ -644,9 +783,12 @@ function getRAGContextWithMeta(language, level, sentence, options = {}) {
     if (trigger) return trigger.label;
     if (id === 'medical') return 'Medical interpreting';
     if (id === 'legal') return 'Legal interpreting';
+    if (id === 'en_from_es') return 'English ← Spanish L1';
+    if (id === 'en_from_fr') return 'English ← French L1';
     if (id.startsWith('level_')) return (levelNorm || '') + ' grammar';
     if (id === 'dele') return 'DELE exam';
     if (id === 'delf') return 'DELF exam';
+    if (id === 'toefl') return 'TOEFL exam';
     return id;
   });
 

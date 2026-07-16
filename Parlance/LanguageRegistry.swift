@@ -19,6 +19,8 @@ enum LanguageRegistry {
     static let all: [LanguageInfo] = [
         LanguageInfo(code: "es", displayName: "Spanish", onDeviceModelFolder: "parlance-es-mlx"),
         LanguageInfo(code: "fr", displayName: "French", onDeviceModelFolder: "parlance-fr-mlx"),
+        // Cloud coaching only for now (Phase 1 of #9); on-device English model is #11.
+        LanguageInfo(code: "en", displayName: "English", onDeviceModelFolder: nil),
     ]
 
     private static let byCode: [String: LanguageInfo] = Dictionary(

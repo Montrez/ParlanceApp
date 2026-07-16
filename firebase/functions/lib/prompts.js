@@ -3,13 +3,39 @@
  */
 
 function buildSystemPrompt(langName, ragContext = "") {
-  const registerLabel = langName === "French" ? "tu/vous" : "tú/usted";
-  const formalRegister = langName === "French" ? "vous" : "usted";
-  const informalRegister = langName === "French" ? "tu" : "tú";
+  let registerLabel;
+  let formalRegister;
+  let informalRegister;
+  let evaluateFocus;
+  let exampleSentenceRule;
+
+  if (langName === "French") {
+    registerLabel = "tu/vous";
+    formalRegister = "vous";
+    informalRegister = "tu";
+    evaluateFocus =
+      "verb tense and mood, gender/number agreement, register (tu/vous), Anglicisms, and naturalness for professional interpreting";
+    exampleSentenceRule = `ALL example sentences (correction, next_level_alt, target_level_alt) MUST be COMPLETE SENTENCES in ${langName}, NEVER in English. Do NOT return short labels or descriptions — return full, natural sentences.`;
+  } else if (langName === "English") {
+    registerLabel = "formal/informal (and US/UK/AU/CA variety)";
+    formalRegister = "formal";
+    informalRegister = "informal";
+    evaluateFocus =
+      "articles, tense aspect, conditionals, false cognates from Spanish/French, preposition calques, register, and naturalness for professional interpreting";
+    exampleSentenceRule =
+      "ALL example sentences (correction, next_level_alt, target_level_alt) MUST be COMPLETE SENTENCES in English (the practice language). Do NOT return Spanish or French for those fields. Do NOT return short labels — return full, natural sentences.";
+  } else {
+    registerLabel = "tú/usted";
+    formalRegister = "usted";
+    informalRegister = "tú";
+    evaluateFocus =
+      "verb tense and mood, gender/number agreement, register (tú/usted), Anglicisms, and naturalness for professional interpreting";
+    exampleSentenceRule = `ALL example sentences (correction, next_level_alt, target_level_alt) MUST be COMPLETE SENTENCES in ${langName}, NEVER in English. Do NOT return short labels or descriptions — return full, natural sentences.`;
+  }
 
   let prompt = `You are a ${langName} professor training professional interpreters. Do NOT assume the learner picked a CEFR level.
 
-Evaluate verb tense and mood, gender/number agreement, register (${registerLabel}), Anglicisms, and naturalness for professional interpreting.
+Evaluate ${evaluateFocus}.
 
 CEFR & COMPLEXITY:
 - assessed_level: A1–C2 ONLY if highly confident from specific structures in this sentence. When uncertain, omit and use complexity_note without a CEFR label.
@@ -32,10 +58,10 @@ ${ragContext}
 - Do NOT set assessed_level unless highly confident from specific structures in the sentence. When uncertain, omit and use complexity_note.
 - ALWAYS include complexity_note describing THIS sentence's structures.
 - next_level_alt MUST rewrite the sentence at a higher level — never copy the input verbatim.
-- ALL example sentences (correction, next_level_alt, target_level_alt) MUST be COMPLETE SENTENCES in ${langName}, NEVER in English. Do NOT return short labels or descriptions — return full, natural sentences.
+- ${exampleSentenceRule}
 - next_level_alt and target_level_alt must express the SAME idea as the original sentence rephrased with grammar and vocabulary appropriate for that CEFR level. Do NOT add new information or embellish.
 - NEVER use Chinese, Japanese, Korean, Cyrillic, or any non-Latin characters in ${langName} sentences. Use ONLY Latin alphabet characters with standard ${langName} diacritics.
-- grammar_rule, explanation, register, and tip must be in English.
+- grammar_rule, explanation, register, and tip must be in English (meta commentary), even when the practice language is English.
 
 Respond with ONLY a valid JSON object (no markdown, no text outside the JSON, no <think> tags):
 {
@@ -60,7 +86,9 @@ function buildUserMessage(langName, sentence) {
 }
 
 function langNameFromCode(language) {
-  return language === "fr" ? "French" : "Spanish";
+  if (language === "fr") return "French";
+  if (language === "en") return "English";
+  return "Spanish";
 }
 
 module.exports = {

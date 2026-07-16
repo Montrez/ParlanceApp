@@ -30,6 +30,7 @@
         <span class="lang-control-label" id="practiceLangLabel" data-i18n="practiceLangLabel">Write</span>
         <select class="header-select" id="langSelect" onchange="onLanguageChange()" data-i18n-title="practiceLangTitle" title="Practice language (what you write)" aria-labelledby="practiceLangLabel">
           <option value="es">Español</option>
+          <option value="en">English</option>
           <option value="fr">Français</option>
         </select>
       </label>
@@ -93,6 +94,16 @@
           <span class="guide-picker-icon">🌎</span>
           <span class="guide-picker-title" data-i18n="dialectGuideTitle">Regional Guide</span>
           <span class="guide-picker-desc" data-i18n="dialectGuideDesc">Regional vocabulary, pronouns, and words to know.</span>
+        </button>
+        <button type="button" class="guide-picker-card" onclick="openGuideOverlay('medical')">
+          <span class="guide-picker-icon">🩺</span>
+          <span class="guide-picker-title" data-i18n="medicalGuideTitle">Medical Interpreting</span>
+          <span class="guide-picker-desc" data-i18n="medicalGuideDesc">Clinical vocabulary, register, and ethics.</span>
+        </button>
+        <button type="button" class="guide-picker-card" onclick="openGuideOverlay('legal')">
+          <span class="guide-picker-icon">⚖️</span>
+          <span class="guide-picker-title" data-i18n="legalGuideTitle">Legal Interpreting</span>
+          <span class="guide-picker-desc" data-i18n="legalGuideDesc">Court roles, rights language, and protocol.</span>
         </button>
       </div>
     </div>
@@ -197,6 +208,7 @@
 <script src="rag-knowledge.js"></script>
 <script src="coach-standard-es.js?v=14"></script>
 <script src="coach-standard-fr.js?v=14"></script>
+<script src="coach-standard-en.js?v=1"></script>
 <script src="coach-standard.js?v=14"></script>
 <script src="coach-rules-es.js?v=14"></script>
 <script src="coach-rules-fr.js?v=14"></script>
