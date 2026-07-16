@@ -48,6 +48,7 @@ else
 fi
 
 $CLI fs upload "$ROOT/finetune_slm.py" -r finetune_slm.py -e "$EP"
+$CLI fs upload "$ROOT/colab_train.py" -r colab_train.py -e "$EP"
 $CLI fs upload "$ROOT/colab_train_all.py" -r colab_train_all.py -e "$EP"
 $CLI fs upload "$ROOT/parlance_training_data.zip" -r parlance_training_data.zip -e "$EP"
 

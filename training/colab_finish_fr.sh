@@ -24,6 +24,7 @@ echo "Using Colab GPU: $EP"
 node "$ROOT/register_colab_runtime.mjs" "$EP" >/dev/null
 
 $CLI fs upload "$ROOT/finetune_slm.py" -r finetune_slm.py -e "$EP"
+$CLI fs upload "$ROOT/colab_train.py" -r colab_train.py -e "$EP"
 $CLI fs upload "$ROOT/colab_train_fr.py" -r colab_train_fr.py -e "$EP"
 $CLI fs upload "$ROOT/reexport_merged.py" -r reexport_merged.py -e "$EP"
 
