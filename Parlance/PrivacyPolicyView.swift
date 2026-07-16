@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PrivacyPolicyView: View {
     @Binding var isPresented: Bool
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     var body: some View {
         ZStack {
@@ -73,8 +74,8 @@ struct PrivacyPolicyView: View {
             .background(Color("Paper"))
             .clipShape(RoundedRectangle(cornerRadius: 16))
             .shadow(radius: 20)
-            .frame(maxWidth: 520)
-            .padding(24)
+            .frame(maxWidth: horizontalSizeClass == .regular ? 640 : 520)
+            .padding(horizontalSizeClass == .regular ? 40 : 24)
         }
         .transition(.opacity)
         .animation(.easeInOut(duration: 0.2), value: isPresented)

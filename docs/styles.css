@@ -27,11 +27,26 @@
 
 * { margin:0; padding:0; box-sizing:border-box; }
 
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  /* Measured by JS (ResizeObserver on header); fallbacks cover single-line header. */
+  --app-header-height: 56px;
+  --panel-bottom-gap: 1.5rem;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   background: var(--paper2);
   color: var(--ink);
   font-family: 'Spectral', serif;
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
 }
@@ -39,7 +54,7 @@ body {
 /* ── TOP BAR ── */
 header {
   background: var(--ink);
-  padding: 0.65rem 1rem;
+  padding: calc(0.65rem + var(--safe-top)) max(1rem, var(--safe-right)) 0.65rem max(1rem, var(--safe-left));
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -278,6 +293,21 @@ header {
   color: var(--accent);
   background: var(--accent-light);
 }
+.jump-feedback-btn {
+  display: none;
+  background: var(--accent-light);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+.jump-feedback-btn:hover { opacity: 0.85; }
 .sentence-status {
   font-size: 0.75rem;
   pointer-events: none;
@@ -333,8 +363,9 @@ header {
   flex-direction: column;
   gap: 0;
   position: sticky;
-  top: 72px;
-  height: calc(100vh - 96px);
+  top: var(--app-header-height);
+  height: calc(100vh - var(--app-header-height) - var(--panel-bottom-gap) - var(--safe-bottom));
+  height: calc(100dvh - var(--app-header-height) - var(--panel-bottom-gap) - var(--safe-bottom));
   background: var(--paper);
   border: 1px solid var(--rule);
   border-radius: 4px;
@@ -564,8 +595,8 @@ header {
 /* ── ERROR NOTIFICATION ── */
 .error-toast {
   position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
+  bottom: max(1.5rem, calc(1.5rem + var(--safe-bottom)));
+  right: max(1.5rem, calc(1.5rem + var(--safe-right)));
   background: var(--ink);
   color: var(--paper);
   padding: 0.75rem 1.25rem;
@@ -575,6 +606,7 @@ header {
   z-index: 1000;
   display: none;
   animation: fadeIn 0.2s ease;
+  max-width: min(22rem, calc(100vw - 2rem - var(--safe-left) - var(--safe-right)));
 }
 .error-toast.show { display: block; }
 
@@ -919,7 +951,7 @@ header {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
+  padding: max(1rem, var(--safe-top)) max(1rem, var(--safe-right)) max(1rem, var(--safe-bottom)) max(1rem, var(--safe-left));
 }
 .modal-card {
   background: var(--paper);
@@ -927,6 +959,7 @@ header {
   max-width: 520px;
   width: 100%;
   max-height: 85vh;
+  max-height: 85dvh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 60px rgba(0,0,0,0.3);
@@ -1315,17 +1348,24 @@ header {
   margin-top: 0.35rem;
 }
 
-/* ── TABLET (768–1024px): two columns but narrower feedback panel ── */
+/* ── iPad / large tablet landscape (full width, not Split View) ── */
+@media (min-width: 1025px) and (max-width: 1366px) {
+  .workspace {
+    grid-template-columns: 1fr clamp(300px, 30vw, 400px);
+    max-width: 1180px;
+    gap: 1.25rem;
+    padding: 1.5rem 1.25rem;
+  }
+}
+
+/* ── TABLET / iPad Split View (~half width): two columns, narrower panel ── */
 @media (max-width: 1024px) and (min-width: 769px) {
   .workspace {
-    grid-template-columns: 1fr clamp(280px, 32vw, 360px);
+    grid-template-columns: 1fr clamp(260px, 34vw, 360px);
     gap: 1rem;
     padding: 1.5rem 1rem;
   }
-  .feedback-panel {
-    top: 64px;
-    height: calc(100vh - 88px);
-  }
+  /* Sticky offsets come from --app-header-height (measured), not magic numbers. */
 }
 
 /* ── MOBILE (≤768px): single column ── */
@@ -1335,12 +1375,18 @@ header {
     padding: 1rem;
     gap: 1rem;
   }
-  .feedback-panel { position: static; height: auto; max-height: 70vh; }
+  .feedback-panel {
+    position: static;
+    height: auto;
+    max-height: 70vh;
+    max-height: 70dvh;
+  }
+  .sentence-row.has-feedback .jump-feedback-btn { display: inline-flex; }
   .sentences-area { min-height: 120px; }
   header {
     flex-wrap: wrap;
     gap: 0.4rem;
-    padding: 0.6rem 0.75rem;
+    padding: calc(0.6rem + var(--safe-top)) max(0.75rem, var(--safe-right)) 0.6rem max(0.75rem, var(--safe-left));
   }
   .header-right {
     gap: 0.3rem;

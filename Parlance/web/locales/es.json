@@ -7,6 +7,7 @@
   "wordCount_other": "{n} palabras",
   "addSentence": "Agregar otro párrafo",
   "getFeedback": "Analizar",
+  "viewFeedback": "Ver feedback ↓",
   "analyzeHint": "Escribe con libertad — los párrafos están bien. ⌘Enter / Ctrl+Enter para feedback.",
   "saveEntry": "Guardar entrada",
   "feedback": "Retroalimentación",

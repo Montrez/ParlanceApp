@@ -1121,6 +1121,9 @@ function refreshDynamicI18nUI() {
   document.querySelectorAll('.analyze-btn').forEach(btn => {
     btn.textContent = i18n.t('getFeedback');
   });
+  document.querySelectorAll('.jump-feedback-btn').forEach(btn => {
+    btn.textContent = i18n.t('viewFeedback');
+  });
   document.querySelectorAll('.sentence-input').forEach(ta => {
     const hint = i18n.t('analyzeHint');
     if (hint && hint !== 'analyzeHint') ta.title = hint;
@@ -1128,6 +1131,7 @@ function refreshDynamicI18nUI() {
   const loadAll = document.getElementById('loadAllToEditorBtn');
   if (loadAll) loadAll.textContent = i18n.t('loadAllToEditor');
   refreshOpenGuideLanguage();
+  requestAnimationFrame(syncHeaderOffset);
 }
 
 function onUILangChange() {
@@ -1369,9 +1373,52 @@ const hasWebGPU   = !!navigator.gpu;
 const canUseWebLLM = hasWebGPU && !isCapacitor;
 
 // ── INIT ──────────────────────────────────────────────────────────
+/** Keep sticky feedback panel aligned with the real header height (wrap-safe). */
+function syncHeaderOffset() {
+  const header = document.querySelector('header');
+  if (!header) return;
+  const h = Math.ceil(header.getBoundingClientRect().height);
+  if (h > 0) {
+    document.documentElement.style.setProperty('--app-header-height', h + 'px');
+  }
+}
+
+function initHeaderOffsetObserver() {
+  const header = document.querySelector('header');
+  if (!header) return;
+  syncHeaderOffset();
+  if (typeof ResizeObserver !== 'undefined') {
+    const ro = new ResizeObserver(() => syncHeaderOffset());
+    ro.observe(header);
+  }
+  window.addEventListener('resize', syncHeaderOffset);
+  window.addEventListener('orientationchange', () => {
+    requestAnimationFrame(syncHeaderOffset);
+  });
+}
+
+function isMobileFeedbackLayout() {
+  return window.matchMedia('(max-width: 768px)').matches;
+}
+
+/** Jump from sentence editor to the feedback panel (mobile single-column). */
+function jumpToFeedback(id) {
+  if (id != null) {
+    state.activeSentenceId = id;
+    showFeedback(id);
+  }
+  const feedbackTab = document.querySelector('.feedback-tab');
+  if (feedbackTab) switchTab('feedback', feedbackTab);
+  const panel = document.getElementById('feedbackPanel');
+  if (panel) {
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
 async function init() {
   initTheme();
   await i18n.init();
+  initHeaderOffsetObserver();
   await ensureFirebaseReady().catch(() => {});
   updateFirebaseAuthUI();
   document.getElementById('uiLangSelect').value = i18n.getLocale();
@@ -1599,6 +1646,7 @@ function addSentence(prefill = '', opts = {}) {
       ></textarea>
       <div class="sentence-actions">
         <button type="button" class="analyze-btn" id="analyze-btn-${id}" data-i18n="getFeedback" title="Get feedback">Feedback</button>
+        <button type="button" class="jump-feedback-btn" id="jump-fb-${id}" data-i18n="viewFeedback">View feedback ↓</button>
         <div class="sentence-status" id="status-${id}"></div>
       </div>
     </div>
@@ -1615,6 +1663,7 @@ function addSentence(prefill = '', opts = {}) {
 
   const ta = row.querySelector('textarea');
   const analyzeBtn = row.querySelector('.analyze-btn');
+  const jumpBtn = row.querySelector('.jump-feedback-btn');
   ta.addEventListener('input', () => onSentenceInput(id));
   ta.addEventListener('keydown', (e) => onSentenceKeydown(e, id));
   ta.addEventListener('focus', () => { state.activeSentenceId = id; showFeedback(id); });
@@ -1626,8 +1675,12 @@ function addSentence(prefill = '', opts = {}) {
     state.activeSentenceId = id;
     analyzeSentence(id);
   });
+  if (jumpBtn) {
+    jumpBtn.addEventListener('click', () => jumpToFeedback(id));
+  }
   if (typeof i18n !== 'undefined' && i18n.apply) {
     analyzeBtn.textContent = i18n.t('getFeedback');
+    if (jumpBtn) jumpBtn.textContent = i18n.t('viewFeedback');
     const hint = i18n.t('analyzeHint');
     if (hint && hint !== 'analyzeHint') ta.title = hint;
   }
@@ -1659,6 +1712,8 @@ function onSentenceInput(id) {
   sentence.text     = text;
   sentence.status   = 'dirty';
   sentence.feedback = null;
+  const row = document.getElementById('row-' + id);
+  if (row) row.classList.remove('has-feedback');
   updateCounts();
 }
 
@@ -1786,7 +1841,13 @@ function applyFeedback(id, sentence, parsed, ta, statusEl) {
   ta.classList.toggle('is-great', sentence.status === 'great');
   ta.classList.toggle('has-error', sentence.status === 'error');
   statusEl.textContent = sentence.status === 'great' ? '✓' : '⚠';
+  const row = document.getElementById('row-' + id);
+  if (row) row.classList.add('has-feedback');
   if (state.activeSentenceId === id) showFeedback(id);
+  if (isMobileFeedbackLayout()) {
+    // Soft jump so the user lands on results without hunting past the editor.
+    requestAnimationFrame(() => jumpToFeedback(id));
+  }
 }
 
 // ── FEEDBACK DISPLAY ──────────────────────────────────────────────

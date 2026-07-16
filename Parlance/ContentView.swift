@@ -25,6 +25,7 @@ struct ContentView: View {
             AISettingsView()
                 .id(aiSettingsRefreshId)
                 .environment(authManager)
+                .modifier(PadFormSheetSizing())
         }
         .onChange(of: showAISettings) { _, showing in
             if showing {
@@ -127,6 +128,19 @@ struct ContentView: View {
 }
 
 // MARK: - Environment keys for modal bindings
+
+/// Give AI Settings a sensible form width on iPad (default sheet is oversized).
+private struct PadFormSheetSizing: ViewModifier {
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            content
+                .frame(minWidth: 480, idealWidth: 560, maxWidth: 640, minHeight: 520)
+        } else {
+            content
+        }
+    }
+}
 
 private struct ShowPrivacyPolicyKey: EnvironmentKey {
     static let defaultValue: Binding<Bool> = .constant(false)
