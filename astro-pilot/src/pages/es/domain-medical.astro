@@ -1,0 +1,8 @@
+---
+import { getEntry } from 'astro:content';
+import DomainLayout from '../../layouts/DomainLayout.astro';
+
+const entry = await getEntry('domain', 'medical/es');
+if (!entry) throw new Error('Missing domain content: medical/es');
+---
+<DomainLayout locale="es" data={entry.data} />

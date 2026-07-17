@@ -1,0 +1,74 @@
+title: Medical
+subtitle: Interpreter domain reference
+sectionsLabel: Sections
+nav:
+- id: register
+  label: Register
+- id: ethics
+  label: Ethics
+- id: vocab
+  label: Core vocabulary
+- id: scenarios
+  label: Scenarios
+intro:
+  flag: 🩺
+  title: Medical interpreting
+  desc: Vocabulary, register, and ethics for clinical settings. Coach RAG also injects medical context when your journal sentence uses clinical keywords.
+sections:
+- id: register
+  chapter: Register
+  title: Always formal with providers and patients
+  kind: rule
+  ruleTitle: Core rule
+  ruleText: Default to formal address (usted / vous / formal English). Prefer precise clinical terms over slang. Interpret everything said — nothing added, nothing omitted.
+- id: ethics
+  chapter: Ethics
+  title: HIPAA and role boundaries
+  kind: bullets
+  bullets:
+  - <strong>Accuracy</strong> — Interpret everything said; no summarizing away content.
+  - <strong>Impartiality</strong> — Do not advocate or take sides.
+  - <strong>Confidentiality</strong> — All information is confidential (HIPAA).
+  - <strong>Role boundaries</strong> — You are not a cultural broker, advisor, or clinician.
+  - <strong>Sight translation</strong> — Read the full document first, then translate maintaining register.
+- id: vocab
+  chapter: Vocabulary
+  title: High-frequency clinical terms
+  kind: table
+  tableHeaders:
+  - English
+  - Español
+  - Français
+  tableRows:
+  - - pain / symptom
+    - dolor / síntoma
+    - douleur / symptôme
+  - - prescription
+    - receta
+    - ordonnance
+  - - blood pressure
+    - presión arterial
+    - tension artérielle
+  - - allergy
+    - alergia
+    - allergie
+  - - surgery
+    - cirugía
+    - chirurgie
+  - - emergency
+    - urgencia
+    - urgence
+  - - pregnancy
+    - embarazo
+    - grossesse
+  - - X-ray / MRI
+    - radiografía / resonancia
+    - radiographie / IRM
+- id: scenarios
+  chapter: Practice
+  title: Journal prompts
+  kind: bullets
+  bullets:
+  - Describe a patient’s chief complaint and how long symptoms have lasted.
+  - Explain medication instructions (dose, frequency, with/without food).
+  - Interpret a provider asking about allergies and current medications.

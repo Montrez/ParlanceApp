@@ -1,0 +1,74 @@
+title: Medicina
+subtitle: Referencia de dominio para intérpretes
+sectionsLabel: Secciones
+nav:
+- id: register
+  label: Registro
+- id: ethics
+  label: Ética
+- id: vocab
+  label: Vocabulario esencial
+- id: scenarios
+  label: Escenarios
+intro:
+  flag: 🩺
+  title: Interpretación médica
+  desc: Vocabulario, registro y ética para contextos clínicos. El coach también añade contexto médico cuando tu frase del diario usa palabras clave clínicas.
+sections:
+- id: register
+  chapter: Registro
+  title: Siempre formal con el personal médico y los pacientes
+  kind: rule
+  ruleTitle: Regla básica
+  ruleText: Usa por defecto el trato formal (usted / vous / formal English). Prefiere los términos clínicos precisos frente al argot. Interpreta todo lo que se dice, sin añadir ni omitir nada.
+- id: ethics
+  chapter: Ética
+  title: HIPAA y los límites del rol
+  kind: bullets
+  bullets:
+  - <strong>Exactitud</strong> — Interpreta todo lo que se dice; no resumas ni elimines contenido.
+  - <strong>Imparcialidad</strong> — No defiendas posturas ni tomes partido.
+  - <strong>Confidencialidad</strong> — Toda la información es confidencial (HIPAA).
+  - <strong>Límites del rol</strong> — No eres mediador cultural, asesor ni clínico.
+  - <strong>Traducción a la vista</strong> — Lee primero el documento completo, luego traduce manteniendo el registro.
+- id: vocab
+  chapter: Vocabulario
+  title: Términos clínicos de alta frecuencia
+  kind: table
+  tableHeaders:
+  - English
+  - Español
+  - Français
+  tableRows:
+  - - pain / symptom
+    - dolor / síntoma
+    - douleur / symptôme
+  - - prescription
+    - receta
+    - ordonnance
+  - - blood pressure
+    - presión arterial
+    - tension artérielle
+  - - allergy
+    - alergia
+    - allergie
+  - - surgery
+    - cirugía
+    - chirurgie
+  - - emergency
+    - urgencia
+    - urgence
+  - - pregnancy
+    - embarazo
+    - grossesse
+  - - X-ray / MRI
+    - radiografía / resonancia
+    - radiographie / IRM
+- id: scenarios
+  chapter: Práctica
+  title: Sugerencias para el diario
+  kind: bullets
+  bullets:
+  - Describe el motivo de consulta principal del paciente y desde cuándo tiene los síntomas.
+  - Explica las instrucciones de la medicación (dosis, frecuencia, con/sin alimentos).
+  - Interpreta a un profesional de salud preguntando sobre alergias y medicamentos actuales.

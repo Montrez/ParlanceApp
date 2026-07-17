@@ -1,0 +1,74 @@
+title: Médical
+subtitle: Référence de domaine pour interprètes
+sectionsLabel: Sections
+nav:
+- id: register
+  label: Registre
+- id: ethics
+  label: Éthique
+- id: vocab
+  label: Vocabulaire essentiel
+- id: scenarios
+  label: Scénarios
+intro:
+  flag: 🩺
+  title: Interprétation médicale
+  desc: Vocabulaire, registre et éthique pour les contextes cliniques. Le coach ajoute aussi du contexte médical quand votre phrase du journal utilise des mots-clés cliniques.
+sections:
+- id: register
+  chapter: Registre
+  title: Toujours formel avec le personnel médical et les patients
+  kind: rule
+  ruleTitle: Règle de base
+  ruleText: Utilisez par défaut le vouvoiement (usted / vous / formal English). Préférez les termes cliniques précis à l'argot. Interprétez tout ce qui est dit, sans rien ajouter ni omettre.
+- id: ethics
+  chapter: Éthique
+  title: HIPAA et les limites du rôle
+  kind: bullets
+  bullets:
+  - <strong>Exactitude</strong> — Interprétez tout ce qui est dit ; ne résumez pas et ne supprimez rien.
+  - <strong>Impartialité</strong> — Ne défendez aucune position et ne prenez pas parti.
+  - <strong>Confidentialité</strong> — Toutes les informations sont confidentielles (HIPAA).
+  - <strong>Limites du rôle</strong> — Vous n'êtes ni médiateur culturel, ni conseiller, ni clinicien.
+  - <strong>Traduction à vue</strong> — Lisez d'abord le document entier, puis traduisez en conservant le registre.
+- id: vocab
+  chapter: Vocabulaire
+  title: Termes cliniques fréquents
+  kind: table
+  tableHeaders:
+  - English
+  - Español
+  - Français
+  tableRows:
+  - - pain / symptom
+    - dolor / síntoma
+    - douleur / symptôme
+  - - prescription
+    - receta
+    - ordonnance
+  - - blood pressure
+    - presión arterial
+    - tension artérielle
+  - - allergy
+    - alergia
+    - allergie
+  - - surgery
+    - cirugía
+    - chirurgie
+  - - emergency
+    - urgencia
+    - urgence
+  - - pregnancy
+    - embarazo
+    - grossesse
+  - - X-ray / MRI
+    - radiografía / resonancia
+    - radiographie / IRM
+- id: scenarios
+  chapter: Pratique
+  title: Suggestions pour le journal
+  kind: bullets
+  bullets:
+  - Décrivez le motif de consultation principal du patient et depuis quand durent les symptômes.
+  - Expliquez les instructions du médicament (dose, fréquence, avec/sans nourriture).
+  - Interprétez un soignant qui demande les allergies et les médicaments actuels.

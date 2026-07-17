@@ -1,0 +1,111 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  locale: 'en' | 'es' | 'fr';
+  data: CollectionEntry<'domain'>['data'];
+}
+
+const { locale, data } = Astro.props;
+const { title, subtitle, sectionsLabel, nav, intro, sections } = data;
+
+// Each locale is its own statically pre-rendered page (Astro i18n routing),
+// so this is a plain <a href>, not client JS re-rendering text in place.
+const LOCALE_LABEL = { en: 'EN', es: 'ES', fr: 'FR' } as const;
+---
+<!DOCTYPE html>
+<html lang={locale}>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>{title} — Parlance</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/content-theme.css?v=1" />
+  <link rel="stylesheet" href="/css/content-guide.css?v=3" />
+</head>
+<body class={`guide lang-${locale}`}>
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <h1>{title}</h1>
+      <p>{subtitle}</p>
+    </div>
+    <div class="nav-section-label">{sectionsLabel}</div>
+    {nav.map((item) => (
+      <a class="nav-item" href={`#${item.id}`}><span>{item.label}</span></a>
+    ))}
+    <div class="lang-switch" style="display:flex; gap:6px; padding:12px 16px;">
+      {(['en', 'es', 'fr'] as const).map((l) => (
+        <a
+          href={l === 'en' ? '/en/domain-medical' : `/${l}/domain-medical`}
+          aria-current={l === locale ? 'page' : undefined}
+          style={`padding:4px 10px; border-radius:6px; font-size:12px; text-decoration:none; ${l === locale ? 'background:var(--accent,#0b9cd0); color:#fff;' : 'border:1px solid var(--rule,#ccc);'}`}
+        >{LOCALE_LABEL[l]}</a>
+      ))}
+    </div>
+  </nav>
+  <div class="content">
+    <div class="intro-box">
+      <div class="intro-flag">{intro.flag}</div>
+      <div>
+        <div class="intro-title">{intro.title}</div>
+        <div class="intro-desc">{intro.desc}</div>
+      </div>
+    </div>
+
+    {sections.map((section) => (
+      <section class="tense-section" id={section.id}>
+        <div class="section-chapter">{section.chapter}</div>
+        <div class="tense-header-row"><h2 class="tense-title">{section.title}</h2></div>
+
+        {section.kind === 'rule' && (
+          <div class="rule-box">
+            <div class="rule-box-title">{section.ruleTitle}</div>
+            <p>{section.ruleText}</p>
+          </div>
+        )}
+
+        {section.kind === 'bullets' && (
+          <ul class="bullet-list">
+            {section.bullets?.map((item) => <li set:html={item} />)}
+          </ul>
+        )}
+
+        {section.kind === 'table' && (
+          <table class="irreg-table">
+            <tr>{section.tableHeaders?.map((h) => <th>{h}</th>)}</tr>
+            {section.tableRows?.map((row) => (
+              <tr>{row.map((cell) => <td>{cell}</td>)}</tr>
+            ))}
+          </table>
+        )}
+      </section>
+    ))}
+  </div>
+</div>
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+<button class="mobile-nav-btn" id="mobileNavBtn" type="button"><span>☰</span></button>
+<button class="back-btn" id="backBtn" type="button">←</button>
+<script>
+  document.getElementById('mobileNavBtn')?.addEventListener('click', () => {
+    document.querySelector('.sidebar')?.classList.toggle('mobile-open');
+    document.getElementById('sidebarBackdrop')?.classList.toggle('open');
+  });
+  document.getElementById('sidebarBackdrop')?.addEventListener('click', () => {
+    document.querySelector('.sidebar')?.classList.remove('mobile-open');
+    document.getElementById('sidebarBackdrop')?.classList.remove('open');
+  });
+  document.getElementById('backBtn')?.addEventListener('click', () => {
+    window.parent.postMessage('closeGuide', '*');
+  });
+  document.querySelectorAll('.nav-item').forEach((item) => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.nav-item').forEach((n) => n.classList.remove('active'));
+      item.classList.add('active');
+      document.querySelector('.sidebar')?.classList.remove('mobile-open');
+      document.getElementById('sidebarBackdrop')?.classList.remove('open');
+    });
+  });
+</script>
+</body>
+</html>

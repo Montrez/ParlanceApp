@@ -1,0 +1,44 @@
+/* GENERATED FILE — do not edit by hand.
+   Source of truth: design/theme.json (content_tokens)
+   Regenerate with: python3 scripts/generate_theme.py
+   Used by the standalone reference pages: guide-*.html, dialect-*.html.
+   Load this BEFORE content-guide.css. */
+:root {
+  --bg: #faf8f4;
+  --surface: #ffffff;
+  --border: #e2ddd6;
+  --text: #1a1714;
+  --muted: #8a8278;
+  --tag-bg: #f0ece5;
+  --highlight: #fff8e8;
+  --red: #c0392b;
+  --red-bg: #fdecea;
+  --green: #2e6b4a;
+  --green-bg: #eaf3ee;
+  --blue: #1a5c99;
+  --blue-bg: #e8f0fb;
+  --gold: #a0742a;
+  --gold-bg: #fdf0d9;
+  --lavender: #6b4f9e;
+  --lavender-bg: #f0eafa;
+}
+
+[data-theme="dark"] body, body.dark {
+  --bg: #1a1a1e;
+  --surface: #242428;
+  --border: #3a3a40;
+  --text: #e8e0d0;
+  --muted: #a8a098;
+  --tag-bg: #2e2e34;
+  --highlight: #2a2618;
+  --red: #e07070;
+  --red-bg: rgba(224,112,112,0.12);
+  --green: #5cb88a;
+  --green-bg: rgba(92,184,138,0.12);
+  --blue: #6ba3d6;
+  --blue-bg: rgba(107,163,214,0.12);
+  --gold: #d4a04e;
+  --gold-bg: rgba(212,160,78,0.12);
+  --lavender: #c4aae8;
+  --lavender-bg: rgba(196,170,232,0.12);
+}
