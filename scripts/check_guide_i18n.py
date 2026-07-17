@@ -35,8 +35,9 @@ DOCS = ROOT / "docs"
 # trilingual retrofit. Tracked as follow-up on issue #12. Do not add new
 # entries here without a comment — new pages must ship wired correctly.
 KNOWN_UNWIRED_LEGACY = {
-    "guide-es.html",  # ~1900 lines, English-only prose; retrofit tracked on #12
-    "guide-fr.html",  # ~1900 lines, English-only prose; retrofit tracked on #12
+    # Previously guide-es.html / guide-fr.html — retrofitted 2026-07-16 with
+    # binary EN↔native chrome via guide-ui.js. Keep this set empty unless a
+    # new legacy page is intentionally deferred.
 }
 
 CONTENT_PAGE_GLOBS = ("guide-*.html", "dialect-*.html", "domain-*.html")
