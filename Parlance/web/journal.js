@@ -1303,6 +1303,9 @@ function triggerCallPackPurchase() {
       return;
     }
     if (err) {
+      // Same fix as the Plus paywall: this can fire while AI Settings (a modal) is
+      // open, so a panel-only message would be invisible — toast it too.
+      showToast(i18n.t('errPurchaseFailed', { err }));
       showErrorInPanel(i18n.t('errPurchaseFailed', { err }));
       return;
     }
@@ -1363,6 +1366,10 @@ function triggerPlusPurchase() {
       return;
     }
     if (err) {
+      // showErrorInPanel writes behind the paywall modal (still open here), so it's
+      // invisible until the user closes the modal — surface it as a toast instead,
+      // which renders above modals, and keep the panel copy for later reference.
+      showToast(i18n.t('errPlusPurchaseFailed', { err }));
       showErrorInPanel(i18n.t('errPlusPurchaseFailed', { err }));
       return;
     }
@@ -1384,6 +1391,7 @@ function triggerPlusRestore() {
     if (id !== requestId) return;
     delete window.__parlancePlusRestoreResult;
     if (err) {
+      showToast(i18n.t('errPlusPurchaseFailed', { err }));
       showErrorInPanel(i18n.t('errPlusPurchaseFailed', { err }));
       return;
     }
