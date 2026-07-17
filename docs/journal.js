@@ -1181,7 +1181,25 @@ function refreshDynamicI18nUI() {
 
 function onUILangChange() {
   const lang = document.getElementById('uiLangSelect').value;
+  // Explicit choice on this selector — stop auto-following the Write
+  // language from here on, even if it changes later.
+  try { localStorage.setItem('parlance_ui_lang_manual', '1'); } catch (_) {}
   i18n.load(lang);
+}
+
+/** Keep the App language following the Write language until the user has
+ *  explicitly overridden the App selector themselves (see onUILangChange). */
+function syncUiLanguageToWriteLanguage() {
+  try {
+    if (localStorage.getItem('parlance_ui_lang_manual') === '1') return;
+  } catch (_) {}
+  const lang = state.currentLanguage;
+  if (!['en', 'es', 'fr'].includes(lang)) return;
+  const uiSelect = document.getElementById('uiLangSelect');
+  if (uiSelect) uiSelect.value = lang;
+  if (typeof i18n !== 'undefined' && i18n.getLocale && i18n.load && i18n.getLocale() !== lang) {
+    i18n.load(lang);
+  }
 }
 
 if (typeof i18n !== 'undefined' && i18n.onChange) {
@@ -1557,6 +1575,20 @@ function jumpToFeedback(id) {
 
 async function init() {
   initTheme();
+
+  // App (interface) language defaults to matching the Write (practice)
+  // language — most people only ever touch one language control and expect
+  // everything (menus, guides) to follow it. Once someone explicitly picks a
+  // different App language via the selector, onUILangChange() sets the
+  // "manual" flag below and this auto-follow stops for good.
+  const savedLang = localStorage.getItem('parlance_language') || 'es';
+  try {
+    const manualUiLang = localStorage.getItem('parlance_ui_lang_manual') === '1';
+    if (!manualUiLang && !localStorage.getItem('parlance_ui_lang') && ['en', 'es', 'fr'].includes(savedLang)) {
+      localStorage.setItem('parlance_ui_lang', savedLang);
+    }
+  } catch (_) {}
+
   await i18n.init();
   initHeaderOffsetObserver();
   await ensureFirebaseReady().catch(() => {});
@@ -1564,7 +1596,6 @@ async function init() {
   document.getElementById('uiLangSelect').value = i18n.getLocale();
   updateDateBadge();
 
-  const savedLang = localStorage.getItem('parlance_language') || 'es';
   state.currentLanguage = savedLang;
   document.getElementById('langSelect').value = savedLang;
   if (getSelectedProvider() === 'parlance') {
@@ -1647,6 +1678,7 @@ function onLanguageChange() {
   const prevModel = getProviderModel('parlance');
   state.currentLanguage = document.getElementById('langSelect').value;
   localStorage.setItem('parlance_language', state.currentLanguage);
+  syncUiLanguageToWriteLanguage();
   updatePlaceholders();
   renderPrompts();
   loadGuide();
@@ -2355,6 +2387,7 @@ function loadSentenceToEditor(text, language) {
     state.currentLanguage = language;
     document.getElementById('langSelect').value = language;
     localStorage.setItem('parlance_language', language);
+    syncUiLanguageToWriteLanguage();
     updatePlaceholders();
     renderPrompts();
   }
@@ -2377,6 +2410,7 @@ function loadEntryToEditor(entry) {
     state.currentLanguage = entry.language;
     document.getElementById('langSelect').value = entry.language;
     localStorage.setItem('parlance_language', entry.language);
+    syncUiLanguageToWriteLanguage();
     updatePlaceholders();
     renderPrompts();
   }
