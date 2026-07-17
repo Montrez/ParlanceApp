@@ -2176,7 +2176,10 @@ function loadGuide() {
 }
 
 function openGuideOverlay(kind = 'grammar') {
-  if ((kind === 'medical' || kind === 'legal') && !isPlusActive()) {
+  // Plus is a StoreKit (native-only) purchase — there's no way to buy or restore
+  // it on the web build, so gating medical/legal here would just permanently
+  // lock them out with no path through. Only gate inside the native app.
+  if ((kind === 'medical' || kind === 'legal') && isNativeParlanceApp() && !isPlusActive()) {
     showPlusPaywall(kind);
     return;
   }
