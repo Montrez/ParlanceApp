@@ -85,6 +85,7 @@
   "signedInAs": "Signed in as",
   "signOut": "Sign out",
   "authCloudNote": "Cloud providers use your Parlance account — no API key needed.",
+  "buyCallPack": "Buy Call Pack (100 calls)",
   "selectProvider": "Select a provider",
   "apiKey": "API Key",
   "apiKeyPlaceholder": "Paste your API key…",

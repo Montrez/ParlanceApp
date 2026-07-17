@@ -470,11 +470,14 @@ async function refreshUsageDisplay() {
     if (!u) return;
 
     const el = document.getElementById('authCloudNote');
+    const buyBtn = document.getElementById('buyCallPackBtn');
+
     if (!el) return;
 
     if (u.tier === 'plus') {
       el.textContent = i18n.t('plusUnlimited');
       el.style.display = '';
+      if (buyBtn) buyBtn.style.display = 'none';
       return;
     }
 
@@ -487,6 +490,10 @@ async function refreshUsageDisplay() {
     if (packs > 0) msg += ` · ${packs} pack calls remaining`;
     el.textContent = msg;
     el.style.display = '';
+
+    // Always-visible, direct entry point to the Call Pack IAP — don't make users
+    // (or App Review) wait until they hit the free monthly limit to find it.
+    if (buyBtn) buyBtn.style.display = isNativeParlanceApp() ? '' : 'none';
   } catch (_) {
     // Non-critical — silently skip if function unavailable
   }

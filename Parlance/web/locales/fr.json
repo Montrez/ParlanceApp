@@ -85,6 +85,7 @@
   "signedInAs": "Connecté en tant que",
   "signOut": "Se déconnecter",
   "authCloudNote": "Les fournisseurs cloud utilisent votre compte Parlance — aucune clé API n'est nécessaire.",
+  "buyCallPack": "Acheter un pack d'appels (100)",
   "selectProvider": "Choisir un fournisseur",
   "apiKey": "Clé API",
   "apiKeyPlaceholder": "Collez votre clé API…",

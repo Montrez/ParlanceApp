@@ -193,13 +193,7 @@ final class AuthManager: NSObject {
             }
         }
 
-        guard let scene = UIApplication.shared.connectedScenes
-            .compactMap({ $0 as? UIWindowScene })
-            .first(where: { $0.activationState == .foregroundActive })
-        else { return nil }
-
-        let window = scene.windows.first(where: \.isKeyWindow) ?? scene.windows.first
-        guard let root = window?.rootViewController else { return nil }
+        guard let window = presentationWindow(), let root = window.rootViewController else { return nil }
 
         var top = root
         while let presented = top.presentedViewController {
@@ -208,16 +202,36 @@ final class AuthManager: NSObject {
         return top
     }
 
+    /// Resolve a live window for the Apple/Google sign-in sheet. iPadOS 26 ignores
+    /// `UIRequiresFullScreen` and can run this app in a resizable/windowed scene, so
+    /// `activationState`/`isKeyWindow` are less reliable than before — fall through
+    /// several strategies rather than trusting a single one, and never force-unwrap.
     private static func presentationWindow(from anchor: UIView? = nil) -> UIWindow? {
-        if let window = anchor?.window { return window }
-        if let scene = anchor?.window?.windowScene { return scene.windows.first(where: \.isKeyWindow) ?? scene.windows.first }
+        if let window = anchor?.window, window.windowScene != nil { return window }
 
-        guard let scene = UIApplication.shared.connectedScenes
-            .compactMap({ $0 as? UIWindowScene })
-            .first(where: { $0.activationState == .foregroundActive })
-        else { return nil }
+        if let scene = anchor?.window?.windowScene {
+            if let key = scene.windows.first(where: \.isKeyWindow) { return key }
+            if let visible = scene.windows.first(where: { !$0.isHidden }) { return visible }
+            if let any = scene.windows.first { return any }
+        }
 
-        return scene.windows.first(where: \.isKeyWindow) ?? scene.windows.first
+        let windowScenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+
+        if let scene = windowScenes.first(where: { $0.activationState == .foregroundActive }),
+           let key = scene.windows.first(where: \.isKeyWindow) {
+            return key
+        }
+
+        // Fall back across ALL scenes (not just foregroundActive — under iPadOS 26's
+        // windowing model a scene hosting our content may not report that state
+        // promptly), preferring any key window, then any visible window.
+        if let key = windowScenes.flatMap(\.windows).first(where: \.isKeyWindow) {
+            return key
+        }
+        if let visible = windowScenes.flatMap(\.windows).first(where: { !$0.isHidden }) {
+            return visible
+        }
+        return windowScenes.flatMap(\.windows).first
     }
 
     private func jsonEscape(_ value: String) -> String {
@@ -254,14 +268,12 @@ extension AuthManager: ASAuthorizationControllerDelegate, ASAuthorizationControl
         if let window = Self.presentationWindow(from: presentationAnchorView) {
             return window
         }
-        for scene in UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }) {
-            guard scene.activationState == .foregroundActive, let window = scene.windows.first else { continue }
-            return window
+        // Last resort: a fresh, attached window from the app's own scene rather than
+        // force-unwrapping into a crash if every other lookup came up empty.
+        if let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first {
+            return UIWindow(windowScene: scene)
         }
-        return UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .flatMap(\.windows)
-            .first!
+        return UIWindow(frame: UIScreen.main.bounds)
     }
 
     func authorizationController(controller: ASAuthorizationController,

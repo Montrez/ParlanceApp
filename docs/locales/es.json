@@ -85,6 +85,7 @@
   "signedInAs": "Sesión iniciada como",
   "signOut": "Cerrar sesión",
   "authCloudNote": "Los proveedores en la nube usan tu cuenta Parlance — no hace falta clave API.",
+  "buyCallPack": "Comprar paquete de llamadas (100)",
   "selectProvider": "Elige un proveedor",
   "apiKey": "Clave API",
   "apiKeyPlaceholder": "Pega tu clave API…",
