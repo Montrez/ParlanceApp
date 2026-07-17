@@ -9,16 +9,19 @@ jobs:
   notify-discord:
     runs-on: ubuntu-latest
     steps:
-      - name: Post to Discord
+      - name: Post #whats-new + Claire #announcements
         env:
-          WEBHOOK_WHATS_NEW:   ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
-          WEBHOOK_ANNOUNCE:    ${{ secrets.DISCORD_ANNOUNCE_WEBHOOK }}
+          WEBHOOK_WHATS_NEW: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
+          WEBHOOK_CLAIRE:    ${{ secrets.DISCORD_ANNOUNCE_WEBHOOK }}
           TAG:       ${{ github.event.release.tag_name }}
           TITLE:     ${{ github.event.release.name }}
           BODY:      ${{ github.event.release.body }}
           PRERELEASE: ${{ github.event.release.prerelease }}
           APP_STORE_LIVE: ${{ vars.APP_STORE_LIVE }}
+          WHATS_NEW_CHANNEL: "1520432921708724274"
         run: |
+          set -euo pipefail
+
           if [ "$PRERELEASE" = "true" ]; then
             LABEL="TestFlight beta"
             COLOR=16753920
@@ -33,9 +36,25 @@ jobs:
             PLATFORM_NOTE="Available now on **GitHub Pages**: https://montrez.github.io/ParlanceApp/. Coming soon to **TestFlight** for iOS users."
           fi
 
-          SHORT_BODY=$(echo "$BODY" | head -c 1900)
+          # Community-facing notes only: drop GitHub/dev sections (Archive, Still open, etc.)
+          SHORT_BODY=$(printf '%s\n' "$BODY" | awk '
+            BEGIN { skip = 0 }
+            /^###[[:space:]]+[Aa]rchive/ { skip = 1; next }
+            /^###[[:space:]]+[Ss]till[[:space:]]+[Oo]pen/ { skip = 1; next }
+            /^###[[:space:]]+[Dd]eveloper/ { skip = 1; next }
+            /^###[[:space:]]+[Ff]or[[:space:]]+[Dd]evelopers/ { skip = 1; next }
+            /\*\*[Aa]rchive this build:\*\*/ { next }
+            /^[Aa]rchive this build:/ { next }
+            /^### / { skip = 0 }
+            /^## / && !/^##[[:space:]]+Parlance/ { skip = 0 }
+            skip { next }
+            { print }
+          ' | sed -e 's/[[:space:]]*$//' | awk '
+            NF { blank = 0; print; next }
+            !blank { blank = 1; print }
+          ' | sed -e '/./,$!d' -e :a -e '/^\n*$/{$d;N;ba' -e '}' | head -c 1900)
 
-          # Full embed — goes to #whats-new
+          # Detailed notes → #whats-new
           FULL_PAYLOAD=$(jq -n \
             --arg title "🚀 Parlance $TAG — $LABEL" \
             --arg desc "$SHORT_BODY" \
@@ -54,30 +73,38 @@ jobs:
               }]
             }')
 
-          # Short announcement — goes to #announcements
-          ANNOUNCE_PAYLOAD=$(jq -n \
-            --arg title "🚀 Parlance $TAG is out" \
-            --arg note "$PLATFORM_NOTE" \
-            --argjson color "$COLOR" \
-            '{
-              embeds: [{
-                title: $title,
-                color: $color,
-                fields: [
-                  { name: "📱 Where to get it", value: $note, inline: false },
-                  { name: "📋 Full release notes", value: "See <#1520432921708724274> for details.", inline: false }
-                ],
-                footer: { text: "Parlance" },
-                timestamp: (now | todate)
-              }]
-            }')
-
           curl -fsSL -X POST "$WEBHOOK_WHATS_NEW" \
             -H "Content-Type: application/json" \
             -d "$FULL_PAYLOAD"
 
-          if [ -n "$WEBHOOK_ANNOUNCE" ]; then
-            curl -fsSL -X POST "$WEBHOOK_ANNOUNCE" \
-              -H "Content-Type: application/json" \
-              -d "$ANNOUNCE_PAYLOAD"
+          # Short plain-text post as Claire → #announcements
+          if [ -z "${WEBHOOK_CLAIRE:-}" ]; then
+            echo "DISCORD_ANNOUNCE_WEBHOOK not set; skipping Claire announcement."
+            exit 0
           fi
+
+          # Keep Claire's announce short; full changelog lives in #whats-new
+          HIGHLIGHT=$(printf '%s\n' "$SHORT_BODY" | awk '
+            BEGIN { n = 0 }
+            /^[-*]/ && n < 4 { print; n++; next }
+            /^###/ { next }
+            /^##/ { next }
+            NF && n == 0 && length($0) < 200 { print; n++ }
+          ' | head -c 700)
+
+          if [ -z "$HIGHLIGHT" ]; then
+            HIGHLIGHT="See the full notes in <#${WHATS_NEW_CHANNEL}>."
+          fi
+
+          CLAIRE_TEXT=$(jq -rn \
+            --arg tag "$TAG" \
+            --arg highlights "$HIGHLIGHT" \
+            --arg note "$PLATFORM_NOTE" \
+            --arg whats "$WHATS_NEW_CHANNEL" \
+            '"**Parlance \($tag)** is out.\n\n\($highlights)\n\n\($note)\n\nFull notes in <#\($whats)>."')
+
+          CLAIRE_PAYLOAD=$(jq -n --arg content "$CLAIRE_TEXT" '{content: $content}')
+
+          curl -fsSL -X POST "$WEBHOOK_CLAIRE" \
+            -H "Content-Type: application/json" \
+            -d "$CLAIRE_PAYLOAD"

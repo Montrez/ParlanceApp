@@ -1,0 +1,31 @@
+---
+description: Claire owns Parlance Discord #announcements; automate via her webhook on releases
+alwaysApply: true
+---
+
+# Discord Announcements: Claire
+
+**Claire** owns **#announcements**.
+
+## Identity
+
+- **Automated releases:** GitHub Actions posts as Claire via `DISCORD_ANNOUNCE_WEBHOOK` (webhook named Claire) in `.github/workflows/release-notify.yml`
+- **Manual / slash commands:** Herald bot (`DISCORD_HERALD_TOKEN`, `scripts/discord_bots/herald.py`) when Claire is running locally or hosted
+
+## Do
+
+- Post community announcements as Claire (webhook or `/announce` / `/release` / `/testflight`)
+- Keep Claire's tone: plain text, human update, no branded embeds
+- Follow `discord-messaging-style.mdc` (no em/en dashes)
+- Strip GitHub developer sections (Archive, Still open, archive steps) from anything Claire posts
+
+## Do not
+
+- Post to #announcements as the Parlance main bot, Morgan, Jordan, or a generic "Updates" webhook
+- Dump full GitHub release bodies with Archive / Still open into announcements
+- Leave releases without a Claire announcement when automation is available
+
+## Release split
+
+- **#whats-new:** detailed community-facing notes (release webhook OK)
+- **#announcements:** Claire's short "it's out / where to get it" update (automatic on publish)

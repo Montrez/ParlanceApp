@@ -45,7 +45,10 @@ class HeraldCog(commands.Cog):
         await interaction.response.send_message("Posted.", ephemeral=True)
 
     @app_commands.command(name="release", description="Post a release note")
-    @app_commands.describe(version="e.g. 1.2.0 or build 42", highlights="Changelog")
+    @app_commands.describe(
+        version="e.g. 2.3 or v2.3.1",
+        highlights="Community changelog only (no Archive / Still open)",
+    )
     async def release(self, interaction: discord.Interaction, version: str, highlights: str):
         if not interaction.guild or not isinstance(interaction.user, discord.Member):
             await interaction.response.send_message("Guild only.", ephemeral=True)
@@ -58,8 +61,11 @@ class HeraldCog(commands.Cog):
             await interaction.response.send_message("#announcements not found.", ephemeral=True)
             return
         text = (
-            f"**{version}** is out.\n\n{highlights}\n\n"
-            "https://montrez.github.io/ParlanceApp/"
+            f"**Parlance {version}** is out.\n\n"
+            f"{highlights.strip()}\n\n"
+            "Available now on **GitHub Pages**: https://montrez.github.io/ParlanceApp/\n"
+            "Coming soon to **TestFlight** for iOS users.\n\n"
+            "Full notes in #whats-new."
         )
         await channel.send(text)
         await interaction.response.send_message("Posted.", ephemeral=True)

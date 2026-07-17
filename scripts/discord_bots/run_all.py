@@ -7,8 +7,7 @@ Required env vars:
   DISCORD_SENTINEL_TOKEN   Jordan  — bugs and feedback triage
 
 Optional:
-  DISCORD_HERALD_TOKEN     Claire — slash commands for announcements
-                           (leave unset if using webhooks instead)
+  DISCORD_HERALD_TOKEN     Claire — owns #announcements (/announce, /release, /testflight)
 
   pip install -r requirements.txt
   export DISCORD_GUIDE_TOKEN=...
@@ -71,7 +70,7 @@ async def main() -> None:
     if herald_token:
         tasks.append(asyncio.create_task(_start("Claire", create_herald_bot(), herald_token)))
     else:
-        print("[Claire] No DISCORD_HERALD_TOKEN — skipping (webhooks handle announcements).")
+        print("[Claire] No DISCORD_HERALD_TOKEN — skipping slash commands. Release announces still use Claire webhook.")
 
     if not tasks:
         raise SystemExit(1)

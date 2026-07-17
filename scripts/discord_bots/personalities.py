@@ -3,7 +3,7 @@ Three community helpers — set these usernames in the Discord Developer Portal 
 
   Morgan  — general questions (#general, #support, #parlance-coach)
   Jordan  — bugs & feedback (#bugs, #feedback)
-  Claire   — announcements (#announcements) — optional if using webhooks
+  Claire   — announcements (#announcements). Release automation posts as Claire via DISCORD_ANNOUNCE_WEBHOOK.
 
 Each has a different voice. Replies are plain text, not branded embeds.
 """

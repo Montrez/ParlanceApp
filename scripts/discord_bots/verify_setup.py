@@ -89,8 +89,9 @@ def main() -> None:
     check_bot("Jordan (DISCORD_SENTINEL_TOKEN)", os.environ.get("DISCORD_SENTINEL_TOKEN"))
     check_bot("Claire (DISCORD_HERALD_TOKEN)", os.environ.get("DISCORD_HERALD_TOKEN"))
 
-    print("\nClaire announcements via webhook do not need a bot token.")
-    print("For Claire to show online with /announce slash commands, set DISCORD_HERALD_TOKEN.")
+    print("\nClaire owns #announcements.")
+    print("Automated releases post as Claire via DISCORD_ANNOUNCE_WEBHOOK (GitHub secret).")
+    print("For /announce slash commands while Claire is online, also set DISCORD_HERALD_TOKEN.")
 
 
 if __name__ == "__main__":
