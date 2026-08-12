@@ -1556,10 +1556,12 @@ function initHeaderOffsetObserver() {
 }
 
 function isMobileFeedbackLayout() {
-  return window.matchMedia('(max-width: 768px)').matches;
+  // Phones and iPads (incl. landscape / Split View) — not just ≤768 phone column.
+  return window.matchMedia('(max-width: 1366px)').matches
+    || window.matchMedia('(pointer: coarse)').matches;
 }
 
-/** Jump from sentence editor to the feedback panel (mobile single-column). */
+/** Jump from sentence editor to the feedback panel (phone/iPad). */
 function jumpToFeedback(id) {
   if (id != null) {
     state.activeSentenceId = id;
@@ -2000,9 +2002,8 @@ async function analyzeSentence(id) {
   statusEl.textContent = '⏳';
 
   showAnalyzingState(id);
-  if (isMobileFeedbackLayout()) {
-    requestAnimationFrame(() => jumpToFeedback(id));
-  }
+  // Always surface the Feedback tab so iPad (side panel) and phone both show progress.
+  requestAnimationFrame(() => jumpToFeedback(id));
 
   const providerId = getSelectedProvider();
 
