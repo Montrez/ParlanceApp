@@ -1,0 +1,39 @@
+name: Claire Play Store coming-soon
+
+# One-shot: Wednesday Aug 12, 2026 at 12:00 PM Eastern (EDT = UTC-4 → 16:00 UTC).
+# Also runnable by hand via workflow_dispatch.
+on:
+  schedule:
+    - cron: "0 16 12 8 *"
+  workflow_dispatch:
+
+jobs:
+  announce:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post as Claire to #announcements
+        env:
+          WEBHOOK_CLAIRE: ${{ secrets.DISCORD_ANNOUNCE_WEBHOOK }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${WEBHOOK_CLAIRE:-}" ]; then
+            echo "DISCORD_ANNOUNCE_WEBHOOK not set; cannot post as Claire."
+            exit 1
+          fi
+
+          if [ "${GITHUB_EVENT_NAME}" = "schedule" ]; then
+            today=$(date -u +%Y-%m-%d)
+            if [ "$today" != "2026-08-12" ]; then
+              echo "Skipping scheduled run on $today (intended 2026-08-12)."
+              exit 0
+            fi
+          fi
+
+          CLAIRE_TEXT=$(jq -rn '
+            "**Google Play is next**\n\nParlance is coming to the Google Play Store soon.\n\nWe are starting Android device testing so we can submit a real Play build. Once that checks out, it goes to Google Play.\n\niOS is going back into App Store review with the latest fixes. Web is live anytime at https://montrez.github.io/ParlanceApp/\n\nIf you want to help try Android early, jump into #beta-testers."
+          ')
+
+          curl -fsSL -X POST "$WEBHOOK_CLAIRE" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n --arg content "$CLAIRE_TEXT" '{content: $content}')"
