@@ -293,6 +293,23 @@ header {
   color: var(--accent);
   background: var(--accent-light);
 }
+.waiting-analyze-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1rem;
+  min-height: 44px;
+  padding: 0.65rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+.waiting-analyze-btn:hover { opacity: 0.9; }
 .jump-feedback-btn {
   display: none;
   background: var(--accent-light);
@@ -1450,6 +1467,21 @@ header {
     max-height: 70dvh;
   }
   .sentence-row.has-feedback .jump-feedback-btn { display: inline-flex; }
+  .analyze-btn {
+    min-height: 44px;
+    min-width: 88px;
+    padding: 0.55rem 0.85rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--paper);
+  }
+  .analyze-btn:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
   .sentences-area { min-height: 120px; }
   header {
     flex-wrap: wrap;

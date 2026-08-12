@@ -1671,6 +1671,26 @@ function updateWaitingCard() {
   } else {
     hint.innerHTML = `⚙ ${settingsBtn(i18n.t('waitingAddKey', { name: p.name }))}`;
   }
+
+  const cta = document.getElementById('waitingAnalyzeBtn');
+  if (cta) cta.textContent = i18n.t('getFeedback');
+}
+
+/** Analyze the focused sentence, or the first draft that is ready. */
+function analyzeActiveOrFirstReady() {
+  const preferred = state.activeSentenceId
+    && state.sentences.find(s => s.id === state.activeSentenceId);
+  const candidates = preferred ? [preferred, ...state.sentences] : state.sentences;
+  const target = candidates.find(s =>
+    s && sentenceReadyToAnalyze(s.text) && !state.analyzingSentenceIds.has(s.id)
+  );
+  if (!target) {
+    showToast(i18n.t('writeFirst'));
+    return;
+  }
+  state.activeSentenceId = target.id;
+  switchTab('feedback', document.querySelector('.feedback-tab'));
+  analyzeSentence(target.id);
 }
 
 // ── LANGUAGE SWITCHING ────────────────────────────────────────────
@@ -1967,7 +1987,9 @@ async function analyzeSentence(id) {
     return;
   }
 
-  if (!sentenceReadyToAnalyze(sentence.text)) return;
+  if (!sentenceReadyToAnalyze(sentence.text)) {
+    return;
+  }
 
   state.analyzingSentenceIds.add(id);
 
@@ -1978,6 +2000,9 @@ async function analyzeSentence(id) {
   statusEl.textContent = '⏳';
 
   showAnalyzingState(id);
+  if (isMobileFeedbackLayout()) {
+    requestAnimationFrame(() => jumpToFeedback(id));
+  }
 
   const providerId = getSelectedProvider();
 
@@ -2119,8 +2144,13 @@ function showFeedback(id) {
   inner.querySelectorAll('.feedback-card, .analyzing-card, .webllm-progress-card, .error-panel-card').forEach(el => el.remove());
 
   if (!sentence.feedback) {
-    if (sentence.status === 'dirty' || sentence.text.trim()) showAnalyzingState(id);
-    else if (waiting) waiting.style.display = 'block';
+    // Only show the analyzing spinner when analysis is actually running.
+    // Focusing a draft used to fake that UI and made Coach look stuck.
+    if (state.analyzingSentenceIds.has(id)) {
+      showAnalyzingState(id);
+    } else if (waiting) {
+      waiting.style.display = 'block';
+    }
     return;
   }
 
