@@ -16,7 +16,7 @@ BASE = "https://discord.com/api/v10"
 SLUG = "daily-culture"
 INTRO = """**Daily culture & language tips**
 
-Morgan posts one tip here every morning around **10 AM Eastern** — false friends, register, interpreter craft, exam notes, and cultural context for Spanish and French.
+Morgan posts one tip here every morning around **10 AM Eastern**. False friends, register, interpreter craft, exam notes, and cultural context. Spanish and French first, plus Portuguese, Italian, German, Arabic, Chinese, Japanese, Korean, and other languages you will meet on the job.
 
 Browse anytime. This channel is for reading and learning, not general chat."""
 

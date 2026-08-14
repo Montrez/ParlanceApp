@@ -2,8 +2,8 @@
 Daily language and culture posts for #daily-culture.
 
 GitHub Actions posts one topic per day at 10:00 AM Eastern
-(.github/workflows/daily-culture.yml). Topics cover Spanish and French
-language, culture, interpreter craft, and exam tips.
+(.github/workflows/daily-culture.yml). Topics cover Spanish, French,
+English, and many other languages interpreters meet on the job.
 """
 from __future__ import annotations
 
@@ -649,6 +649,17 @@ TOPICS = [
         ),
     },
 ]
+
+
+from .daily_culture_more import MORE_TOPICS
+
+_seen = {t["title"].lower() for t in TOPICS}
+for _topic in MORE_TOPICS:
+    _key = _topic["title"].lower()
+    if _key not in _seen:
+        TOPICS.append(_topic)
+        _seen.add(_key)
+del _seen, _topic, _key
 
 
 def _today_et() -> datetime.date:
