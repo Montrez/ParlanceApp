@@ -1,19 +1,13 @@
 """
 Daily language and culture posts for #daily-culture.
 
-Morgan picks one topic per day from a rotating list and posts it at 10:00 AM ET.
-Topics cover Spanish and French language, culture, interpreter craft, and exam tips.
+GitHub Actions posts one topic per day at 10:00 AM Eastern
+(.github/workflows/daily-culture.yml). Topics cover Spanish and French
+language, culture, interpreter craft, and exam tips.
 """
 from __future__ import annotations
 
 import datetime
-import random
-
-import discord
-from discord.ext import commands, tasks
-
-from .config import CHANNELS, GUILD_ID
-from .personalities import GUIDE
 
 
 # ── Topic library ─────────────────────────────────────────────────────────────
@@ -251,50 +245,15 @@ TOPICS = [
 ]
 
 
+def _today_et() -> datetime.date:
+    try:
+        from zoneinfo import ZoneInfo
+
+        return datetime.datetime.now(ZoneInfo("America/New_York")).date()
+    except Exception:
+        return datetime.date.today()
+
+
 def _topic_for_today() -> dict:
-    day_index = datetime.date.today().timetuple().tm_yday
+    day_index = _today_et().timetuple().tm_yday
     return TOPICS[day_index % len(TOPICS)]
-
-
-# ── Scheduled cog ─────────────────────────────────────────────────────────────
-
-class DailyCultureCog(commands.Cog):
-    """Posts one language/culture topic per day to #daily-culture."""
-
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
-        self._posted_today = False
-        self.daily_post.start()
-
-    def cog_unload(self):
-        self.daily_post.cancel()
-
-    def _culture_channel(self, guild: discord.Guild) -> discord.TextChannel | None:
-        return discord.utils.get(guild.text_channels, name=CHANNELS["daily_culture"])
-
-    @tasks.loop(hours=24)
-    async def daily_post(self):
-        await self.bot.wait_until_ready()
-        guild = self.bot.get_guild(GUILD_ID)
-        if not guild:
-            return
-        channel = self._culture_channel(guild)
-        if not channel:
-            return
-
-        # Pick a topic based on the day of year so all members see the same one
-        topic = _topic_for_today()
-
-        await channel.send(f"**{topic['title']}**\n\n{topic['body']}")
-
-    @daily_post.before_loop
-    async def before_daily_post(self):
-        """Wait until 10:00 AM ET before firing the first post."""
-        await self.bot.wait_until_ready()
-        now = datetime.datetime.now(datetime.timezone.utc)
-        # 14:00 UTC = 10:00 AM ET (14:00 in winter / 13:00 EDT — close enough for daily cadence)
-        target = now.replace(hour=14, minute=0, second=0, microsecond=0)
-        if now >= target:
-            target += datetime.timedelta(days=1)
-        wait_seconds = (target - now).total_seconds()
-        await discord.utils.sleep_until(target)

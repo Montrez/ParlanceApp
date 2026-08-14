@@ -1,0 +1,27 @@
+name: Daily culture tip
+
+# 14:00 UTC = 10:00 AM EDT / 9:00 AM EST
+on:
+  schedule:
+    - cron: "0 14 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: daily-culture
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Post today's tip to #daily-culture
+        env:
+          DISCORD_GUIDE_TOKEN: ${{ secrets.DISCORD_GUIDE_TOKEN }}
+        run: python3 scripts/discord_bots/post_daily_tip.py

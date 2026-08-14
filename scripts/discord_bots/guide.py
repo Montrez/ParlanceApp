@@ -9,7 +9,6 @@ from discord.ext import commands
 
 from .config import CHANNELS, GUILD_ID
 from .personalities import GUIDE, GUIDE_FAQ
-from .daily_culture import DailyCultureCog
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from discord_channel_catalog import channel_mention  # noqa: E402
@@ -43,7 +42,6 @@ class GuideBot(commands.Bot):
         super().__init__(command_prefix="?", intents=intents)
 
     async def setup_hook(self):
-        await self.add_cog(DailyCultureCog(self))
         guild = discord.Object(id=GUILD_ID)
         self.tree.copy_global_to(guild=guild)
         await self.tree.sync(guild=guild)

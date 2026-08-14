@@ -3,7 +3,7 @@
 Run the Parlance community bots.
 
 Required env vars:
-  DISCORD_GUIDE_TOKEN      Morgan  — FAQ and daily culture posts
+  DISCORD_GUIDE_TOKEN      Morgan  — FAQ replies (daily culture is GitHub Actions)
   DISCORD_SENTINEL_TOKEN   Jordan  — bugs and feedback triage
 
 Optional:
