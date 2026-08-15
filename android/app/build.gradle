@@ -7,7 +7,9 @@ android {
         applicationId "com.parlance.interpreterguide"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
+        // Kept in step with Parlance/Info.plist (CFBundleVersion /
+        // CFBundleShortVersionString) by scripts/check_platform_sync.py.
+        versionCode 21
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
@@ -45,6 +47,16 @@ dependencies {
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation project(':capacitor-android')
+
+    // Native auth. Google refuses OAuth from embedded WebViews, so the Firebase
+    // web popup cannot work inside Capacitor — sign-in has to happen in Java.
+    implementation platform("com.google.firebase:firebase-bom:$firebaseBomVersion")
+    implementation "com.google.firebase:firebase-auth"
+    implementation "com.google.firebase:firebase-functions"
+    implementation "androidx.credentials:credentials:$androidxCredentialsVersion"
+    implementation "androidx.credentials:credentials-play-services-auth:$androidxCredentialsVersion"
+    implementation "com.google.android.libraries.identity.googleid:googleid:$googleIdVersion"
+
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"

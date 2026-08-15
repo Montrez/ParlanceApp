@@ -57,6 +57,37 @@ npx cap sync android
 
 Open `android/` in Android Studio and run on a device or emulator.
 
+Android and iOS share the web layer in `Parlance/web/` (mirrored to `docs/`, which
+Capacitor bundles). Each platform supplies a native bridge behind the same message
+protocol — `Parlance/ContentView.swift` on iOS, `ParlanceBridge.java` on Android —
+so a feature added to one is expected on the other.
+`python3 scripts/check_platform_sync.py` fails the build if a bridge action or
+version number only lands on one side.
+
+Capabilities that genuinely differ are reported by the bridge rather than sniffed
+in JavaScript. Android currently reports `inAppPurchase: false` (no Play Billing
+yet) and `nativeSettings: false` (it uses the web settings modal).
+
+**Google Sign-In requires registered SHA-1 fingerprints.** Credential Manager will
+not issue an ID token for an app whose signing certificate is unknown to Firebase,
+and the failure surfaces as a generic sign-in error. Register every certificate the
+app can be signed with:
+
+```bash
+# Debug builds
+keytool -list -v -keystore ~/.android/debug.keystore \
+  -alias androiddebugkey -storepass android
+
+# Local release builds
+keytool -list -v -keystore android/parlance-release.jks -alias parlance
+```
+
+Add each SHA-1 in Firebase Console → Project Settings → Your apps → Android, then
+re-download `google-services.json` into `android/app/`. Builds distributed through
+Play use **Play App Signing**, so the certificate in Play Console → Setup → App
+integrity must be registered too — otherwise sign-in works locally and fails for
+everyone who installs from Play.
+
 ---
 
 ## Parlance Coach (Spanish & French fine-tuned models)
