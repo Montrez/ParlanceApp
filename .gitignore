@@ -53,6 +53,7 @@ node_modules/
 # Android build artifacts
 google-services.json
 android/app/google-services.json
+android/keystore.properties
 android/.gradle/
 android/app/build/
 android/build/

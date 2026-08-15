@@ -1,5 +1,33 @@
 apply plugin: 'com.android.application'
 
+// Signing credentials are read from android/keystore.properties, which is not in
+// the repo, or from the environment on a build machine. A clone with neither can
+// still build debug and an unsigned release.
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('keystore.properties')
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withInputStream { keystoreProperties.load(it) }
+}
+
+def signingValue = { String key, String envName, String fallback ->
+    keystoreProperties.getProperty(key) ?: System.getenv(envName) ?: fallback
+}
+
+def releaseStoreFile = rootProject.file(
+        signingValue('storeFile', 'PARLANCE_KEYSTORE_FILE', 'parlance-release.jks'))
+def releaseStorePassword = signingValue('storePassword', 'PARLANCE_KEYSTORE_PASSWORD', null)
+def releaseKeyAlias = signingValue('keyAlias', 'PARLANCE_KEY_ALIAS', 'parlance')
+def releaseKeyPassword = signingValue('keyPassword', 'PARLANCE_KEY_PASSWORD', null)
+def canSignRelease = releaseStoreFile.exists() &&
+        releaseStorePassword != null &&
+        releaseKeyPassword != null
+
+if (!canSignRelease) {
+    logger.lifecycle('Parlance: release signing is not configured. Copy ' +
+            'android/keystore.properties.example to android/keystore.properties ' +
+            'and fill it in before building a release bundle.')
+}
+
 android {
     namespace = "com.parlance.interpreterguide"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -20,15 +48,19 @@ android {
     }
     signingConfigs {
         release {
-            storeFile file('../../android/parlance-release.jks')
-            storePassword 'parlance2026'
-            keyAlias 'parlance'
-            keyPassword 'parlance2026'
+            if (canSignRelease) {
+                storeFile releaseStoreFile
+                storePassword releaseStorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+            }
         }
     }
     buildTypes {
         release {
-            signingConfig signingConfigs.release
+            if (canSignRelease) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
