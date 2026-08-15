@@ -36,6 +36,11 @@ training/*.zip
 
 # Xcode DerivedData / SourcePackages archives (xcodebuild -resultBundlePath, CI artifacts)
 output/
+SourcePackages/
+
+# Xcode build home / SwiftPM caches created by scripted xcodebuild runs
+.xcode-home/
+.xcode-package-cache/
 
 # Firebase CLI debug logs
 firebase/*.log
@@ -46,6 +51,8 @@ firebase/functions/firebase-debug.log
 node_modules/
 
 # Android build artifacts
+google-services.json
+android/app/google-services.json
 android/.gradle/
 android/app/build/
 android/build/
