@@ -153,21 +153,8 @@ final class AIProviderSettings: @unchecked Sendable {
     // MARK: Provider + model (UserDefaults — non-sensitive)
 
     var selectedProvider: AIProvider {
-        get {
-            let raw = UserDefaults.standard.string(forKey: "parlance_ai_provider")
-                ?? defaultProviderId
-            if raw == "parlance" { return .parlanceCoach }
-            return AIProvider(rawValue: raw) ?? fallbackProvider
-        }
-        set { UserDefaults.standard.set(newValue.rawValue, forKey: "parlance_ai_provider") }
-    }
-
-    private var defaultProviderId: String {
-        ParlanceSLMAnalyzer.isOnDeviceModelAvailable ? "parlance" : "groq"
-    }
-
-    private var fallbackProvider: AIProvider {
-        ParlanceSLMAnalyzer.isOnDeviceModelAvailable ? .parlanceCoach : .groq
+        get { .parlanceCoach }
+        set { UserDefaults.standard.set(AIProvider.parlanceCoach.rawValue, forKey: "parlance_ai_provider") }
     }
 
     func model(for provider: AIProvider) -> String {

@@ -93,16 +93,10 @@ struct ContentView: View {
                     UserDefaults.standard.set(lang, forKey: "parlance_language")
                 }
 
-                let provider = Self.nativeProvider(fromWebId: providerId)
-                AIProviderSettings.shared.selectedProvider = provider
-
-                if provider == .parlanceCoach {
-                    let lang = obj["language"] ?? UserDefaults.standard.string(forKey: "parlance_language") ?? "es"
-                    let modelId = lang == "fr" ? "parlance-fr" : "parlance-es"
-                    AIProviderSettings.shared.setModel(modelId, for: .parlanceCoach)
-                } else if let model = obj["model"], !model.isEmpty {
-                    AIProviderSettings.shared.setModel(model, for: provider)
-                }
+                AIProviderSettings.shared.selectedProvider = .parlanceCoach
+                let lang = obj["language"] ?? UserDefaults.standard.string(forKey: "parlance_language") ?? "es"
+                let modelId = lang == "fr" ? "parlance-fr" : "parlance-es"
+                AIProviderSettings.shared.setModel(modelId, for: .parlanceCoach)
             }
             DispatchQueue.main.async { completion?() }
         }
@@ -110,42 +104,20 @@ struct ContentView: View {
 
     private func syncAISettingsToWeb() {
         guard let webView = ParlanceWebView.activeWebView else { return }
-        let provider = AIProviderSettings.shared.selectedProvider
-
-        if provider == .parlanceCoach {
-            webView.evaluateJavaScript(
-                """
-                (function(){
-                  var lang=localStorage.getItem('parlance_language')||'es';
-                  return lang==='fr'?'parlance-fr':'parlance-es';
-                })()
-                """
-            ) { result, _ in
-                let model = (result as? String) ?? "parlance-es"
-                webView.evaluateJavaScript(
-                    "if(typeof applyNativeAISettings==='function')applyNativeAISettings('parlance','\(Self.jsSingleQuoted(model))');"
-                ) { _, _ in }
-            }
-            return
-        }
-
-        guard provider != .onDevice else { return }
-        let webId = Self.webProviderId(for: provider)
-        let model = AIProviderSettings.shared.model(for: provider)
+        AIProviderSettings.shared.selectedProvider = .parlanceCoach
         webView.evaluateJavaScript(
-            "if(typeof applyNativeAISettings==='function')applyNativeAISettings('\(webId)','\(Self.jsSingleQuoted(model))');"
-        ) { _, _ in }
-    }
-
-    private static func nativeProvider(fromWebId id: String) -> AIProvider {
-        if id == "parlance" { return .parlanceCoach }
-        if let mapped = FirebaseCloudAnalyzer.provider(fromWebId: id) { return mapped }
-        if let provider = AIProvider(rawValue: id) { return provider }
-        return ParlanceSLMAnalyzer.isOnDeviceModelAvailable ? .parlanceCoach : .groq
-    }
-
-    private static func webProviderId(for provider: AIProvider) -> String {
-        provider.webProviderId
+            """
+            (function(){
+              var lang=localStorage.getItem('parlance_language')||'es';
+              return lang==='fr'?'parlance-fr':'parlance-es';
+            })()
+            """
+        ) { result, _ in
+            let model = (result as? String) ?? "parlance-es"
+            webView.evaluateJavaScript(
+                "if(typeof applyNativeAISettings==='function')applyNativeAISettings('parlance','\(Self.jsSingleQuoted(model))');"
+            ) { _, _ in }
+        }
     }
 
     private static func jsSingleQuoted(_ str: String) -> String {
@@ -252,13 +224,6 @@ struct ParlanceWebView: UIViewRepresentable {
     }
 
     private func buildConfigJSON() -> String {
-        let providerName = UnifiedAnalyzer.shared.activeProviderName
-        var onDeviceAvail = false
-        #if canImport(FoundationModels)
-        if #available(iOS 26, *) {
-            onDeviceAvail = OnDeviceAnalyzer.isAvailable
-        }
-        #endif
         let coachLangs = ParlanceSLMAnalyzer.availableCoachLanguages()
         let coachAvailable = !coachLangs.isEmpty
         let langsJSON = coachLangs.map { "\"\($0)\"" }.joined(separator: ",")
@@ -273,7 +238,7 @@ struct ParlanceWebView: UIViewRepresentable {
             plusPriceJSON = "null"
         }
         return """
-        {"mode":"unified","platform":"ios","capabilities":{"nativeAuth":true,"inAppPurchase":true,"nativeSettings":true},"onDeviceAvailable":\(onDeviceAvail),"groqAvailable":true,"activeProvider":"\(providerName)","parlanceCoachAvailable":\(coachAvailable),"parlanceCoachLanguages":[\(langsJSON)],"isPlusActive":\(isPlusActive),"plusMonthlyPriceDisplay":\(plusPriceJSON),"plusPurchaseAvailable":\(plusPurchasable)}
+        {"mode":"unified","platform":"ios","capabilities":{"nativeAuth":true,"inAppPurchase":true,"nativeSettings":true},"onDeviceAvailable":false,"groqAvailable":false,"coachOnly":true,"activeProvider":"parlance","parlanceCoachAvailable":\(coachAvailable),"parlanceCoachLanguages":[\(langsJSON)],"isPlusActive":\(isPlusActive),"plusMonthlyPriceDisplay":\(plusPriceJSON),"plusPurchaseAvailable":\(plusPurchasable)}
         """
     }
 

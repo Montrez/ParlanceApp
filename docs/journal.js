@@ -259,6 +259,7 @@ const LS_PROVIDER_CHOSEN = 'parlance_ai_provider_chosen';
 const DEFAULT_CLOUD_PROVIDER = 'groq';
 
 function getSelectedProvider() {
+  if (isCoachOnlyNative()) return 'parlance';
   return localStorage.getItem(LS_PROVIDER) || 'webllm';
 }
 
@@ -992,7 +993,7 @@ function effectiveRequiresKey(providerId) {
 }
 
 function isCoachOnlyNative() {
-  return isNativeParlanceApp() && !!(window.__PARLANCE_CONFIG__ || {}).coachOnly;
+  return isNativeParlanceApp();
 }
 
 function parlanceCoachAvailableForLanguage(language) {
@@ -1680,7 +1681,20 @@ function openAISettings() {
   updateFirebaseAuthUI();
   refreshPlusStatusPanel();
   updateModalForProvider(modalSelectedProvider);
+  applyCoachOnlySettingsChrome();
   document.getElementById('aiSettingsOverlay').style.display = 'flex';
+}
+
+function applyCoachOnlySettingsChrome() {
+  const coachOnly = isCoachOnlyNative();
+  const hide = (id) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = coachOnly ? 'none' : '';
+  };
+  hide('providerSection');
+  hide('apiKeySection');
+  hide('modelSection');
+  hide('corsWarning');
 }
 
 /** Called by a native host after its own AI Settings sheet closes. */
@@ -2027,6 +2041,7 @@ function updateModalForProvider(id) {
 
   // CORS warning
   document.getElementById('corsWarning').style.display = provider.corsNote ? '' : 'none';
+  applyCoachOnlySettingsChrome();
 }
 
 function saveAISettingsFromModal() {
@@ -2182,7 +2197,7 @@ async function init() {
 
   // Auto-switch from WebLLM if it can't run (Android WebView, no WebGPU)
   const currentProvider = getSelectedProvider();
-  if (currentProvider === 'webllm' && !canUseWebLLM) {
+  if (!isCoachOnlyNative() && currentProvider === 'webllm' && !canUseWebLLM) {
     const fallback = ['groq', 'openai', 'gemini', 'anthropic', 'kimi']
       .find(id => getProviderKey(id));
     if (fallback) {
