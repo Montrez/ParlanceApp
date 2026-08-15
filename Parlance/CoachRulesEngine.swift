@@ -273,7 +273,7 @@ enum CoachRulesEngine {
         return (issues, changed ? correction : nil)
     }
 
-    /// True when a rule pack is bundled and loadable for this language (currently es/fr).
+    /// True when a rule pack is bundled and loadable for this language (es/fr/en).
     static func isSupported(language: String) -> Bool {
         loadPack(language: language) != nil
     }

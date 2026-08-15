@@ -19,8 +19,9 @@ enum LanguageRegistry {
     static let all: [LanguageInfo] = [
         LanguageInfo(code: "es", displayName: "Spanish", onDeviceModelFolder: "parlance-es-mlx"),
         LanguageInfo(code: "fr", displayName: "French", onDeviceModelFolder: "parlance-fr-mlx"),
-        // Cloud coaching only for now (Phase 1 of #9); on-device English model is #11.
-        LanguageInfo(code: "en", displayName: "English", onDeviceModelFolder: nil),
+        // English uses the same multilingual Qwen 0.5B (Spanish export) until
+        // dedicated English weights ship. Prompts and sanitize are English-specific.
+        LanguageInfo(code: "en", displayName: "English", onDeviceModelFolder: "parlance-es-mlx"),
     ]
 
     private static let byCode: [String: LanguageInfo] = Dictionary(
@@ -48,5 +49,11 @@ enum LanguageRegistry {
 
     static func onDeviceModelFolder(for code: String) -> String? {
         byCode[code]?.onDeviceModelFolder
+    }
+
+    /// GGUF / JS storage id (`parlance-es`, `parlance-fr`). English shares the
+    /// Spanish 0.5B file until a dedicated English export exists.
+    static func slmStorageId(for code: String) -> String {
+        code == "fr" ? "parlance-fr" : "parlance-es"
     }
 }

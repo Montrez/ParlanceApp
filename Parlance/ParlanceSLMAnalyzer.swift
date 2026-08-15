@@ -1,6 +1,6 @@
 import Foundation
 
-/// Parlance Coach: on-device MLX inference (Spanish / French). Optional Mac dev server via UserDefaults.
+/// Parlance Coach: on-device MLX inference (Spanish / French / English). Optional Mac dev server via UserDefaults.
 enum ParlanceSLMAnalyzer {
 
     private static let devServerKey = "parlance_slm_dev_server"
@@ -139,7 +139,7 @@ enum ParlanceSLMError: LocalizedError {
             Re-archive after running: ./training/prepare_ios_coach_model.sh
             """
         case .unsupportedLanguage:
-            return "Parlance Coach is not available for this journal language. Use another provider in ⚙ AI."
+            return "Parlance Coach does not cover this Write language yet."
         }
     }
 }

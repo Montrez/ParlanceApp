@@ -997,12 +997,12 @@ function isCoachOnlyNative() {
 
 function parlanceCoachAvailableForLanguage(language) {
   const cfg = window.__PARLANCE_CONFIG__ || {};
-  const langs = cfg.parlanceCoachLanguages || (cfg.parlanceCoachAvailable ? ['es', 'fr'] : []);
+  const langs = cfg.parlanceCoachLanguages || (cfg.parlanceCoachAvailable ? ['es', 'fr', 'en'] : []);
   return langs.includes(language);
 }
 
 function parlanceCoachCoversLanguage(language) {
-  return language === 'es' || language === 'fr';
+  return language === 'es' || language === 'fr' || language === 'en';
 }
 
 function parlanceCoachErrorKey(language) {
@@ -1070,7 +1070,7 @@ async function runCoachFallback(sentence, language, reason) {
   return result;
 }
 
-/** SLM storage id for journal language (es → parlance-es, fr → parlance-fr). */
+/** SLM storage id for journal language. English shares the Spanish 0.5B file. */
 function parlanceModelIdForLanguage(lang) {
   return lang === 'fr' ? 'parlance-fr' : 'parlance-es';
 }

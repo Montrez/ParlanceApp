@@ -32,7 +32,7 @@
 
   function lexiconTable(rows, fromName, toName, labels) {
     if (!rows || !rows.length) return '';
-    var html = '<table class="pair-lexicon"><thead><tr>' +
+    var html = '<div class="pair-lexicon-wrap"><table class="pair-lexicon"><thead><tr>' +
       '<th>' + escapeHtml(labels.idea || '') + '</th>' +
       '<th>' + escapeHtml(fromName) + '</th>' +
       '<th>' + escapeHtml(toName) + '</th>' +
@@ -42,7 +42,7 @@
         '<td class="mono">' + (row.from || '') + '</td>' +
         '<td class="mono">' + (row.to || '') + '</td></tr>';
     });
-    return html + '</tbody></table>';
+    return html + '</tbody></table></div>';
   }
 
   function localizeItem(item, lang) {

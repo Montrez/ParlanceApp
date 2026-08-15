@@ -135,7 +135,7 @@ struct AISettingsView: View {
         } header: {
             Text("Model")
         } footer: {
-            Text("Parlance Coach runs on this iPhone. Spanish and French switch with the language you write in. First analysis may take a minute while the model loads.")
+            Text("Parlance Coach runs on this iPhone. English, Spanish, and French switch with the language you write in. First analysis may take a minute while the model loads.")
         }
     }
 
@@ -168,14 +168,14 @@ struct AISettingsView: View {
     private func loadCurrentSettings() {
         AIProviderSettings.shared.selectedProvider = .parlanceCoach
         let lang = UserDefaults.standard.string(forKey: "parlance_language") ?? "es"
-        let modelId = lang == "fr" ? "parlance-fr" : "parlance-es"
+        let modelId = LanguageRegistry.slmStorageId(for: lang)
         AIProviderSettings.shared.setModel(modelId, for: .parlanceCoach)
     }
 
     private func saveAndDismiss() {
         AIProviderSettings.shared.selectedProvider = .parlanceCoach
         let lang = UserDefaults.standard.string(forKey: "parlance_language") ?? "es"
-        let modelId = lang == "fr" ? "parlance-fr" : "parlance-es"
+        let modelId = LanguageRegistry.slmStorageId(for: lang)
         AIProviderSettings.shared.setModel(modelId, for: .parlanceCoach)
 
         withAnimation { showKeySaved = true }

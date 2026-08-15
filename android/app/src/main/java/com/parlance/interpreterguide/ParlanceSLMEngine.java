@@ -34,7 +34,7 @@ import net.ladenthin.llama.parameters.ModelParameters;
 public class ParlanceSLMEngine {
 
     private static final String TAG = "ParlanceSLM";
-    private static final List<String> SUPPORTED = Arrays.asList("es", "fr");
+    private static final List<String> SUPPORTED = Arrays.asList("es", "fr", "en");
     private static final int MAX_TOKENS = 768;
 
     public interface AvailabilityListener {
@@ -141,7 +141,24 @@ public class ParlanceSLMEngine {
     }
 
     private synchronized File resolveModelFile(String language, boolean copyAsset) {
-        String name = "parlance-" + language + ".gguf";
+        for (String name : modelFileNames(language)) {
+            File found = resolveNamedModel(name, copyAsset);
+            if (isUsableModel(found)) {
+                return found;
+            }
+        }
+        return null;
+    }
+
+    /** English shares the Spanish (then French) 0.5B GGUF until a dedicated export exists. */
+    private static List<String> modelFileNames(String language) {
+        if ("en".equals(language)) {
+            return Arrays.asList("parlance-en.gguf", "parlance-es.gguf", "parlance-fr.gguf");
+        }
+        return Arrays.asList("parlance-" + language + ".gguf");
+    }
+
+    private File resolveNamedModel(String name, boolean copyAsset) {
         File onDisk = new File(new File(context.getFilesDir(), "models"), name);
         if (isUsableModel(onDisk)) {
             return onDisk;
@@ -167,11 +184,13 @@ public class ParlanceSLMEngine {
     }
 
     public boolean isAvailable(String language) {
-        String name = "parlance-" + language + ".gguf";
-        File onDisk = new File(new File(context.getFilesDir(), "models"), name);
-        if (isUsableModel(onDisk)) return true;
-        if (isUsableModel(playAssetPackFile(name))) return true;
-        return findAsset(name) != null;
+        for (String name : modelFileNames(language)) {
+            File onDisk = new File(new File(context.getFilesDir(), "models"), name);
+            if (isUsableModel(onDisk)) return true;
+            if (isUsableModel(playAssetPackFile(name))) return true;
+            if (findAsset(name) != null) return true;
+        }
+        return false;
     }
 
     private static final class AssetRef {
@@ -347,14 +366,25 @@ public class ParlanceSLMEngine {
         if ("fr".equals(language)) {
             return "Analyze this French sentence: \"" + sentence + "\"";
         }
+        if ("en".equals(language)) {
+            return "Analyze this English sentence: \"" + sentence + "\"";
+        }
         return "Analyze this Spanish sentence: \"" + sentence + "\"";
     }
 
     private static String systemPrompt(String language, String ragContext) {
-        String dialect = "fr".equals(language)
-                ? "France and Canadian (Québec) dialect variation"
-                : "Latin American dialect variation";
-        String langName = "fr".equals(language) ? "French" : "Spanish";
+        String dialect;
+        String langName;
+        if ("fr".equals(language)) {
+            dialect = "France and Canadian (Québec) dialect variation";
+            langName = "French";
+        } else if ("en".equals(language)) {
+            dialect = "US, UK, and other English variety differences";
+            langName = "English";
+        } else {
+            dialect = "Latin American dialect variation";
+            langName = "Spanish";
+        }
         StringBuilder prompt = new StringBuilder();
         prompt.append("You are a ").append(langName)
                 .append(" grammar coach for interpreter training, with expertise in ")
@@ -372,6 +402,10 @@ public class ParlanceSLMEngine {
                 .append("- ALL example sentences (correction, next_level_alt, target_level_alt) MUST be complete sentences in ")
                 .append(langName).append(".\n")
                 .append("- grammar_rule, explanation, register, and tip MUST be in English.\n");
+        if ("en".equals(language)) {
+            prompt.append("- Never flag valid English variety features as errors (UK/US spelling, Indian English, collective agreement).\n")
+                    .append("- Watch for L1 calques: articles, do-support, if + would in the if-clause, and subject-verb agreement.\n");
+        }
         if (!ragContext.isEmpty()) {
             prompt.append("\nREFERENCE KNOWLEDGE (use these rules to verify accuracy — do not invent errors outside them):\n")
                     .append(ragContext).append('\n');

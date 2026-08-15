@@ -95,7 +95,7 @@ struct ContentView: View {
 
                 AIProviderSettings.shared.selectedProvider = .parlanceCoach
                 let lang = obj["language"] ?? UserDefaults.standard.string(forKey: "parlance_language") ?? "es"
-                let modelId = lang == "fr" ? "parlance-fr" : "parlance-es"
+                let modelId = LanguageRegistry.slmStorageId(for: lang)
                 AIProviderSettings.shared.setModel(modelId, for: .parlanceCoach)
             }
             DispatchQueue.main.async { completion?() }

@@ -3,7 +3,7 @@ import MLXLLM
 import MLXLMCommon
 import MLXLMTransformers
 
-/// On-device inference for fine-tuned Parlance Coach (Spanish / French, MLX 4-bit).
+/// On-device inference for Parlance Coach (Spanish / French / English, MLX 4-bit).
 actor ParlanceSLMEngine {
 
     static let shared = ParlanceSLMEngine()
@@ -93,6 +93,12 @@ actor ParlanceSLMEngine {
             (
                 ParlanceSLMFeedbackValidator.frenchSystemPrompt(level: level, ragContext: ragContext),
                 ParlanceSLMFeedbackValidator.frenchUserPrompt(sentence: sentence, level: level)
+            )
+        },
+        "en": { sentence, level, ragContext in
+            (
+                ParlanceSLMFeedbackValidator.englishSystemPrompt(level: level, ragContext: ragContext),
+                ParlanceSLMFeedbackValidator.englishUserPrompt(sentence: sentence, level: level)
             )
         },
     ]

@@ -1,6 +1,6 @@
 import Foundation
 
-/// Resolves bundled (or cached) MLX weights for Parlance Coach (Spanish / French).
+/// Resolves bundled (or cached) MLX weights for Parlance Coach.
 enum ParlanceSLMModelLocator {
 
     private static let markerFile = "config.json"

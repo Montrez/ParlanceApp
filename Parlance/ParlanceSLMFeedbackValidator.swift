@@ -357,8 +357,62 @@ enum ParlanceSLMFeedbackValidator {
         "Analyze this French sentence: \"\(sentence)\""
     }
 
+    static func englishSystemPrompt(level: String = "", ragContext: String = "") -> String {
+        var prompt = """
+        You are an English grammar coach for interpreter training. Learners are often \
+        Spanish or French speakers writing English. Do NOT assume the learner picked a CEFR level.
+
+        \(cefrComplexityPrompt)
+        CRITICAL ACCURACY RULES:
+        - Do NOT invent grammatical errors. Only flag real, clear mistakes.
+        - Grammatically correct sentences are "Excellent" — but explanation must still cite specific structures in the learner's words (not generic praise).
+        - Only mark "Needs Improvement" when there is an actual grammar error — not a style preference.
+        - complexity_note must describe THIS sentence's structures — never guess CEFR from word count alone.
+        - next_level_alt MUST rewrite the sentence at a higher level — never copy the input verbatim.
+        - tip MUST include at least one complete example sentence in English showing a stronger phrasing.
+        - Never flag valid English variety features as errors (UK/US/Indian/Caribbean/South African English, spelling colour/color, collective agreement).
+        - Do not "correct" a missing question mark or comma into a grammar error unless the sentence is otherwise unreadable.
+        - Watch for L1 calques: articles (a/an/the), do-support, if + would in the if-clause, prepositions, and subject-verb agreement.
+        - ALL example sentences (correction, next_level_alt, target_level_alt) MUST be complete sentences in English.
+        - grammar_rule, explanation, register, and tip MUST be in English.
+        - For next_level_alt: same idea one CEFR level above assessed_level.
+        - For target_level_alt: same idea two levels above assessed_level (null at C1/C2).
+        """
+        if !ragContext.isEmpty {
+            prompt += """
+
+            REFERENCE KNOWLEDGE (use these rules to verify accuracy — do not invent errors outside them):
+            \(ragContext)
+            """
+        }
+        prompt += """
+
+        Respond with ONLY a valid JSON object (no markdown fences):
+        {
+          "assessed_level": "A1" | "A2" | "B1" | "B2" | "C1" | "C2" | null,
+          "complexity_note": "1–2 English sentences on sentence complexity (vocabulary, syntax, subordination, register)",
+          "status": "Excellent" or "Needs Improvement",
+          "grammar_rule": "The specific grammar rule — always name the rule, even when correct",
+          "explanation": "WHY the sentence is correct or incorrect — cite the learner's words",
+          "correction": null or "Corrected sentence in English (required when Needs Improvement)",
+          "register": "Formal or informal and whether appropriate for interpreter settings",
+          "next_level_alt": "Same idea rephrased one CEFR level above assessed_level, in English",
+          "target_level_alt": "Same idea two levels above assessed_level, in English (null at C1/C2 if N/A)",
+          "tip": "Practical tip with a complete English example sentence showing stronger phrasing"
+        }
+        """
+        return prompt
+    }
+
+    static func englishUserPrompt(sentence: String, level: String = "") -> String {
+        "Analyze this English sentence: \"\(sentence)\""
+    }
+
     /// Rule-based fallback exposed for parse failures in the SLM engine.
     static func fallbackFeedback(sentence: String, level: String, language: String = "es") -> [String: Any] {
+        if language == "en" {
+            return englishHeuristicFeedback(sentence: sentence, level: level)
+        }
         if language == "fr" {
             return frenchHeuristicFeedback(sentence: sentence, level: level)
         }
@@ -366,6 +420,9 @@ enum ParlanceSLMFeedbackValidator {
     }
 
     static func sanitize(sentence: String, feedback: [String: Any], level: String, language: String = "es") -> [String: Any] {
+        if language == "en" {
+            return sanitizeEnglish(sentence: sentence, feedback: feedback, level: level)
+        }
         // Spanish/French heuristics below are intentionally asymmetric (not a generic
         // per-language table) — see LanguageRegistry.swift for the plumbing that IS
         // centralized. This just makes the "else falls back to Spanish" behavior loud
@@ -377,6 +434,32 @@ enum ParlanceSLMFeedbackValidator {
             return sanitizeFrench(sentence: sentence, feedback: feedback, level: level)
         }
         return sanitizeSpanish(sentence: sentence, feedback: feedback, level: level)
+    }
+
+    private static func sanitizeEnglish(sentence: String, feedback: [String: Any], level: String) -> [String: Any] {
+        var out = feedback
+        FeedbackSanitizer.sanitize(sentence: sentence, level: level, language: "en", feedback: &out)
+        return out
+    }
+
+    private static func englishHeuristicFeedback(sentence: String, level: String) -> [String: Any] {
+        let analysis = CoachRulesEngine.analyze(sentence: sentence, language: "en")
+        if let first = analysis.issues.first {
+            var out: [String: Any] = [
+                "status": "Needs Improvement",
+                "grammar_rule": first.grammarRule,
+                "explanation": first.issue,
+            ]
+            if let correction = analysis.correction, !correction.isEmpty {
+                out["correction"] = correction
+            }
+            return out
+        }
+        return [
+            "status": "Excellent",
+            "grammar_rule": "English sentence structure",
+            "explanation": "No clear grammar error was found in this sentence.",
+        ]
     }
 
     private static func sanitizeSpanish(sentence: String, feedback: [String: Any], level: String) -> [String: Any] {
