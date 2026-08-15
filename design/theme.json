@@ -5,7 +5,7 @@
     "paper": { "light": "#faf7f2", "dark": "#1a1a1e" },
     "paper2": { "light": "#f4f0e8", "dark": "#242428" },
     "rule": { "light": "#e8e0d0", "dark": "#3a3a40" },
-    "muted": { "light": "#9b9189", "dark": "#8a8a94" },
+    "muted": { "light": "#6f665d", "dark": "#9d99a1" },
     "accent": {
       "light": "#0b9cd0",
       "dark": "#3db8e8",
@@ -30,7 +30,32 @@
       "light": "#7f1d1d",
       "dark": "#e07070",
       "tint_alpha": { "light": 0.08, "dark": 0.12 }
+    },
+    "teal": { "light": "#2e7d6f", "dark": "#6fd4c4" },
+    "lavender": { "light": "#6b4f9e", "dark": "#c4aae8" },
+    "warningSurface": {
+      "$comment": "Solid warning banner background (e.g. offline banner) — needs to stay dark enough for white text in both themes, unlike the amber badge tint.",
+      "light": "#92400e",
+      "dark": "#6b4c1a"
+    },
+    "accentText": {
+      "$comment": "Small readable accent text on a tinted chip background (e.g. RAG topic chips) — needs more contrast than the button accent color.",
+      "light": "#0b7ea8",
+      "dark": "#6dd4ff",
+      "tint_alpha": { "light": 0.08, "dark": 0.14 }
     }
+  },
+  "header_tokens": {
+    "$comment": "The app header is an intentionally always-dark masthead in both light and dark theme, so these don't mirror --ink/--paper. Generates --header-* vars in theme.css.",
+    "bg": { "light": "#1c1917", "dark": "#111114" },
+    "text": { "light": "#faf7f2", "dark": "#faf7f2" },
+    "muted": { "light": "#9b9189", "dark": "#c4c0b8" },
+    "border": { "light": "#3d3833", "dark": "#3a3a40" },
+    "selectBg": { "light": "#2c2825", "dark": "#2a2a30" },
+    "sep": { "light": "#4a443e", "dark": "#4a4a52" },
+    "accent": { "light": "#5ec4e6", "dark": "#5ec4e6" },
+    "writeBorder": { "light": "#4a6a78", "dark": "#3a6a7e" },
+    "writeLabel": { "light": "#7a9eab", "dark": "#7a9eab" }
   },
   "content_tokens": {
     "$comment": "Tokens for the standalone reference pages (guide-*.html, dialect-*.html). Generates Parlance/web/content-theme.css + docs/content-theme.css. These pages use a brighter, pastel-card look distinct from the app-shell tokens above, but must still come from this single file — never hand-copy these values into a page's own <style> block.",

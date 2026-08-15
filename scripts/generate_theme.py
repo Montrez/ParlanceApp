@@ -49,6 +49,10 @@ CSS_VAR_NAMES = {
     "amber": "--amber",
     "blue": "--blue",
     "red": "--red",
+    "teal": "--teal",
+    "lavender": "--lavender",
+    "warningSurface": "--warning-surface",
+    "accentText": "--accent-text",
 }
 
 TINT_VAR_NAMES = {
@@ -57,6 +61,19 @@ TINT_VAR_NAMES = {
     "amber": "--amber-bg",
     "blue": "--blue-bg",
     "red": "--red-bg",
+    "accentText": "--accent-text-bg",
+}
+
+HEADER_VAR_NAMES = {
+    "bg": "--header-bg",
+    "text": "--header-text",
+    "muted": "--header-muted",
+    "border": "--header-border",
+    "selectBg": "--header-select-bg",
+    "sep": "--header-sep",
+    "accent": "--header-accent",
+    "writeBorder": "--header-write-border",
+    "writeLabel": "--header-write-label",
 }
 
 
@@ -72,6 +89,7 @@ def rgba_css(hex_color: str, alpha: float) -> str:
 
 def build_css(theme: dict) -> str:
     tokens = theme["tokens"]
+    header_tokens = theme.get("header_tokens", {})
     raw_css = theme.get("raw_css", {})
 
     def block(mode: str) -> list[str]:
@@ -82,6 +100,9 @@ def build_css(theme: dict) -> str:
             if tint_var:
                 alpha = tokens[key]["tint_alpha"][mode]
                 lines.append(f"  {tint_var}: {rgba_css(tokens[key][mode], alpha)};")
+        for key, var_name in HEADER_VAR_NAMES.items():
+            if key in header_tokens:
+                lines.append(f"  {var_name}: {header_tokens[key][mode]};")
         for key, values in raw_css.items():
             lines.append(f"  --{key}: {values[mode]};")
         return lines
