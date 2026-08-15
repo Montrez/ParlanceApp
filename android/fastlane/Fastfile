@@ -1,0 +1,28 @@
+default_platform(:android)
+
+platform :android do
+  desc "Upload the signed release AAB to the internal test track"
+  lane :internal do
+    aab = File.expand_path("../app/build/outputs/bundle/release/app-release.aab", __dir__)
+    UI.user_error!("Missing #{aab}. Run ./gradlew bundleRelease first.") unless File.exist?(aab)
+
+    key = File.expand_path("../play-service-account.json", __dir__)
+    if File.exist?(key)
+      upload_to_play_store(
+        package_name: "com.parlance.interpreterguide",
+        track: "internal",
+        aab: aab,
+        json_key: key,
+        skip_upload_apk: true,
+        skip_upload_metadata: true,
+        skip_upload_changelogs: true,
+        skip_upload_images: true,
+        skip_upload_screenshots: true,
+        release_status: "completed"
+      )
+    else
+      UI.important("No play-service-account.json. Uploading with the signed-in gcloud user.")
+      sh("python3", File.expand_path("../../scripts/upload_play_aab.py", __dir__), aab)
+    end
+  end
+end

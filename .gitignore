@@ -59,6 +59,9 @@ node_modules/
 google-services.json
 android/app/google-services.json
 android/keystore.properties
+android/play-service-account.json
+android/fastlane/report.xml
+android/fastlane/README.md
 android/.gradle/
 android/app/build/
 android/build/
