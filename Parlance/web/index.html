@@ -6,7 +6,7 @@
 <title>Parlance</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Spectral:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css?v=1">
-<link rel="stylesheet" href="styles.css?v=19">
+<link rel="stylesheet" href="styles.css?v=20">
 </head>
 <body>
 
@@ -162,7 +162,7 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <!-- Guide overlay -->
-<div id="guideOverlay" style="display:none;position:fixed;inset:0;z-index:200;background:#0e0e0f;">
+<div id="guideOverlay">
   <iframe id="guideFrame" style="width:100%;height:100%;border:none;" sandbox="allow-scripts allow-same-origin"></iframe>
 </div>
 
@@ -179,6 +179,7 @@
         <li><span class="plus-benefit-check" aria-hidden="true">✓</span><span data-i18n="plusBenefitUnlimited">Unlimited cloud AI coaching — no monthly cap</span></li>
         <li><span class="plus-benefit-check" aria-hidden="true">✓</span><span data-i18n="plusBenefitMedical">Medical interpreting guide — clinical vocabulary, register, and ethics</span></li>
         <li><span class="plus-benefit-check" aria-hidden="true">✓</span><span data-i18n="plusBenefitLegal">Legal interpreting guide — court roles, rights language, and protocol</span></li>
+        <li><span class="plus-benefit-check" aria-hidden="true">✓</span><span data-i18n="plusBenefitRag">Coach adds medical or legal context when a journal sentence uses those terms</span></li>
       </ul>
       <p class="plus-paywall-price" id="plusPaywallPrice" data-i18n="plusPaywallPrice">$9.99/month</p>
       <p class="plus-paywall-terms" id="plusPaywallTerms" data-i18n="plusPaywallTerms">Parlance Plus is a monthly auto-renewing subscription. Payment is charged to your Apple Account at confirmation of purchase. It renews automatically unless you turn off auto-renew at least 24 hours before the end of the current period, and your account is charged for renewal within 24 hours before the period ends. You can manage or cancel your subscription in your Apple Account settings.</p>
@@ -225,14 +226,24 @@
       <button class="modal-close" onclick="closeAISettings()">&times;</button>
     </div>
     <div class="modal-body">
+      <div class="settings-section" id="plusStatusSection">
+        <div class="settings-label" data-i18n="plusStatusTitle">Your Parlance Plus</div>
+        <p class="settings-hint" id="plusStatusLead" data-i18n="plusStatusLeadLocked">Parlance Plus unlocks domain guides and unlimited cloud coaching.</p>
+        <ul class="plus-status-list" id="plusStatusList">
+          <li><span class="plus-status-mark" data-plus-mark></span><span data-i18n="plusBenefitUnlimited">Unlimited cloud AI coaching — no monthly cap</span></li>
+          <li><span class="plus-status-mark" data-plus-mark></span><span data-i18n="plusBenefitMedical">Medical interpreting guide — clinical vocabulary, register, and ethics</span></li>
+          <li><span class="plus-status-mark" data-plus-mark></span><span data-i18n="plusBenefitLegal">Legal interpreting guide — court roles, rights language, and protocol</span></li>
+          <li><span class="plus-status-mark" data-plus-mark></span><span data-i18n="plusBenefitRag">Coach adds medical or legal context when a journal sentence uses those terms</span></li>
+        </ul>
+        <div class="plus-status-actions" id="plusStatusActions" style="display:none">
+          <button type="button" class="auth-btn" onclick="triggerPlusPurchase()" data-i18n="plusPaywallSubscribe">Subscribe to Parlance Plus</button>
+          <button type="button" class="auth-btn auth-btn-outline" onclick="triggerPlusRestore()" data-i18n="plusPaywallRestore">Restore purchase</button>
+        </div>
+      </div>
       <div class="settings-section" id="authSection" style="display:none">
         <div class="settings-label" data-i18n="parlanceAccount">Parlance account</div>
         <div id="authSignedOut">
           <p class="settings-hint" id="authSetupHint" data-i18n="authSetupHint">Sign in to use cloud AI without API keys.</p>
-          <div class="auth-buttons" id="authButtons">
-            <button type="button" class="auth-btn" id="signInAppleBtn" onclick="signInWithApple()" data-i18n="signInApple">Sign in with Apple</button>
-            <button type="button" class="auth-btn auth-btn-google" id="signInGoogleBtn" onclick="signInWithGoogle()" data-i18n="signInGoogle">Sign in with Google</button>
-          </div>
         </div>
         <div id="authSignedIn" style="display:none">
           <p class="auth-signed-in-label"><span data-i18n="signedInAs">Signed in as</span> <span id="authUserLabel"></span></p>
@@ -296,6 +307,6 @@
 <script src="coach-rules-fr.js?v=14"></script>
 <script src="coach-rules-engine.js?v=14"></script>
 <script src="feedback-sanitize.js?v=14"></script>
-<script src="journal.js?v=19"></script>
+<script src="journal.js?v=20"></script>
 </body>
 </html>

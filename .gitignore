@@ -33,6 +33,11 @@ training/models/parlance-fr-mlx/
 training/checkpoints/
 training/*.log
 training/*.zip
+training/.llama.cpp/
+training/.llama-bin/
+*.gguf
+android/app/src/main/assets/models/*.gguf
+android/parlance_models/src/main/assets/*.gguf
 
 # Xcode DerivedData / SourcePackages archives (xcodebuild -resultBundlePath, CI artifacts)
 output/
@@ -57,6 +62,7 @@ android/keystore.properties
 android/.gradle/
 android/app/build/
 android/build/
+android/parlance_models/build/
 android/local.properties
 android/.idea/
 *.apk

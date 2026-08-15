@@ -518,27 +518,16 @@ function updateFirebaseAuthUI() {
 
   const signedOut = document.getElementById('authSignedOut');
   const signedInEl = document.getElementById('authSignedIn');
-  const authButtons = document.getElementById('authButtons');
-  const authSetupHint = document.getElementById('authSetupHint');
   const native = isNativeParlanceApp();
   const webAuth = canUseFirebaseWebAuth();
 
-  if (!hasFirebaseConfig() && !native) {
+  // Sign-in buttons are gone on both phones. Coach does not need an account.
+  // Keep the section only on the web, and only if a session is already live.
+  if (native || !webAuth || !isFirebaseSignedIn()) {
     section.style.display = 'none';
     return;
   }
   section.style.display = '';
-
-  if (native) {
-    if (authButtons) authButtons.style.display = '';
-    if (authSetupHint) authSetupHint.textContent = i18n.t('authSetupHintNative');
-  } else if (!webAuth) {
-    section.style.display = 'none';
-    return;
-  } else {
-    if (authButtons) authButtons.style.display = '';
-    if (authSetupHint) authSetupHint.textContent = i18n.t('authSetupHintWeb');
-  }
 
   const signedIn = isFirebaseSignedIn();
   if (signedOut) signedOut.style.display = signedIn ? 'none' : '';
@@ -956,6 +945,7 @@ window.__parlanceUpdateConfig = function (patch) {
   if ('isPlusActive' in patch) {
     plusActiveOverride = null; // defer back to the (now current) config value
     if (patch.isPlusActive) refreshPlusPaywallPrice();
+    refreshPlusStatusPanel();
   }
   if ('plusMonthlyPriceDisplay' in patch) refreshPlusPaywallPrice();
   if ('plusPurchaseAvailable' in patch) refreshPlusPaywallPrice();
@@ -1407,6 +1397,7 @@ function refreshDynamicI18nUI() {
   if (loadAll) loadAll.textContent = i18n.t('loadAllToEditor');
   refreshOpenGuideLanguage();
   refreshPlusPaywallPrice();
+  refreshPlusStatusPanel();
   updateLangSummary();
   updateEntryPager();
   requestAnimationFrame(syncHeaderOffset);
@@ -1540,6 +1531,7 @@ function openAISettings() {
   modalSelectedProvider = getSelectedProvider();
   renderProviderGrid();
   updateFirebaseAuthUI();
+  refreshPlusStatusPanel();
   updateModalForProvider(modalSelectedProvider);
   document.getElementById('aiSettingsOverlay').style.display = 'flex';
 }
@@ -1642,6 +1634,20 @@ function showPlusPaywall(kind) {
   if (subscribeBtn) subscribeBtn.style.display = nativeSupportsPurchases() ? '' : 'none';
   overlay.style.display = 'flex';
   refreshPlusPaywallPrice();
+}
+
+function refreshPlusStatusPanel() {
+  const list = document.getElementById('plusStatusList');
+  const lead = document.getElementById('plusStatusLead');
+  const actions = document.getElementById('plusStatusActions');
+  const active = isPlusActive();
+  if (list) list.classList.toggle('is-active', active);
+  if (lead) lead.textContent = i18n.t(active ? 'plusStatusLeadActive' : 'plusStatusLeadLocked');
+  const mark = i18n.t(active ? 'plusStatusIncluded' : 'plusStatusLocked');
+  document.querySelectorAll('[data-plus-mark]').forEach((el) => { el.textContent = mark; });
+  if (actions) {
+    actions.style.display = (!active && nativeSupportsPurchases()) ? 'flex' : 'none';
+  }
 }
 
 function closePlusPaywall() {
@@ -2049,10 +2055,10 @@ async function applyDefaultProvider() {
     return;
   }
 
-  if (isFirebaseSignedIn()) {
-    setSelectedProvider(DEFAULT_CLOUD_PROVIDER);
-  } else if (coachCanCoverLanguage(state.currentLanguage)) {
+  if (coachCanCoverLanguage(state.currentLanguage)) {
     setSelectedProvider('parlance');
+  } else if (isFirebaseSignedIn()) {
+    setSelectedProvider(DEFAULT_CLOUD_PROVIDER);
   } else if (await checkParlanceSLMServer()) {
     // Web / dev: Mac Python server
     setSelectedProvider('parlance');
@@ -2741,10 +2747,13 @@ function openGuideOverlay(kind = 'grammar') {
       frame.contentDocument?.body?.classList.add('dark');
     }
   };
+  document.body.classList.add('guide-open');
+  closeFeedbackSheet();
   overlay.style.display = 'block';
 }
 
 function closeGuideOverlay() {
+  document.body.classList.remove('guide-open');
   document.getElementById('guideOverlay').style.display = 'none';
   document.getElementById('guideFrame').src = '';
 }

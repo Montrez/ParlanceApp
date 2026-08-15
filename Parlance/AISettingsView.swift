@@ -9,14 +9,13 @@ struct AISettingsView: View {
     @State private var selectedModels:   [AIProvider: String] = [:]
     @State private var apiKeys:          [AIProvider: String] = [:]
     @State private var showKeySaved = false
-    @State private var authBusy = false
-    @State private var showDeleteAccountConfirm = false
-    @State private var deleteAccountError: String?
+    @ObservedObject private var storeKit = StoreKitManager.shared
+    @State private var plusBusy = false
 
     var body: some View {
         NavigationStack {
             Form {
-                authSection
+                plusSection
                 providerSection
                 if selectedProvider.requiresAPIKey(isSignedIn: authManager.isSignedIn) {
                     apiKeySection
@@ -44,16 +43,6 @@ struct AISettingsView: View {
             }
         }
         .onAppear(perform: loadCurrentSettings)
-        .confirmationDialog(
-            "Delete your Parlance account?",
-            isPresented: $showDeleteAccountConfirm,
-            titleVisibility: .visible
-        ) {
-            Button("Delete My Account", role: .destructive) { performAccountDeletion() }
-            Button("Keep My Account", role: .cancel) { }
-        } message: {
-            Text("This permanently deletes your Parlance sign-in, usage counter, call pack balances, and Parlance Plus record. It cannot be undone, and call pack balances are not refundable.")
-        }
         .overlay(alignment: .bottom) {
             if showKeySaved {
                 HStack(spacing: 6) {
@@ -73,126 +62,57 @@ struct AISettingsView: View {
         .animation(.spring(duration: 0.3), value: showKeySaved)
     }
 
-    // MARK: – Auth
+    // MARK: – Parlance Plus
 
-    @ViewBuilder
-    private var authSection: some View {
-        if authManager.isSignedIn {
-            Section {
-                HStack(alignment: .top, spacing: 10) {
-                    Image(systemName: "person.crop.circle.badge.checkmark")
-                        .foregroundStyle(.green)
-                        .font(.title3)
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Signed in")
-                            .font(.subheadline.weight(.semibold))
-                        Text(authManager.displayLabel)
-                            .font(.subheadline)
-                            .foregroundStyle(Color.secondary)
-                        Text("Signed-in mode can use cloud AI without API keys (when enabled).")
-                            .font(.caption)
-                            .foregroundStyle(Color.secondary)
-                    }
-                }
-                .padding(.vertical, 4)
-
-                Button("Sign Out", role: .destructive) {
-                    authBusy = true
-                    Task {
-                        defer { authBusy = false }
-                        try? authManager.signOut()
-                    }
-                }
-                .disabled(authBusy)
-
-                Button("Delete Account", role: .destructive) {
-                    deleteAccountError = nil
-                    showDeleteAccountConfirm = true
-                }
-                .disabled(authBusy)
-
-                if let deleteAccountError {
-                    Text(deleteAccountError)
-                        .font(.caption)
-                        .foregroundStyle(.red)
-                }
-            } header: {
-                Text("Account")
-            } footer: {
-                Text("Deleting your account permanently removes your sign-in, usage counter, call pack balances, and Parlance Plus record. Journal entries stay on this device. Cancel Parlance Plus separately in your Apple Account settings so billing stops.")
-            }
-        } else {
-            Section {
-                Button {
-                    authBusy = true
-                    Task {
-                        defer { authBusy = false }
-                        authManager.setPresentationAnchor(ParlanceWebView.activeWebView)
-                        do { try await authManager.signInWithApple() }
-                        catch AuthManagerError.cancelled { }
-                        catch { }
-                    }
-                } label: {
-                    Label("Sign in with Apple", systemImage: "apple.logo")
-                }
-                .disabled(authBusy)
-
-                if authManager.isGoogleSignInConfigured {
-                    Button {
-                        authBusy = true
-                        Task {
-                            defer { authBusy = false }
-                            authManager.setPresentationAnchor(ParlanceWebView.activeWebView)
-                            do { try await authManager.signInWithGoogle() }
-                            catch AuthManagerError.cancelled { }
-                            catch { }
-                        }
-                    } label: {
-                        Label("Sign in with Google", systemImage: "globe")
-                    }
-                    .disabled(authBusy)
-                } else {
-                    HStack(alignment: .top, spacing: 10) {
-                        Image(systemName: "info.circle")
-                            .foregroundStyle(Color.secondary)
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Google Sign-In isn’t configured yet.")
-                                .font(.subheadline.weight(.semibold))
-                            Text("Enable Google in Firebase Authentication, then re-download GoogleService-Info.plist so it includes CLIENT_ID / REVERSED_CLIENT_ID.")
-                                .font(.caption)
-                                .foregroundStyle(Color.secondary)
-                        }
-                    }
-                    .padding(.vertical, 4)
-                }
-
-                if let err = authManager.authError {
-                    Text(err)
-                        .font(.caption)
-                        .foregroundStyle(.red)
-                }
-            } header: {
-                Text("Account")
-            } footer: {
-                Text("Sign in to use cloud AI without entering API keys (when enabled). Parlance Coach and on-device options work without an account.")
-            }
-        }
+    private var plusBenefits: [String] {
+        [
+            "Unlimited cloud AI coaching — no monthly cap",
+            "Medical interpreting guide — clinical vocabulary, register, and ethics",
+            "Legal interpreting guide — court roles, rights language, and protocol",
+            "Coach adds medical or legal context when a journal sentence uses those terms",
+        ]
     }
 
-    private func performAccountDeletion() {
-        authBusy = true
-        deleteAccountError = nil
-        Task {
-            defer { authBusy = false }
-            do {
-                authManager.setPresentationAnchor(ParlanceWebView.activeWebView)
-                try await authManager.deleteAccount()
-                dismiss()
-            } catch AuthManagerError.cancelled {
-                // User backed out of the reauthentication sheet.
-            } catch {
-                deleteAccountError = error.localizedDescription
+    private var plusSection: some View {
+        Section {
+            Text(storeKit.isPlusActive
+                 ? "You have Parlance Plus. Here is what that includes."
+                 : "Parlance Plus unlocks domain guides and unlimited cloud coaching.")
+                .font(.subheadline)
+                .foregroundStyle(Color.secondary)
+
+            ForEach(plusBenefits, id: \.self) { benefit in
+                HStack(alignment: .top, spacing: 10) {
+                    Text(storeKit.isPlusActive ? "Included" : "Locked")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(storeKit.isPlusActive ? Color.green : Color.secondary)
+                        .frame(width: 64, alignment: .leading)
+                    Text(benefit)
+                        .font(.subheadline)
+                }
             }
+
+            if !storeKit.isPlusActive {
+                Button("Subscribe to Parlance Plus") {
+                    plusBusy = true
+                    Task {
+                        defer { plusBusy = false }
+                        _ = await storeKit.purchasePlus()
+                    }
+                }
+                .disabled(plusBusy || !storeKit.isPlusPurchasable)
+
+                Button("Restore purchase") {
+                    plusBusy = true
+                    Task {
+                        defer { plusBusy = false }
+                        _ = await storeKit.restorePlus()
+                    }
+                }
+                .disabled(plusBusy)
+            }
+        } header: {
+            Text("Your Parlance Plus")
         }
     }
 

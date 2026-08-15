@@ -39,11 +39,13 @@ public class ParlanceBridge {
     private final Activity activity;
     private final WebView webView;
     private final ParlanceAuth auth;
+    private final ParlanceSLMEngine slm;
 
     public ParlanceBridge(Activity activity, WebView webView) {
         this.activity = activity;
         this.webView = webView;
         this.auth = new ParlanceAuth(activity);
+        this.slm = new ParlanceSLMEngine(activity);
     }
 
     // MARK: - Synchronous state for hydration
@@ -67,10 +69,12 @@ public class ParlanceBridge {
             config.put("capabilities", capabilities);
             config.put("onDeviceAvailable", false);
             config.put("groqAvailable", true);
-            // Parlance Coach ships as MLX weights bundled into the iOS app;
-            // there is no Android runtime for them yet.
-            config.put("parlanceCoachAvailable", false);
-            config.put("parlanceCoachLanguages", new JSONArray());
+            JSONArray coachLangs = new JSONArray();
+            for (String lang : slm.availableLanguages()) {
+                coachLangs.put(lang);
+            }
+            config.put("parlanceCoachAvailable", coachLangs.length() > 0);
+            config.put("parlanceCoachLanguages", coachLangs);
             config.put("isPlusActive", false);
             config.put("plusPurchaseAvailable", false);
         } catch (JSONException e) {
@@ -133,13 +137,10 @@ public class ParlanceBridge {
                 analyzeFirebase(requestId, body);
                 break;
             case "analyzeParlanceSLM":
-                // No on-device coach runtime on Android; fail loudly rather than
-                // leaving the caller's promise hanging until it times out.
-                evaluateJs("window.__parlanceSLMResult && window.__parlanceSLMResult("
-                        + quote(requestId) + ", null, "
-                        + quote("Parlance Coach is not available on Android yet.") + ")");
+                analyzeParlanceSLM(requestId, body);
                 break;
             case "unloadParlanceSLM":
+                new Thread(slm::unload, "parlance-slm-unload").start();
                 break;
             case "purchaseCallPack":
                 failPurchase("window.__parlancePurchaseResult", requestId);
@@ -171,6 +172,26 @@ public class ParlanceBridge {
         } catch (ActivityNotFoundException e) {
             Log.w(TAG, "No browser available for " + url, e);
         }
+    }
+
+    /**
+     * Same door as iOS {@code handleParlanceSLMAnalysis}. Inference is off the
+     * UI thread; the JS callback is posted back onto the WebView.
+     */
+    private void analyzeParlanceSLM(String requestId, JSONObject body) {
+        final String sentence = body.optString("sentence", "");
+        final String language = body.optString("language", "es");
+        final String ragContext = body.optString("ragContext", "");
+        new Thread(() -> {
+            try {
+                JSONObject result = slm.analyze(sentence, language, ragContext);
+                evaluateJs("window.__parlanceSLMResult && window.__parlanceSLMResult("
+                        + quote(requestId) + ", " + result.toString() + ", null)");
+            } catch (Exception error) {
+                evaluateJs("window.__parlanceSLMResult && window.__parlanceSLMResult("
+                        + quote(requestId) + ", null, " + quote(describe(error)) + ")");
+            }
+        }, "parlance-slm").start();
     }
 
     /**
