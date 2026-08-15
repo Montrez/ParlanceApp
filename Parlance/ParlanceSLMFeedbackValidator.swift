@@ -704,7 +704,7 @@ enum ParlanceSLMFeedbackValidator {
         if status == "Needs Improvement" {
             if explanation.trimmingCharacters(in: .whitespacesAndNewlines).count < 24 { return true }
             if correction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return true }
-            if normalize(correction) == normalize(sentence) { return true }
+            if isVerbatimCorrection(sentence, correction) { return true }
         }
         if status == "Excellent", knownFrenchErrorFeedback(sentence: sentence, level: "") != nil {
             return true
@@ -855,7 +855,7 @@ enum ParlanceSLMFeedbackValidator {
         if status == "Needs Improvement" {
             if explanation.trimmingCharacters(in: .whitespacesAndNewlines).count < 24 { return true }
             if correction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return true }
-            if normalize(correction) == normalize(sentence) { return true }
+            if isVerbatimCorrection(sentence, correction) { return true }
         }
         if status == "Excellent", knownSpanishErrorFeedback(sentence: sentence, level: "") != nil {
             return true
@@ -1644,6 +1644,21 @@ enum ParlanceSLMFeedbackValidator {
         text.lowercased()
             .folding(options: .diacriticInsensitive, locale: .current)
             .replacingOccurrences(of: #"[^a-z0-9\s]"#, with: " ", options: .regularExpression)
+    }
+
+    /// Whether a correction leaves the sentence untouched.
+    ///
+    /// Deliberately not `normalize`, which folds diacritics and strips
+    /// punctuation — the exact things an orthography fix adds. Judged by that,
+    /// a correct "Hola, ¿dónde está?" reads as an unchanged echo of
+    /// "Hola, donde esta?" and the whole response gets rejected.
+    private static func isVerbatimCorrection(_ sentence: String, _ correction: String) -> Bool {
+        func tidy(_ text: String) -> String {
+            text.lowercased()
+                .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        return tidy(sentence) == tidy(correction)
     }
 
     private static func tokens(_ text: String) -> Set<String> {

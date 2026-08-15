@@ -18,6 +18,19 @@
       .trim();
   }
 
+  /**
+   * Whether a correction leaves the sentence untouched.
+   *
+   * Deliberately not normalizeTextForCompare(), which strips accents and
+   * punctuation — the exact things an orthography fix adds. Judged by that,
+   * "Hola, ¿dónde está?" looks identical to "Hola, donde esta?", so a correct
+   * model answer reads as a no-op and gets thrown away.
+   */
+  function isVerbatimCorrection(sentence, correction) {
+    const tidy = (t) => String(t || '').toLowerCase().replace(/\s+/g, ' ').trim();
+    return tidy(sentence) === tidy(correction);
+  }
+
   // Rule packs are shared with Python (re.sub, which reads \1 \2 as backreferences).
   // JS String.replace needs $1 $2 instead — normalize before replacing so both
   // runtimes honor the exact same "replace" string from shared/coach-rules/*.json.
@@ -225,13 +238,12 @@
 
     const missed = ground.issues.filter((i) => !explanationCoversIssue(out.explanation, i));
     const built = ground.correction;
-    const sentNorm = normalizeTextForCompare(sentence);
     const modelCorrBad = detectIssues(out.correction || '', lang).length > 0;
     const correctionWeak = !out.correction
       || isPlaceholderCorrection(out.correction, lang)
       || correctionIsIncomplete(sentence, out.correction, lang)
       || modelCorrBad
-      || normalizeTextForCompare(out.correction) === sentNorm;
+      || isVerbatimCorrection(sentence, out.correction);
 
     if (out.explanation) {
       out.explanation = applyRepairs(out.explanation, lang);

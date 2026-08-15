@@ -516,12 +516,24 @@
     return out;
   }
 
+  /**
+   * languages.js supplies parlanceLanguageInfo in the browser, but it touches
+   * `document` so Functions cannot load it. Resolved per call rather than at
+   * load time because script order in the page is not guaranteed.
+   */
+  function resolveLanguageCode(language) {
+    if (typeof parlanceLanguageInfo === 'function') {
+      return parlanceLanguageInfo(language).code;
+    }
+    return ['es', 'fr', 'en'].includes(language) ? language : 'es';
+  }
+
   /** Sanitize provider JSON — strip bad CEFR, fill confident levels, drop verbatim alts. */
   function sanitizeFeedbackResult(sentence, result, language) {
     if (!result || typeof result !== 'object') return result;
     const out = { ...result };
     normalizeFeedbackFields(out);
-    const lang = parlanceLanguageInfo(language).code;
+    const lang = resolveLanguageCode(language);
     if (sentence && (lang === 'es' || lang === 'fr' || lang === 'en')) {
       applyCoachRules(sentence, out, lang);
     }

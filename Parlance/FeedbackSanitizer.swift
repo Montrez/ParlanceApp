@@ -187,6 +187,21 @@ enum FeedbackSanitizer {
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    /// Whether a correction leaves the sentence untouched.
+    ///
+    /// Deliberately not `normalizeForCompare`, which folds diacritics and strips
+    /// punctuation — the exact things an orthography fix adds. Judged by that,
+    /// "Hola, ¿dónde está?" looks identical to "Hola, donde esta?", so a correct
+    /// answer reads as a no-op and gets thrown away for the rule-built one.
+    static func isVerbatimCorrection(_ sentence: String, _ correction: String) -> Bool {
+        func tidy(_ text: String) -> String {
+            text.lowercased()
+                .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        return tidy(sentence) == tidy(correction)
+    }
+
     private static let stopwords: Set<String> = [
         "the", "and", "for", "with", "requires", "appropriate", "correct", "formal",
         "informal", "professional", "grammar", "spanish", "french", "english", "sentence", "learner",
@@ -326,7 +341,6 @@ enum FeedbackSanitizer {
         guard !issues.isEmpty else { return }
 
         let correction = applyKnownRepairs(sentence: sentence, language: language)
-        let sentNorm = normalizeForCompare(sentence)
         // Raw (not normalized) comparison — some repairs are punctuation/diacritic-only
         // (French typography spacing, accents), which `normalizeForCompare` would otherwise hide.
         let changed = correction != sentence
@@ -352,7 +366,7 @@ enum FeedbackSanitizer {
         let existingCorrectionStillWrong = !existingCorrection.isEmpty
             && !detectKnownIssues(sentence: existingCorrection, language: language).isEmpty
         let correctionWeak = existingCorrection.isEmpty
-            || normalizeForCompare(existingCorrection) == sentNorm
+            || isVerbatimCorrection(sentence, existingCorrection)
             || existingCorrectionStillWrong
         if changed, correctionWeak {
             feedback["correction"] = correction
@@ -364,6 +378,10 @@ enum FeedbackSanitizer {
         }
 
         if changed, !["C1", "C2"].contains(level.uppercased()) {
+            // Accent-folded here on purpose, unlike the correction above: an alt
+            // that differs from the sentence only by accents is a lazy echo, not
+            // the richer phrasing an alt is supposed to offer.
+            let sentNorm = normalizeForCompare(sentence)
             for key in ["next_level_alt", "target_level_alt"] {
                 let alt = feedback[key] as? String
                 let weak = alt == nil
