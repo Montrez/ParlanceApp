@@ -409,3 +409,34 @@ exports.grantPlusSubscription = onCall(
     }
   }
 );
+
+// ── Account deletion ─────────────────────────────────────────────────────────
+// App Store guideline 5.1.1(v) requires deletion to be initiated from inside
+// the app. The client deletes its own Firebase Auth user; everything under
+// users/{uid} (profile, monthly usage counters, call packs, Plus record) is
+// closed to client writes by firestore.rules, so it has to be removed here
+// with the Admin SDK.
+//
+// Idempotent: recursiveDelete on a missing document is a no-op, so a retry
+// after a dropped connection still reports success.
+
+exports.deleteAccountData = onCall(
+  { timeoutSeconds: 60, memory: "256MiB" },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Sign in required.");
+    }
+
+    const uid = request.auth.uid;
+    const db = getFirestore();
+
+    try {
+      await db.recursiveDelete(db.doc(`users/${uid}`));
+      console.log(`Deleted all Firestore data for uid=${uid}`);
+      return { deleted: true };
+    } catch (err) {
+      console.error("deleteAccountData error:", err);
+      throw new HttpsError("internal", "Could not delete your account data.");
+    }
+  }
+);

@@ -2,6 +2,7 @@ import AuthenticationServices
 import CryptoKit
 import FirebaseAuth
 import FirebaseCore
+import FirebaseFunctions
 import GoogleSignIn
 import Observation
 import UIKit
@@ -12,6 +13,8 @@ enum AuthManagerError: LocalizedError {
     case missingGoogleClientID
     case noPresenter
     case missingIDToken
+    case notSignedIn
+    case serverDataDeleteFailed
 
     var errorDescription: String? {
         switch self {
@@ -23,6 +26,10 @@ enum AuthManagerError: LocalizedError {
             return "Could not present sign-in UI."
         case .missingIDToken:
             return "Sign-in did not return an ID token."
+        case .notSignedIn:
+            return "You are not signed in."
+        case .serverDataDeleteFailed:
+            return "Could not delete your Parlance data. Check your connection and try again."
         }
     }
 }
@@ -37,10 +44,22 @@ final class AuthManager: NSObject {
     private(set) var isSignedIn = false
     private(set) var authError: String?
 
+    /// Apple's `ASAuthorizationController` is used both to sign in and to prove
+    /// recent login before deletion, and Firebase needs a different call in each
+    /// case, so the delegate has to know which one is in flight.
+    private enum AppleFlow {
+        case signIn
+        case reauthenticate
+    }
+
     private var authListener: AuthStateDidChangeListenerHandle?
     private var currentNonce: String?
     private var appleSignInContinuation: CheckedContinuation<Void, Error>?
     private var appleSignInController: ASAuthorizationController?
+    private var appleFlow: AppleFlow = .signIn
+    /// Apple only hands out an authorization code during an authorization, and
+    /// revoking the Sign in with Apple token at deletion time requires a fresh one.
+    private var lastAppleAuthorizationCode: String?
     private weak var presentationAnchorView: UIView?
 
     var displayLabel: String {
@@ -84,7 +103,12 @@ final class AuthManager: NSObject {
     func injectAuth(into webView: WKWebView?) {
         guard let webView else { return }
         presentationAnchorView = webView
-        let script = "window.__PARLANCE_AUTH__ = \(authInjectionJSON());"
+        // The notify call is guarded because this also runs before journal.js
+        // has parsed, on the document-start injection path.
+        let script = """
+        window.__PARLANCE_AUTH__ = \(authInjectionJSON());
+        window.__parlanceAuthChanged && window.__parlanceAuthChanged();
+        """
         webView.evaluateJavaScript(script, completionHandler: nil)
     }
 
@@ -127,7 +151,12 @@ final class AuthManager: NSObject {
     }
 
     func signInWithApple() async throws {
+        try await runAppleAuthorization(flow: .signIn)
+    }
+
+    private func runAppleAuthorization(flow: AppleFlow) async throws {
         authError = nil
+        appleFlow = flow
         let nonce = randomNonceString()
         currentNonce = nonce
 
@@ -161,6 +190,110 @@ final class AuthManager: NSObject {
         try Auth.auth().signOut()
         GIDSignIn.sharedInstance.signOut()
         authError = nil
+    }
+
+    // MARK: - Account deletion (App Store guideline 5.1.1(v))
+
+    /// Permanently deletes the signed-in account: server records first (the
+    /// callable needs a live ID token), then the Firebase Auth user itself.
+    ///
+    /// Reauthentication is unconditional rather than a retry after
+    /// `requiresRecentLogin`: Apple's token revocation needs a fresh
+    /// authorization code, which only an authorization can produce.
+    func deleteAccount() async throws {
+        guard let user = Auth.auth().currentUser else {
+            throw AuthManagerError.notSignedIn
+        }
+        authError = nil
+
+        let providers = Set(user.providerData.map(\.providerID))
+
+        if providers.contains("apple.com") {
+            try await runAppleAuthorization(flow: .reauthenticate)
+        } else if providers.contains("google.com") {
+            try await reauthenticateWithGoogle()
+        }
+
+        try await deleteServerData()
+
+        if providers.contains("apple.com"), let code = lastAppleAuthorizationCode {
+            do {
+                try await Auth.auth().revokeToken(withAuthorizationCode: code)
+            } catch {
+                // Revocation is best effort: the account still has to go away,
+                // and a stale code must not strand the user in a half-deleted
+                // state with their Firestore records already gone.
+                print("[Auth] Apple token revoke failed:", error)
+            }
+        }
+
+        // Re-resolve rather than reusing the value captured before the
+        // reauthentication awaits: `User` is not Sendable, so handing the older
+        // reference to an async call trips Swift 6 sending diagnostics.
+        guard let userToDelete = Auth.auth().currentUser else {
+            throw AuthManagerError.notSignedIn
+        }
+
+        do {
+            try await userToDelete.delete()
+        } catch {
+            authError = error.localizedDescription
+            throw error
+        }
+
+        lastAppleAuthorizationCode = nil
+        GIDSignIn.sharedInstance.signOut()
+        try? Auth.auth().signOut()
+        self.user = nil
+        isSignedIn = false
+        authError = nil
+    }
+
+    /// Wipes `users/{uid}`, `usage/*`, and `packs/*`. Firestore rules block all
+    /// client writes to those paths, so this has to run with the Admin SDK.
+    private func deleteServerData() async throws {
+        let callable = Functions.functions().httpsCallable("deleteAccountData")
+        do {
+            _ = try await callable.call([:])
+        } catch {
+            print("[Auth] deleteAccountData failed:", error)
+            authError = AuthManagerError.serverDataDeleteFailed.localizedDescription
+            throw AuthManagerError.serverDataDeleteFailed
+        }
+    }
+
+    private func reauthenticateWithGoogle() async throws {
+        guard let user = Auth.auth().currentUser else {
+            throw AuthManagerError.notSignedIn
+        }
+        guard let clientID = FirebaseApp.app()?.options.clientID else {
+            throw AuthManagerError.missingGoogleClientID
+        }
+        GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: clientID)
+
+        guard let presenter = Self.topViewController(from: presentationAnchorView) else {
+            throw AuthManagerError.noPresenter
+        }
+
+        do {
+            let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: presenter)
+            guard let idToken = result.user.idToken?.tokenString else {
+                throw AuthManagerError.missingIDToken
+            }
+            let credential = GoogleAuthProvider.credential(
+                withIDToken: idToken,
+                accessToken: result.user.accessToken.tokenString
+            )
+            _ = try await user.reauthenticate(with: credential)
+        } catch {
+            let ns = error as NSError
+            if ns.domain == kGIDSignInErrorDomain,
+               ns.code == GIDSignInError.canceled.rawValue {
+                throw AuthManagerError.cancelled
+            }
+            authError = error.localizedDescription
+            throw error
+        }
     }
 
     // MARK: - Private
@@ -296,15 +429,33 @@ extension AuthManager: ASAuthorizationControllerDelegate, ASAuthorizationControl
             fullName: appleIDCredential.fullName
         )
 
+        if let codeData = appleIDCredential.authorizationCode,
+           let code = String(data: codeData, encoding: .utf8) {
+            lastAppleAuthorizationCode = code
+        } else {
+            lastAppleAuthorizationCode = nil
+        }
+
+        let flow = appleFlow
+
         Task { @MainActor in
             defer {
                 appleSignInContinuation = nil
                 appleSignInController = nil
                 currentNonce = nil
+                appleFlow = .signIn
             }
 
             do {
-                _ = try await Auth.auth().signIn(with: credential)
+                switch flow {
+                case .signIn:
+                    _ = try await Auth.auth().signIn(with: credential)
+                case .reauthenticate:
+                    guard let user = Auth.auth().currentUser else {
+                        throw AuthManagerError.notSignedIn
+                    }
+                    _ = try await user.reauthenticate(with: credential)
+                }
                 appleSignInContinuation?.resume()
             } catch {
                 authError = error.localizedDescription
@@ -318,6 +469,7 @@ extension AuthManager: ASAuthorizationControllerDelegate, ASAuthorizationControl
             appleSignInContinuation = nil
             appleSignInController = nil
             currentNonce = nil
+            appleFlow = .signIn
         }
         let ns = error as NSError
         if ns.domain == ASAuthorizationError.errorDomain,

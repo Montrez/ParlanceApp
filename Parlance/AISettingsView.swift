@@ -10,6 +10,8 @@ struct AISettingsView: View {
     @State private var apiKeys:          [AIProvider: String] = [:]
     @State private var showKeySaved = false
     @State private var authBusy = false
+    @State private var showDeleteAccountConfirm = false
+    @State private var deleteAccountError: String?
 
     var body: some View {
         NavigationStack {
@@ -42,6 +44,16 @@ struct AISettingsView: View {
             }
         }
         .onAppear(perform: loadCurrentSettings)
+        .confirmationDialog(
+            "Delete your Parlance account?",
+            isPresented: $showDeleteAccountConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Delete My Account", role: .destructive) { performAccountDeletion() }
+            Button("Keep My Account", role: .cancel) { }
+        } message: {
+            Text("This permanently deletes your Parlance sign-in, usage counter, call pack balances, and Parlance Plus record. It cannot be undone, and call pack balances are not refundable.")
+        }
         .overlay(alignment: .bottom) {
             if showKeySaved {
                 HStack(spacing: 6) {
@@ -92,8 +104,22 @@ struct AISettingsView: View {
                     }
                 }
                 .disabled(authBusy)
+
+                Button("Delete Account", role: .destructive) {
+                    deleteAccountError = nil
+                    showDeleteAccountConfirm = true
+                }
+                .disabled(authBusy)
+
+                if let deleteAccountError {
+                    Text(deleteAccountError)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
             } header: {
                 Text("Account")
+            } footer: {
+                Text("Deleting your account permanently removes your sign-in, usage counter, call pack balances, and Parlance Plus record. Journal entries stay on this device. Cancel Parlance Plus separately in your Apple Account settings so billing stops.")
             }
         } else {
             Section {
@@ -149,6 +175,23 @@ struct AISettingsView: View {
                 Text("Account")
             } footer: {
                 Text("Sign in to use cloud AI without entering API keys (when enabled). Parlance Coach and on-device options work without an account.")
+            }
+        }
+    }
+
+    private func performAccountDeletion() {
+        authBusy = true
+        deleteAccountError = nil
+        Task {
+            defer { authBusy = false }
+            do {
+                authManager.setPresentationAnchor(ParlanceWebView.activeWebView)
+                try await authManager.deleteAccount()
+                dismiss()
+            } catch AuthManagerError.cancelled {
+                // User backed out of the reauthentication sheet.
+            } catch {
+                deleteAccountError = error.localizedDescription
             }
         }
     }
