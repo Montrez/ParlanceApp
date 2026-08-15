@@ -88,6 +88,31 @@ Play use **Play App Signing**, so the certificate in Play Console → Setup → 
 integrity must be registered too — otherwise sign-in works locally and fails for
 everyone who installs from Play.
 
+Release signing credentials are read from `android/keystore.properties`, which is
+gitignored. Copy `android/keystore.properties.example` and fill it in, or export
+`PARLANCE_KEYSTORE_FILE`, `PARLANCE_KEYSTORE_PASSWORD`, `PARLANCE_KEY_ALIAS`, and
+`PARLANCE_KEY_PASSWORD`. Without them the project still builds debug and unsigned
+release.
+
+### Versioning
+
+Never edit a version by hand. Four files carry one, and editing them separately
+is how iOS and Android drift apart:
+
+```bash
+python3 scripts/bump_version.py --show           # current numbers
+python3 scripts/bump_version.py --build          # build + 1, both platforms
+python3 scripts/bump_version.py --marketing 2.5  # the string humans see
+```
+
+The script refuses to run if the files already disagree, and refuses to move a
+build number downwards, because no store lets you reuse or lower one.
+`scripts/check_platform_sync.py` enforces the same match in CI.
+
+Bump the build **once per upload**, whether it goes to TestFlight, Play, or both.
+The marketing version only changes when the release is worth a new number to a
+user; a rejected submission can be resubmitted under the same one.
+
 ---
 
 ## Parlance Coach (Spanish & French fine-tuned models)
