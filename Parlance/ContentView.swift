@@ -47,6 +47,9 @@ struct ContentView: View {
         .onChange(of: storeKit.plusMonthlyDisplayPrice) { _, price in
             Self.pushPlusPrice(price, webView: ParlanceWebView.activeWebView)
         }
+        .onChange(of: storeKit.isPlusPurchasable) { _, available in
+            Self.pushConfigPatch(["plusPurchaseAvailable": available], webView: ParlanceWebView.activeWebView)
+        }
     }
 
     private static func pushPlusStatus(_ active: Bool, webView: WKWebView?) {
@@ -260,6 +263,7 @@ struct ParlanceWebView: UIViewRepresentable {
         let coachAvailable = !coachLangs.isEmpty
         let langsJSON = coachLangs.map { "\"\($0)\"" }.joined(separator: ",")
         let isPlusActive = StoreKitManager.shared.isPlusActive
+        let plusPurchasable = StoreKitManager.shared.isPlusPurchasable
         let plusPriceJSON: String
         if let price = StoreKitManager.shared.plusMonthlyDisplayPrice,
            let data = try? JSONSerialization.data(withJSONObject: [price]),
@@ -269,7 +273,7 @@ struct ParlanceWebView: UIViewRepresentable {
             plusPriceJSON = "null"
         }
         return """
-        {"mode":"unified","onDeviceAvailable":\(onDeviceAvail),"groqAvailable":true,"activeProvider":"\(providerName)","parlanceCoachAvailable":\(coachAvailable),"parlanceCoachLanguages":[\(langsJSON)],"isPlusActive":\(isPlusActive),"plusMonthlyPriceDisplay":\(plusPriceJSON)}
+        {"mode":"unified","platform":"ios","capabilities":{"nativeAuth":true,"inAppPurchase":true,"nativeSettings":true},"onDeviceAvailable":\(onDeviceAvail),"groqAvailable":true,"activeProvider":"\(providerName)","parlanceCoachAvailable":\(coachAvailable),"parlanceCoachLanguages":[\(langsJSON)],"isPlusActive":\(isPlusActive),"plusMonthlyPriceDisplay":\(plusPriceJSON),"plusPurchaseAvailable":\(plusPurchasable)}
         """
     }
 
@@ -355,6 +359,10 @@ struct ParlanceWebView: UIViewRepresentable {
                 handlePurchasePlus(body)
             } else if action == "restorePlus" {
                 handleRestorePlus(body)
+            } else if action == "deleteAccount" {
+                handleDeleteAccount(body)
+            } else if action == "openURL" {
+                handleOpenURL(body)
             }
         }
 
@@ -502,6 +510,33 @@ struct ParlanceWebView: UIViewRepresentable {
                 } catch {
                     completeAuthRequest(requestId, error: error.localizedDescription)
                 }
+            }
+        }
+
+        private func handleDeleteAccount(_ body: [String: Any]) {
+            guard let requestId = body["requestId"] as? String else { return }
+            Task { @MainActor in
+                do {
+                    try await authManager.deleteAccount()
+                    authManager.injectAuth(into: webView)
+                    completeAuthRequest(requestId, error: nil)
+                } catch AuthManagerError.cancelled {
+                    completeAuthRequest(requestId, error: "cancelled")
+                } catch {
+                    completeAuthRequest(requestId, error: error.localizedDescription)
+                }
+            }
+        }
+
+        /// The webview has no navigation delegate, so legal links have to leave
+        /// the app through the system browser rather than replacing the journal.
+        private func handleOpenURL(_ body: [String: Any]) {
+            guard let raw = body["url"] as? String,
+                  let url = URL(string: raw),
+                  let scheme = url.scheme?.lowercased(),
+                  scheme == "https" else { return }
+            DispatchQueue.main.async {
+                UIApplication.shared.open(url)
             }
         }
 

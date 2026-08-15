@@ -98,9 +98,9 @@ enum AIProvider: String, CaseIterable, Codable {
             return [("system", "Apple Intelligence (default)")]
         case .groq:
             return [
-                ("qwen/qwen3-32b",          "Qwen3 32B (multilingual)"),
-                ("openai/gpt-oss-120b",     "GPT-OSS 120B (best)"),
-                ("meta-llama/llama-4-scout-17b-16e-instruct", "Llama 4 Scout (fast)"),
+                ("openai/gpt-oss-120b",       "GPT-OSS 120B (best)"),
+                ("llama-3.3-70b-versatile",   "Llama 3.3 70B (versatile)"),
+                ("llama-3.1-8b-instant",      "Llama 3.1 8B (fast)"),
             ]
         case .deepSeek:
             return [
@@ -171,8 +171,13 @@ final class AIProviderSettings: @unchecked Sendable {
     }
 
     func model(for provider: AIProvider) -> String {
-        UserDefaults.standard.string(forKey: "parlance_ai_model_\(provider.rawValue)")
-            ?? provider.defaultModel
+        let stored = UserDefaults.standard.string(forKey: "parlance_ai_model_\(provider.rawValue)")
+        // A saved id outlives the model it names — providers retire them without
+        // notice. Falling back to the current default beats sending a 404.
+        if let stored, provider.models.contains(where: { $0.id == stored }) {
+            return stored
+        }
+        return provider.defaultModel
     }
 
     func setModel(_ model: String, for provider: AIProvider) {

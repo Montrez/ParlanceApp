@@ -1,3 +1,23 @@
+// ── NATIVE GLOBALS HYDRATION ─────────────────────────────────────
+// iOS injects __PARLANCE_CONFIG__ / __PARLANCE_AUTH__ with a document-start
+// WKUserScript. Android's WebView has no equivalent, so its bridge exposes the
+// same payloads synchronously and we read them here, before anything else in
+// this file runs. Everything downstream then sees identical globals.
+(function hydrateNativeGlobals() {
+  const native = window.ParlanceNative;
+  if (!native) return;
+  try {
+    if (!window.__PARLANCE_CONFIG__ && typeof native.getConfig === 'function') {
+      window.__PARLANCE_CONFIG__ = JSON.parse(native.getConfig());
+    }
+    if (!window.__PARLANCE_AUTH__ && typeof native.getAuth === 'function') {
+      window.__PARLANCE_AUTH__ = JSON.parse(native.getAuth());
+    }
+  } catch (e) {
+    console.warn('[Parlance] native bridge hydration failed:', e);
+  }
+})();
+
 // ── AI PROVIDER CONFIGURATION ────────────────────────────────────
 const PARLANCE_SLM_URL = localStorage.getItem('parlance_slm_server_url') || 'http://127.0.0.1:8765';
 
@@ -66,7 +86,7 @@ function altVersionLabels(assessedLevel) {
 }
 
 function analysisCacheHash(sentence, language) {
-  return btoa(unescape(encodeURIComponent(sentence + '|' + language + '|fbv13'))).slice(0, 40);
+  return btoa(unescape(encodeURIComponent(sentence + '|' + language + '|fbv14'))).slice(0, 40);
 }
 
 function sanitizeFeedbackResult(sentence, result, language = 'es') {
@@ -117,11 +137,11 @@ const AI_PROVIDERS = {
     endpoint: 'https://api.groq.com/openai/v1/chat/completions',
     keyUrl: 'https://console.groq.com/keys',
     models: [
-      { id: 'qwen/qwen3-32b', name: 'Qwen3 32B (multilingual)' },
       { id: 'openai/gpt-oss-120b', name: 'GPT-OSS 120B (best)' },
-      { id: 'meta-llama/llama-4-scout-17b-16e-instruct', name: 'Llama 4 Scout (fast)' },
+      { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B (versatile)' },
+      { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B (fast)' },
     ],
-    defaultModel: 'qwen/qwen3-32b',
+    defaultModel: 'openai/gpt-oss-120b',
   },
   deepseek: {
     id: 'deepseek',
@@ -232,13 +252,32 @@ const AI_PROVIDERS = {
 const LS_PROVIDER = 'parlance_ai_provider';
 const LS_MODEL    = 'parlance_ai_model_';
 const LS_KEY      = 'parlance_ai_key_';
+const LS_PROVIDER_CHOSEN = 'parlance_ai_provider_chosen';
+
+/** Cloud route used when someone is signed in — no API key, covered by the
+ *  monthly account allowance. */
+const DEFAULT_CLOUD_PROVIDER = 'groq';
 
 function getSelectedProvider() {
   return localStorage.getItem(LS_PROVIDER) || 'webllm';
 }
 
+/** True once the user picked a provider themselves, rather than us picking. */
+function hasUserChosenProvider() {
+  return localStorage.getItem(LS_PROVIDER_CHOSEN) === '1';
+}
+
+function markProviderChosenByUser() {
+  try { localStorage.setItem(LS_PROVIDER_CHOSEN, '1'); } catch (_) {}
+}
+
 function getProviderModel(providerId) {
-  return localStorage.getItem(LS_MODEL + providerId) || AI_PROVIDERS[providerId]?.defaultModel || '';
+  const provider = AI_PROVIDERS[providerId];
+  const stored = localStorage.getItem(LS_MODEL + providerId);
+  // A saved id outlives the model it names — providers retire them without
+  // notice. Falling back to the current default beats sending a 404 to the API.
+  if (stored && provider?.models?.some((m) => m.id === stored)) return stored;
+  return provider?.defaultModel || '';
 }
 
 function getProviderKey(providerId) {
@@ -314,6 +353,7 @@ async function ensureFirebaseReady() {
       analyzeTextCallable = firebase.functions().httpsCallable('analyzeText');
       firebaseAuth.onAuthStateChanged((user) => {
         firebaseAuthUser = user;
+        reapplyDefaultProviderIfUnchosen();
         updateFirebaseAuthUI();
         updateModalForProvider(modalSelectedProvider);
         updateWaitingCard();
@@ -334,13 +374,14 @@ async function signInWithApple() {
   if (isNativeParlanceApp()) {
     try {
       await callNativeAuth('signInApple');
-      showToast(i18n.t('signedInApple'));
+      showToast(i18n.t('signedInApple'), 'success');
     } catch (e) {
       const msg = e?.message || '';
       if (msg && msg !== 'cancelled' && !msg.includes('canceled')) {
-        showToast(msg || i18n.t('appleSignInFailed'));
+        showToast(msg || i18n.t('appleSignInFailed'), 'error');
       }
     }
+    reapplyDefaultProviderIfUnchosen();
     updateFirebaseAuthUI();
     updateModalForProvider(modalSelectedProvider);
     updateWaitingCard();
@@ -353,10 +394,10 @@ async function signInWithApple() {
   provider.addScope('name');
   try {
     await firebaseAuth.signInWithPopup(provider);
-    showToast(i18n.t('signedInApple'));
+    showToast(i18n.t('signedInApple'), 'success');
   } catch (e) {
     if (e?.code !== 'auth/popup-closed-by-user') {
-      showToast(e?.message || i18n.t('appleSignInFailed'));
+      showToast(e?.message || i18n.t('appleSignInFailed'), 'error');
     }
   }
   updateFirebaseAuthUI();
@@ -366,13 +407,14 @@ async function signInWithGoogle() {
   if (isNativeParlanceApp()) {
     try {
       await callNativeAuth('signInGoogle');
-      showToast(i18n.t('signedInGoogle'));
+      showToast(i18n.t('signedInGoogle'), 'success');
     } catch (e) {
       const msg = e?.message || '';
       if (msg && msg !== 'cancelled' && !msg.includes('canceled')) {
-        showToast(msg || i18n.t('googleSignInFailed'));
+        showToast(msg || i18n.t('googleSignInFailed'), 'error');
       }
     }
+    reapplyDefaultProviderIfUnchosen();
     updateFirebaseAuthUI();
     updateModalForProvider(modalSelectedProvider);
     updateWaitingCard();
@@ -382,10 +424,10 @@ async function signInWithGoogle() {
   await ensureFirebaseReady();
   try {
     await firebaseAuth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-    showToast(i18n.t('signedInGoogle'));
+    showToast(i18n.t('signedInGoogle'), 'success');
   } catch (e) {
     if (e?.code !== 'auth/popup-closed-by-user') {
-      showToast(e?.message || i18n.t('googleSignInFailed'));
+      showToast(e?.message || i18n.t('googleSignInFailed'), 'error');
     }
   }
   updateFirebaseAuthUI();
@@ -397,7 +439,7 @@ async function signOutFirebase() {
       await callNativeAuth('signOut');
       showToast(i18n.t('signedOut'));
     } catch (e) {
-      showToast(e?.message || i18n.t('signOutFailed'));
+      showToast(e?.message || i18n.t('signOutFailed'), 'error');
     }
     updateFirebaseAuthUI();
     updateModalForProvider(modalSelectedProvider);
@@ -413,6 +455,61 @@ async function signOutFirebase() {
   updateModalForProvider(modalSelectedProvider);
   updateWaitingCard();
   showToast(i18n.t('signedOut'));
+}
+
+// ── Account deletion (App Store guideline 5.1.1(v)) ──────────────────────────
+
+function showDeleteAccountConfirm() {
+  const overlay = document.getElementById('deleteAccountOverlay');
+  if (overlay) overlay.style.display = 'flex';
+}
+
+function closeDeleteAccountConfirm() {
+  const overlay = document.getElementById('deleteAccountOverlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+function setDeleteAccountBusy(busy) {
+  const btn = document.getElementById('deleteAccountConfirmBtn');
+  if (!btn) return;
+  btn.disabled = busy;
+  btn.textContent = i18n.t(busy ? 'deleteAccountWorking' : 'deleteAccountConfirm');
+}
+
+async function deleteParlanceAccount() {
+  setDeleteAccountBusy(true);
+  try {
+    if (isNativeParlanceApp()) {
+      await callNativeAuth('deleteAccount');
+    } else {
+      await deleteAccountViaWeb();
+    }
+  } catch (e) {
+    setDeleteAccountBusy(false);
+    const message = e?.message || '';
+    if (message === 'cancelled') return;
+    showToast(i18n.t('deleteAccountFailed', { err: message }), 'error');
+    return;
+  }
+
+  setDeleteAccountBusy(false);
+  closeDeleteAccountConfirm();
+  closeAISettings();
+  updateFirebaseAuthUI();
+  updateModalForProvider(modalSelectedProvider);
+  updateWaitingCard();
+  showToast(i18n.t('deleteAccountDone'), 'success');
+}
+
+/** Server records first: the callable needs a live ID token, which deleting
+ *  the auth user destroys. */
+async function deleteAccountViaWeb() {
+  const ready = await ensureFirebaseReady();
+  if (!ready || !firebaseAuth || !firebaseAuth.currentUser) {
+    throw new Error(i18n.t('errFirebaseNotConfigured'));
+  }
+  await firebase.functions().httpsCallable('deleteAccountData')({});
+  await firebaseAuth.currentUser.delete();
 }
 
 function updateFirebaseAuthUI() {
@@ -434,19 +531,13 @@ function updateFirebaseAuthUI() {
 
   if (native) {
     if (authButtons) authButtons.style.display = '';
-    if (authSetupHint) {
-      authSetupHint.textContent =
-        'Sign in with Apple or Google to use cloud AI without API keys.';
-    }
+    if (authSetupHint) authSetupHint.textContent = i18n.t('authSetupHintNative');
   } else if (!webAuth) {
     section.style.display = 'none';
     return;
   } else {
     if (authButtons) authButtons.style.display = '';
-    if (authSetupHint) {
-      authSetupHint.textContent =
-        'Sign in to use cloud AI without API keys (Groq, Gemini, …).';
-    }
+    if (authSetupHint) authSetupHint.textContent = i18n.t('authSetupHintWeb');
   }
 
   const signedIn = isFirebaseSignedIn();
@@ -493,7 +584,7 @@ async function refreshUsageDisplay() {
 
     // Always-visible, direct entry point to the Call Pack IAP — don't make users
     // (or App Review) wait until they hit the free monthly limit to find it.
-    if (buyBtn) buyBtn.style.display = isNativeParlanceApp() ? '' : 'none';
+    if (buyBtn) buyBtn.style.display = nativeSupportsPurchases() ? '' : 'none';
   } catch (_) {
     // Non-critical — silently skip if function unavailable
   }
@@ -542,7 +633,7 @@ function callNativeFirebaseAnalyze(sentence, language, providerId) {
         reject(e);
       }
     };
-    window.webkit.messageHandlers.parlance.postMessage({
+    postToNative({
       action: 'analyzeFirebase',
       requestId,
       sentence,
@@ -802,8 +893,56 @@ async function callParlanceSLM(sentence, language, ragContext = '') {
   return JSON.stringify(data.feedback);
 }
 
+// ── NATIVE BRIDGE ────────────────────────────────────────────────
+// iOS delivers messages through a WKScriptMessageHandler; Android through an
+// @JavascriptInterface object that takes a JSON string. Both accept the same
+// message shapes and call back into the same window.__parlance* functions, so
+// feature code below never branches on platform — it asks about capabilities.
+
+/** Returns a send function for whichever host we're embedded in, or null. */
+function nativeBridgeTransport() {
+  if (window.webkit?.messageHandlers?.parlance) {
+    return (message) => window.webkit.messageHandlers.parlance.postMessage(message);
+  }
+  if (window.ParlanceNative && typeof window.ParlanceNative.postMessage === 'function') {
+    return (message) => window.ParlanceNative.postMessage(
+      typeof message === 'string' ? message : JSON.stringify(message)
+    );
+  }
+  return null;
+}
+
 function isNativeParlanceApp() {
-  return !!(window.__PARLANCE_CONFIG__ && window.webkit?.messageHandlers?.parlance);
+  return !!(window.__PARLANCE_CONFIG__ && nativeBridgeTransport());
+}
+
+/** Sends to whichever native host is present. Returns false if there is none. */
+function postToNative(message) {
+  const send = nativeBridgeTransport();
+  if (!send) return false;
+  send(message);
+  return true;
+}
+
+/**
+ * Platforms ship different subsets of the bridge — Android has no Play Billing
+ * integration yet and no native settings sheet. Gate on the capability rather
+ * than on the platform so adding one to Android is a config change, not a
+ * hunt through every call site.
+ *
+ * Hosts that predate capability reporting (older iOS builds) advertise nothing,
+ * and those were all iOS, so treat a missing list as "supports everything".
+ */
+function nativeSupports(capability) {
+  if (!isNativeParlanceApp()) return false;
+  const caps = (window.__PARLANCE_CONFIG__ || {}).capabilities;
+  if (!caps) return true;
+  return !!caps[capability];
+}
+
+/** In-app purchase (StoreKit today). Gates call packs, Plus, and Plus content. */
+function nativeSupportsPurchases() {
+  return nativeSupports('inAppPurchase');
 }
 
 /**
@@ -819,6 +958,32 @@ window.__parlanceUpdateConfig = function (patch) {
     if (patch.isPlusActive) refreshPlusPaywallPrice();
   }
   if ('plusMonthlyPriceDisplay' in patch) refreshPlusPaywallPrice();
+  if ('plusPurchaseAvailable' in patch) refreshPlusPaywallPrice();
+};
+
+/**
+ * Native bridge calls this right after it rewrites window.__PARLANCE_AUTH__.
+ *
+ * Firebase restores a persisted session from the keychain asynchronously, so
+ * the auth injected at document-start says signed out on almost every launch
+ * for a returning user. Without this the session lands silently: the provider
+ * picked for a signed-out user (the on-device coach) sticks for the whole
+ * session, and the settings UI keeps offering sign-in to someone already in.
+ */
+let lastKnownAuthUid = null;
+window.__parlanceAuthChanged = function () {
+  // iOS re-injects on every SwiftUI view update, not only on real transitions.
+  const uid = window.__PARLANCE_AUTH__?.uid || '';
+  if (uid === lastKnownAuthUid) return;
+  lastKnownAuthUid = uid;
+  try {
+    reapplyDefaultProviderIfUnchosen();
+    updateFirebaseAuthUI();
+    updateModalForProvider(modalSelectedProvider);
+    updateWaitingCard();
+  } catch (err) {
+    console.warn('[Parlance] auth refresh failed:', err);
+  }
 };
 
 function parlanceAuthSignedIn() {
@@ -834,6 +999,54 @@ function parlanceCoachAvailableForLanguage(language) {
   const cfg = window.__PARLANCE_CONFIG__ || {};
   const langs = cfg.parlanceCoachLanguages || (cfg.parlanceCoachAvailable ? ['es', 'fr'] : []);
   return langs.includes(language);
+}
+
+/** The bundled coach can only stand in for a language whose weights shipped. */
+function coachCanCoverLanguage(language) {
+  return isNativeParlanceApp() && parlanceCoachAvailableForLanguage(language);
+}
+
+/**
+ * Classifies a failed cloud call as something the on-device coach can cover.
+ * A malformed sentence or a bad model name is not, and must stay an error.
+ */
+function cloudFallbackReason(error) {
+  if (!navigator.onLine) return 'offline';
+  const code = error?.code || '';
+  const msg  = String(error?.message || '');
+  if (code === 'functions/resource-exhausted' || /monthly free limit/i.test(msg)) {
+    return 'quota';
+  }
+  if (code === 'functions/unauthenticated') return 'signedOut';
+  if (code === 'functions/unavailable'
+      || code === 'functions/deadline-exceeded'
+      || /failed to fetch|network|timed out|timeout/i.test(msg)) {
+    return 'offline';
+  }
+  return null;
+}
+
+/**
+ * Runs the bundled coach in place of the cloud, and says so. The badge on the
+ * feedback card has to name the model that actually answered — a 0.5B verdict
+ * labelled "Groq" would earn trust the coach has not got.
+ */
+async function runCoachFallback(sentence, language, reason) {
+  const ragMeta = buildRAGMeta(language, null, sentence, true);
+  const raw = await callNativeParlanceSLM(sentence, language, ragMeta.context);
+  const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+  const result = attachRAGMeta(normalizeResult(parsed, sentence, language), ragMeta.topics);
+  result._actualSource = AI_PROVIDERS.parlance.name;
+
+  const toastKey = {
+    offline:   'coachFallbackOffline',
+    quota:     'coachFallbackQuota',
+    signedOut: 'coachFallbackSignedOut',
+  }[reason];
+  if (toastKey) showToast(i18n.t(toastKey));
+  if (reason === 'quota') refreshUsageDisplay();
+
+  return result;
 }
 
 /** SLM storage id for journal language (es → parlance-es, fr → parlance-fr). */
@@ -864,7 +1077,7 @@ function syncParlanceModelToJournalLanguage() {
 function unloadNativeParlanceSLM() {
   if (!isNativeParlanceApp()) return;
   try {
-    window.webkit?.messageHandlers?.parlance?.postMessage({ action: 'unloadParlanceSLM' });
+    postToNative({ action: 'unloadParlanceSLM' });
   } catch (_) {}
 }
 
@@ -895,7 +1108,7 @@ function callNativeParlanceSLM(sentence, language, ragContext = '') {
       if (err) reject(new Error(err));
       else resolve(JSON.stringify(result));
     };
-    window.webkit.messageHandlers.parlance.postMessage({
+    postToNative({
       action: 'analyzeParlanceSLM',
       requestId,
       sentence,
@@ -1014,30 +1227,48 @@ async function analyzeWithAI(sentence, language, progressCallback) {
   if (!provider) throw new Error('Unknown AI provider');
 
   if (shouldUseFirebaseCloud(providerId)) {
-    const ragMeta = buildRAGMeta(language, null, sentence, false);
-    const timeoutMs = analysisTimeoutMs(providerId);
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error(analysisTimeoutMessage(providerId))), timeoutMs)
-    );
-    let result = await Promise.race([
-      callFirebaseCloudAnalyze(sentence, language, providerId),
-      timeoutPromise,
-    ]);
-    if (ragMeta.topics.length) attachRAGMeta(result, ragMeta.topics);
-    result = sanitizeFeedbackResult(sentence, result, language);
+    if (!navigator.onLine && coachCanCoverLanguage(language)) {
+      return runCoachFallback(sentence, language, 'offline');
+    }
     try {
-      const cacheKey = 'parlance_analysis_cache';
-      const cache = JSON.parse(localStorage.getItem(cacheKey) || '{}');
-      const hash = analysisCacheHash(sentence, language);
-      cache[hash] = { feedback: result, source: `${provider.name} (account)`, ts: Date.now() };
-      const keys = Object.keys(cache);
-      if (keys.length > 200) {
-        const sorted = keys.sort((a, b) => cache[a].ts - cache[b].ts);
-        sorted.slice(0, keys.length - 200).forEach(k => delete cache[k]);
-      }
-      localStorage.setItem(cacheKey, JSON.stringify(cache));
-    } catch (_) {}
-    return result;
+      const ragMeta = buildRAGMeta(language, null, sentence, false);
+      const timeoutMs = analysisTimeoutMs(providerId);
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error(analysisTimeoutMessage(providerId))), timeoutMs)
+      );
+      let result = await Promise.race([
+        callFirebaseCloudAnalyze(sentence, language, providerId),
+        timeoutPromise,
+      ]);
+      if (ragMeta.topics.length) attachRAGMeta(result, ragMeta.topics);
+      result = sanitizeFeedbackResult(sentence, result, language);
+      try {
+        const cacheKey = 'parlance_analysis_cache';
+        const cache = JSON.parse(localStorage.getItem(cacheKey) || '{}');
+        const hash = analysisCacheHash(sentence, language);
+        cache[hash] = { feedback: result, source: `${provider.name} (account)`, ts: Date.now() };
+        const keys = Object.keys(cache);
+        if (keys.length > 200) {
+          const sorted = keys.sort((a, b) => cache[a].ts - cache[b].ts);
+          sorted.slice(0, keys.length - 200).forEach(k => delete cache[k]);
+        }
+        localStorage.setItem(cacheKey, JSON.stringify(cache));
+      } catch (_) {}
+      return result;
+    } catch (err) {
+      const reason = cloudFallbackReason(err);
+      if (!reason || !coachCanCoverLanguage(language)) throw err;
+      return runCoachFallback(sentence, language, reason);
+    }
+  }
+
+  // A cloud provider with no account and no key cannot run at all. The coach is
+  // a worse answer than the cloud, but it is a far better one than an error.
+  if (isCloudProvider(providerId)
+      && !isFirebaseSignedIn()
+      && !getProviderKey(providerId)
+      && coachCanCoverLanguage(language)) {
+    return runCoachFallback(sentence, language, 'signedOut');
   }
 
   const ragMeta     = buildRAGMeta(language, null, sentence, providerId === 'parlance');
@@ -1176,6 +1407,8 @@ function refreshDynamicI18nUI() {
   if (loadAll) loadAll.textContent = i18n.t('loadAllToEditor');
   refreshOpenGuideLanguage();
   refreshPlusPaywallPrice();
+  updateLangSummary();
+  updateEntryPager();
   requestAnimationFrame(syncHeaderOffset);
 }
 
@@ -1185,7 +1418,48 @@ function onUILangChange() {
   // language from here on, even if it changes later.
   try { localStorage.setItem('parlance_ui_lang_manual', '1'); } catch (_) {}
   i18n.load(lang);
+  updateLangSummary();
+  closeLangControls();
 }
+
+/** Phone header collapses the App/Write selects behind a single summary
+ *  button (e.g. "EN · ES") instead of shrinking both permanently — see
+ *  .lang-summary-btn / .header-langs ≤768px rules in styles.css. */
+function updateLangSummary() {
+  const summary = document.getElementById('langSummaryText');
+  const uiSelect = document.getElementById('uiLangSelect');
+  const writeSelect = document.getElementById('langSelect');
+  if (!summary || !uiSelect || !writeSelect) return;
+  summary.textContent = `${uiSelect.value.toUpperCase()} · ${writeSelect.value.toUpperCase()}`;
+}
+
+function toggleLangControls() {
+  const btn = document.getElementById('langSummaryBtn');
+  const controls = document.getElementById('headerLangs');
+  if (!btn || !controls) return;
+  const isOpen = controls.classList.contains('expanded');
+  if (isOpen) closeLangControls();
+  else {
+    controls.classList.add('expanded');
+    btn.setAttribute('aria-expanded', 'true');
+  }
+}
+
+function closeLangControls() {
+  const btn = document.getElementById('langSummaryBtn');
+  const controls = document.getElementById('headerLangs');
+  if (!btn || !controls) return;
+  controls.classList.remove('expanded');
+  btn.setAttribute('aria-expanded', 'false');
+}
+
+document.addEventListener('click', (e) => {
+  const controls = document.getElementById('headerLangs');
+  const btn = document.getElementById('langSummaryBtn');
+  if (!controls || !controls.classList.contains('expanded')) return;
+  if (controls.contains(e.target) || (btn && btn.contains(e.target))) return;
+  closeLangControls();
+});
 
 /** Keep the App language following the Write language until the user has
  *  explicitly overridden the App selector themselves (see onUILangChange). */
@@ -1249,6 +1523,7 @@ const state = {
   activeSentenceId: null,
   analyzingSentenceIds: new Set(),
   savedEntries: [],
+  viewingEntryIndex: -1,
   isOnline: navigator.onLine,
   currentLanguage: 'es',
 };
@@ -1257,8 +1532,8 @@ const state = {
 let modalSelectedProvider = 'webllm';
 
 function openAISettings() {
-  if (isNativeParlanceApp() && window.webkit?.messageHandlers?.parlance) {
-    window.webkit.messageHandlers.parlance.postMessage('showAISettings');
+  if (nativeSupports('nativeSettings')) {
+    postToNative('showAISettings');
     return;
   }
   syncParlanceModelToJournalLanguage();
@@ -1269,10 +1544,11 @@ function openAISettings() {
   document.getElementById('aiSettingsOverlay').style.display = 'flex';
 }
 
-/** Called from iOS after native AI Settings sheet closes. */
+/** Called by a native host after its own AI Settings sheet closes. */
 function applyNativeAISettings(providerId, model) {
   if (providerId && AI_PROVIDERS[providerId]) {
     setSelectedProvider(providerId);
+    markProviderChosenByUser();
     if (model) setProviderModel(providerId, model);
   }
   updateFirebaseAuthUI();
@@ -1297,7 +1573,7 @@ function callNativeAuth(action) {
       if (err) reject(new Error(err));
       else resolve();
     };
-    window.webkit.messageHandlers.parlance.postMessage({ action, requestId });
+    postToNative({ action, requestId });
   });
 }
 
@@ -1308,7 +1584,7 @@ function closeAISettings() {
 // ── Call pack purchase ────────────────────────────────────────────────────────
 
 function triggerCallPackPurchase() {
-  if (!isNativeParlanceApp()) {
+  if (!nativeSupportsPurchases()) {
     showErrorInPanel(i18n.t('errMonthlyLimit'));
     return;
   }
@@ -1323,14 +1599,14 @@ function triggerCallPackPurchase() {
     if (err) {
       // Same fix as the Plus paywall: this can fire while AI Settings (a modal) is
       // open, so a panel-only message would be invisible — toast it too.
-      showToast(i18n.t('errPurchaseFailed', { err }));
+      showToast(i18n.t('errPurchaseFailed', { err }), 'error');
       showErrorInPanel(i18n.t('errPurchaseFailed', { err }));
       return;
     }
     refreshUsageDisplay();
-    showToast(i18n.t('callPackAdded'));
+    showToast(i18n.t('callPackAdded'), 'success');
   };
-  window.webkit.messageHandlers.parlance.postMessage({ action: 'purchaseCallPack', requestId });
+  postToNative({ action: 'purchaseCallPack', requestId });
 }
 
 // ── Parlance Plus subscription (gates medical/legal guides) ──────────────────
@@ -1346,12 +1622,24 @@ function isPlusActive() {
   return !!cfg.isPlusActive;
 }
 
+const APPLE_STANDARD_EULA_URL =
+  'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
+
+/** Opens a legal page outside the app. The webview has no navigation delegate,
+ *  so a plain link would replace the journal instead of leaving the app. */
+function openTermsOfUse() {
+  if (postToNative({ action: 'openURL', url: APPLE_STANDARD_EULA_URL })) {
+    return;
+  }
+  window.open(APPLE_STANDARD_EULA_URL, '_blank', 'noopener');
+}
+
 function showPlusPaywall(kind) {
   pendingPlusGuideKind = kind;
   const overlay = document.getElementById('plusPaywallOverlay');
   if (!overlay) return;
   const subscribeBtn = document.getElementById('plusPaywallSubscribeBtn');
-  if (subscribeBtn) subscribeBtn.style.display = isNativeParlanceApp() ? '' : 'none';
+  if (subscribeBtn) subscribeBtn.style.display = nativeSupportsPurchases() ? '' : 'none';
   overlay.style.display = 'flex';
   refreshPlusPaywallPrice();
 }
@@ -1366,12 +1654,26 @@ function refreshPlusPaywallPrice() {
   const cfg = window.__PARLANCE_CONFIG__ || {};
   const priceEl = document.getElementById('plusPaywallPrice');
   if (priceEl && cfg.plusMonthlyPriceDisplay) {
-    priceEl.textContent = cfg.plusMonthlyPriceDisplay;
+    priceEl.textContent = i18n.t('plusPaywallPriceMonthly', {
+      price: cfg.plusMonthlyPriceDisplay,
+    });
   }
+
+  // Don't offer a Subscribe button that can only fail: StoreKit hasn't
+  // returned the product, so a tap would surface a raw store error.
+  const subscribeBtn = document.getElementById('plusPaywallSubscribeBtn');
+  const unavailableEl = document.getElementById('plusPaywallUnavailable');
+  if (!nativeSupportsPurchases()) {
+    if (unavailableEl) unavailableEl.style.display = 'none';
+    return;
+  }
+  const available = cfg.plusPurchaseAvailable !== false;
+  if (subscribeBtn) subscribeBtn.disabled = !available;
+  if (unavailableEl) unavailableEl.style.display = available ? 'none' : '';
 }
 
 function triggerPlusPurchase() {
-  if (!isNativeParlanceApp()) {
+  if (!nativeSupportsPurchases()) {
     showToast(i18n.t('plusPaywallWebNotAvailable'));
     return;
   }
@@ -1387,20 +1689,20 @@ function triggerPlusPurchase() {
       // showErrorInPanel writes behind the paywall modal (still open here), so it's
       // invisible until the user closes the modal — surface it as a toast instead,
       // which renders above modals, and keep the panel copy for later reference.
-      showToast(i18n.t('errPlusPurchaseFailed', { err }));
+      showToast(i18n.t('errPlusPurchaseFailed', { err }), 'error');
       showErrorInPanel(i18n.t('errPlusPurchaseFailed', { err }));
       return;
     }
     plusActiveOverride = true;
-    showToast(i18n.t('plusSubscribed'));
+    showToast(i18n.t('plusSubscribed'), 'success');
     closePlusPaywall();
     if (pendingPlusGuideKind) openGuideOverlay(pendingPlusGuideKind);
   };
-  window.webkit.messageHandlers.parlance.postMessage({ action: 'purchasePlus', requestId });
+  postToNative({ action: 'purchasePlus', requestId });
 }
 
 function triggerPlusRestore() {
-  if (!isNativeParlanceApp()) {
+  if (!nativeSupportsPurchases()) {
     showToast(i18n.t('plusPaywallWebNotAvailable'));
     return;
   }
@@ -1409,43 +1711,87 @@ function triggerPlusRestore() {
     if (id !== requestId) return;
     delete window.__parlancePlusRestoreResult;
     if (err) {
-      showToast(i18n.t('errPlusPurchaseFailed', { err }));
+      showToast(i18n.t('errPlusPurchaseFailed', { err }), 'error');
       showErrorInPanel(i18n.t('errPlusPurchaseFailed', { err }));
       return;
     }
     if (data && data.restored) {
       plusActiveOverride = true;
-      showToast(i18n.t('plusRestored'));
+      showToast(i18n.t('plusRestored'), 'success');
       closePlusPaywall();
       if (pendingPlusGuideKind) openGuideOverlay(pendingPlusGuideKind);
     } else {
       showToast(i18n.t('plusNoneToRestore'));
     }
   };
-  window.webkit.messageHandlers.parlance.postMessage({ action: 'restorePlus', requestId });
+  postToNative({ action: 'restorePlus', requestId });
+}
+
+/** Zero-setup or fastest-to-set-up options lead the grid; the rest live
+ *  behind a "More providers" disclosure so first-run isn't 9 equal-weight
+ *  cards. See journal_ux_revamp plan, Phase 2. */
+const RECOMMENDED_PROVIDER_IDS = ['webllm', 'groq', 'deepseek'];
+
+function makeProviderCard(p) {
+  const card = document.createElement('button');
+  card.type = 'button';
+  card.className = 'ai-provider-card' + (p.id === modalSelectedProvider ? ' selected' : '');
+  card.dataset.id = p.id;
+  card.setAttribute('role', 'option');
+  card.setAttribute('aria-selected', p.id === modalSelectedProvider ? 'true' : 'false');
+  card.innerHTML = `
+    <div class="ai-provider-icon" aria-hidden="true">${p.icon}</div>
+    <div class="ai-provider-name">${p.name}</div>
+    <div class="ai-provider-sub">${p.subtitle}</div>
+  `;
+  card.addEventListener('click', () => {
+    modalSelectedProvider = p.id;
+    document.querySelectorAll('#providerGrid .ai-provider-card, #providerGridMoreInner .ai-provider-card').forEach(c => {
+      c.classList.remove('selected');
+      c.setAttribute('aria-selected', 'false');
+    });
+    card.classList.add('selected');
+    card.setAttribute('aria-selected', 'true');
+    if (p.id === 'parlance') syncParlanceModelToJournalLanguage();
+    updateModalForProvider(p.id);
+  });
+  return card;
 }
 
 function renderProviderGrid() {
   const grid = document.getElementById('providerGrid');
+  const moreWrap = document.getElementById('providerGridMore');
+  const moreGrid = document.getElementById('providerGridMoreInner');
+  if (!grid || !moreGrid) return;
   grid.innerHTML = '';
-  Object.values(AI_PROVIDERS).filter(p => p.id !== 'webllm' || canUseWebLLM).forEach(p => {
-    const card = document.createElement('div');
-    card.className = 'ai-provider-card' + (p.id === modalSelectedProvider ? ' selected' : '');
-    card.dataset.id = p.id;
-    card.innerHTML = `
-      <div class="ai-provider-icon">${p.icon}</div>
-      <div class="ai-provider-name">${p.name}</div>
-      <div class="ai-provider-sub">${p.subtitle}</div>
-    `;
-    card.addEventListener('click', () => {
-      modalSelectedProvider = p.id;
-      grid.querySelectorAll('.ai-provider-card').forEach(c => c.classList.remove('selected'));
-      card.classList.add('selected');
-      if (p.id === 'parlance') syncParlanceModelToJournalLanguage();
-      updateModalForProvider(p.id);
-    });
-    grid.appendChild(card);
+  moreGrid.innerHTML = '';
+  grid.setAttribute('role', 'listbox');
+  moreGrid.setAttribute('role', 'listbox');
+
+  const available = Object.values(AI_PROVIDERS).filter((p) => {
+    if (p.id === 'webllm') return canUseWebLLM;
+    // Coach runs from on-device weights bundled into the native app. A native
+    // host without them has no dev-server fallback, so offering the card would
+    // only lead to "model not bundled".
+    if (p.id === 'parlance' && isNativeParlanceApp()) {
+      return !!(window.__PARLANCE_CONFIG__ || {}).parlanceCoachAvailable;
+    }
+    return true;
   });
+  const recommended = RECOMMENDED_PROVIDER_IDS
+    .map(id => available.find(p => p.id === id))
+    .filter(Boolean);
+  const rest = available.filter(p => !recommended.includes(p));
+
+  recommended.forEach(p => grid.appendChild(makeProviderCard(p)));
+  rest.forEach(p => moreGrid.appendChild(makeProviderCard(p)));
+
+  if (moreWrap) {
+    moreWrap.style.display = rest.length ? '' : 'none';
+    // If the currently-selected provider lives under "More providers", open
+    // the disclosure so the selection is visible instead of hidden away.
+    if (rest.some(p => p.id === modalSelectedProvider)) moreWrap.open = true;
+  }
 }
 
 function updateModalForProvider(id) {
@@ -1510,6 +1856,7 @@ function saveAISettingsFromModal() {
   }
 
   setSelectedProvider(id);
+  markProviderChosenByUser();
   setProviderModel(id, model);
   if (effectiveRequiresKey(id) && key) setProviderKey(id, key);
 
@@ -1521,7 +1868,7 @@ function saveAISettingsFromModal() {
 
   closeAISettings();
   updateWaitingCard();
-  showToast(i18n.t('providerSet', { name: AI_PROVIDERS[id].name }));
+  showToast(i18n.t('providerSet', { name: AI_PROVIDERS[id].name }), 'success');
 }
 
 // ── PLATFORM DETECTION ────────────────────────────────────────────
@@ -1561,6 +1908,47 @@ function isMobileFeedbackLayout() {
     || window.matchMedia('(pointer: coarse)').matches;
 }
 
+/** True only for the single-column phone breakpoint where the feedback
+ *  panel becomes a bottom sheet instead of a visible side column. */
+function isMobileSheetLayout() {
+  return window.matchMedia('(max-width: 768px)').matches;
+}
+
+/** Slide the mobile feedback bottom sheet open. No-op on wider layouts,
+ *  where the panel is already a visible side column. */
+function openFeedbackSheet() {
+  if (!isMobileSheetLayout()) return;
+  const panel = document.getElementById('feedbackPanel');
+  const backdrop = document.getElementById('feedbackSheetBackdrop');
+  const toggle = document.getElementById('feedbackSheetToggle');
+  if (panel) panel.classList.add('sheet-open');
+  if (backdrop) backdrop.classList.add('show');
+  if (toggle) {
+    toggle.setAttribute('aria-expanded', 'true');
+    toggle.title = i18n.t('collapseCoachPanel');
+    toggle.setAttribute('aria-label', i18n.t('collapseCoachPanel'));
+  }
+}
+
+function closeFeedbackSheet() {
+  const panel = document.getElementById('feedbackPanel');
+  const backdrop = document.getElementById('feedbackSheetBackdrop');
+  const toggle = document.getElementById('feedbackSheetToggle');
+  if (panel) panel.classList.remove('sheet-open');
+  if (backdrop) backdrop.classList.remove('show');
+  if (toggle) {
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.title = i18n.t('expandCoachPanel');
+    toggle.setAttribute('aria-label', i18n.t('expandCoachPanel'));
+  }
+}
+
+function toggleFeedbackSheet() {
+  const panel = document.getElementById('feedbackPanel');
+  if (panel && panel.classList.contains('sheet-open')) closeFeedbackSheet();
+  else openFeedbackSheet();
+}
+
 /** Jump from sentence editor to the feedback panel (phone/iPad). */
 function jumpToFeedback(id) {
   if (id != null) {
@@ -1569,6 +1957,7 @@ function jumpToFeedback(id) {
   }
   const feedbackTab = document.querySelector('.feedback-tab');
   if (feedbackTab) switchTab('feedback', feedbackTab);
+  if (isMobileSheetLayout()) return; // switchTab already opened the sheet
   const panel = document.getElementById('feedbackPanel');
   if (panel) {
     panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1577,6 +1966,9 @@ function jumpToFeedback(id) {
 
 async function init() {
   initTheme();
+  // Before anything in this session can auto-switch providers, so a fallback
+  // does not get recorded as something the user deliberately picked.
+  migrateLegacyProviderChoice();
 
   // App (interface) language defaults to matching the Write (practice)
   // language — most people only ever touch one language control and expect
@@ -1600,6 +1992,7 @@ async function init() {
 
   state.currentLanguage = savedLang;
   document.getElementById('langSelect').value = savedLang;
+  updateLangSummary();
   if (getSelectedProvider() === 'parlance') {
     syncParlanceModelToJournalLanguage();
   }
@@ -1621,22 +2014,65 @@ async function init() {
   initNetworkMonitor();
   updatePlaceholders();
 
-  // iOS app with bundled MLX coach: default to Parlance Coach
-  const cfg = window.__PARLANCE_CONFIG__ || {};
-  if (cfg.parlanceCoachAvailable && isNativeParlanceApp()) {
-    setSelectedProvider('parlance');
-    syncParlanceModelToJournalLanguage();
-    updateWaitingCard();
-  } else if (await checkParlanceSLMServer()) {
-    // Web / dev: Mac Python server
-    setSelectedProvider('parlance');
-    updateWaitingCard();
-  }
+  await applyDefaultProvider();
 
   // On Android/Capacitor with no cloud provider configured, prompt AI settings
   if (!canUseWebLLM && getSelectedProvider() === 'webllm') {
     setTimeout(() => openAISettings(), 500);
   }
+}
+
+/**
+ * Until now the app re-pinned iOS to the coach on every launch, so a stored
+ * provider is not evidence that anyone picked it. Anything other than the coach
+ * could only have come from the settings sheet, so treat that as a real choice;
+ * coach-or-empty gets re-defaulted once.
+ */
+function migrateLegacyProviderChoice() {
+  if (localStorage.getItem(LS_PROVIDER_CHOSEN)) return;
+  const stored = localStorage.getItem(LS_PROVIDER);
+  if (stored && stored !== 'parlance') markProviderChosenByUser();
+}
+
+/**
+ * Chooses a provider on first run only, then never touches it again.
+ *
+ * The bundled coach is a 0.5B model. It is the right answer offline, but it is
+ * clearly weaker than the cloud route, which costs the user nothing inside the
+ * monthly account allowance. Defaulting everyone to the coach meant most people
+ * never saw the better answer, and re-applying it every launch quietly undid
+ * whatever they chose instead.
+ */
+async function applyDefaultProvider() {
+  if (hasUserChosenProvider()) {
+    updateWaitingCard();
+    return;
+  }
+
+  if (isFirebaseSignedIn()) {
+    setSelectedProvider(DEFAULT_CLOUD_PROVIDER);
+  } else if (coachCanCoverLanguage(state.currentLanguage)) {
+    setSelectedProvider('parlance');
+  } else if (await checkParlanceSLMServer()) {
+    // Web / dev: Mac Python server
+    setSelectedProvider('parlance');
+  }
+
+  if (getSelectedProvider() === 'parlance') syncParlanceModelToJournalLanguage();
+  updateWaitingCard();
+}
+
+/**
+ * Signing in is what makes the cloud route free, so someone who has never
+ * picked a provider should move onto it the moment they have an account. On the
+ * web the first auth callback can also land after init(), which would otherwise
+ * leave a signed-in user on the coach for the rest of the session.
+ */
+function reapplyDefaultProviderIfUnchosen() {
+  if (hasUserChosenProvider() || !isFirebaseSignedIn()) return;
+  if (isCloudProvider(getSelectedProvider())) return;
+  setSelectedProvider(DEFAULT_CLOUD_PROVIDER);
+  updateWaitingCard();
 }
 
 function updateWaitingCard() {
@@ -1666,8 +2102,12 @@ function updateWaitingCard() {
     } else {
       hint.innerHTML = `⚙ ${settingsBtn(i18n.t('waitingSetupProvider'))}`;
     }
+  } else if (isCloudProvider(id) && !navigator.onLine && coachCanCoverLanguage(state.currentLanguage)) {
+    hint.innerHTML = i18n.t('waitingCoachFallback', { icon: AI_PROVIDERS.parlance.icon });
   } else if (isFirebaseSignedIn() && isCloudProvider(id)) {
     hint.innerHTML = i18n.t('waitingCloudReady', { icon: p.icon, name: p.name });
+  } else if (isCloudProvider(id) && !getProviderKey(id) && coachCanCoverLanguage(state.currentLanguage)) {
+    hint.innerHTML = i18n.t('waitingCoachFallback', { icon: AI_PROVIDERS.parlance.icon });
   } else if (getProviderKey(id)) {
     hint.innerHTML = i18n.t('waitingProviderWrite', { icon: p.icon, name: p.name });
   } else {
@@ -1675,7 +2115,7 @@ function updateWaitingCard() {
   }
 
   const cta = document.getElementById('waitingAnalyzeBtn');
-  if (cta) cta.textContent = i18n.t('getFeedback');
+  if (cta) cta.textContent = i18n.t('analyzeEntry');
 }
 
 /** Analyze the focused sentence, or the first draft that is ready. */
@@ -1687,7 +2127,7 @@ function analyzeActiveOrFirstReady() {
     s && sentenceReadyToAnalyze(s.text) && !state.analyzingSentenceIds.has(s.id)
   );
   if (!target) {
-    showToast(i18n.t('writeFirst'));
+    showToast(i18n.t('writeFirst'), 'error');
     return;
   }
   state.activeSentenceId = target.id;
@@ -1701,6 +2141,8 @@ function onLanguageChange() {
   state.currentLanguage = document.getElementById('langSelect').value;
   localStorage.setItem('parlance_language', state.currentLanguage);
   syncUiLanguageToWriteLanguage();
+  updateLangSummary();
+  closeLangControls();
   updatePlaceholders();
   renderPrompts();
   loadGuide();
@@ -1736,6 +2178,7 @@ function initNetworkMonitor() {
 function updateOnlineStatus(online) {
   state.isOnline = online;
   document.getElementById('offlineBanner').classList.toggle('show', !online);
+  updateWaitingCard();
 }
 
 // ── PRIVACY POLICY ────────────────────────────────────────────────
@@ -1797,15 +2240,11 @@ function renderPrompts() {
   for (let n = 1; n <= 7; n++) {
     const text = i18n.t(`prompts_${langCode}_${n}`);
     if (text === `prompts_${langCode}_${n}`) continue;
-    const el = document.createElement('div');
+    const el = document.createElement('button');
+    el.type = 'button';
     el.className = 'prompt-item';
     el.textContent = text;
-    el.setAttribute('role', 'button');
-    el.tabIndex = 0;
-    el.onclick = () => usePrompt(text);
-    el.onkeydown = (e) => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); usePrompt(text); }
-    };
+    el.addEventListener('click', () => usePrompt(text));
     list.appendChild(el);
   }
 }
@@ -1852,7 +2291,7 @@ function addSentence(prefill = '', opts = {}) {
         title="Write freely. ⌘Enter / Ctrl+Enter for feedback."
       ></textarea>
       <div class="sentence-actions">
-        <button type="button" class="analyze-btn" id="analyze-btn-${id}" data-i18n="getFeedback" title="Get feedback">Feedback</button>
+        <button type="button" class="btn btn-primary analyze-btn" id="analyze-btn-${id}" data-i18n="getFeedback" title="Get feedback">Feedback</button>
         <button type="button" class="jump-feedback-btn" id="jump-fb-${id}" data-i18n="viewFeedback">View feedback ↓</button>
         <div class="sentence-status" id="status-${id}"></div>
       </div>
@@ -1919,6 +2358,7 @@ function onSentenceInput(id) {
   sentence.text     = text;
   sentence.status   = 'dirty';
   sentence.feedback = null;
+  sentence.feedbackUnits = null;
   const row = document.getElementById('row-' + id);
   if (row) row.classList.remove('has-feedback');
   updateCounts();
@@ -1963,33 +2403,10 @@ async function analyzeSentence(id) {
   if (!sentence) return;
   if (state.analyzingSentenceIds.has(id)) return;
 
-  // If the box holds a full paragraph, split into sentence rows first so
-  // each one still gets its own feedback card.
-  const parts = splitIntoSentences(sentence.text).filter(p => p.trim());
-  if (parts.length > 1) {
-    const idx = state.sentences.findIndex(s => s.id === id);
-    const ta0 = document.getElementById('ta-' + id);
-    sentence.text = parts[0];
-    sentence.feedback = null;
-    sentence.status = 'dirty';
-    if (ta0) {
-      ta0.value = parts[0];
-      ta0.style.height = 'auto';
-      ta0.style.height = Math.max(ta0.scrollHeight, 72) + 'px';
-    }
-    const extraIds = [];
-    for (let i = 1; i < parts.length; i++) {
-      extraIds.push(addSentence(parts[i], { insertAt: idx + i, focus: false }));
-    }
-    updateCounts();
-    await analyzeSentence(id);
-    for (const extraId of extraIds) {
-      await analyzeSentence(extraId);
-    }
-    return;
-  }
-
-  if (!sentenceReadyToAnalyze(sentence.text)) {
+  // Keep the paragraph in one editor box. Split only for the model, which
+  // is trained per sentence, then show one feedback card per sentence.
+  const parts = splitIntoSentences(sentence.text).filter(sentenceReadyToAnalyze);
+  if (!parts.length) {
     return;
   }
 
@@ -2008,19 +2425,29 @@ async function analyzeSentence(id) {
   const providerId = getSelectedProvider();
 
   try {
-    const result = await analyzeWithAI(
-      sentence.text,
-      state.currentLanguage,
-      (report) => showWebLLMProgress(report)
-    );
-
-    if (result._cachedSource) {
-      sentence.analysisSource = result._cachedSource;
-      delete result._cachedSource;
-    } else {
-      sentence.analysisSource = AI_PROVIDERS[providerId]?.name || providerId;
+    const units = [];
+    for (const part of parts) {
+      const result = await analyzeWithAI(
+        part,
+        state.currentLanguage,
+        (report) => showWebLLMProgress(report)
+      );
+      let source;
+      if (result._cachedSource) {
+        source = result._cachedSource;
+        delete result._cachedSource;
+      } else if (result._actualSource) {
+        source = result._actualSource;
+        delete result._actualSource;
+      } else {
+        source = AI_PROVIDERS[providerId]?.name || providerId;
+      }
+      units.push({ text: part, feedback: result, analysisSource: source });
     }
-    applyFeedback(id, sentence, result, ta, statusEl);
+    sentence.feedbackUnits = units;
+    sentence.feedback = units[0].feedback;
+    sentence.analysisSource = units[0].analysisSource;
+    applyParagraphFeedback(id, sentence, ta, statusEl);
 
   } catch (err) {
     ta.classList.remove('analyzing');
@@ -2039,7 +2466,7 @@ async function analyzeSentence(id) {
     }
 
     showErrorInPanel(msg);
-    showToast(msg.length > 80 ? msg.slice(0, 80) + '…' : msg);
+    showToast(msg.length > 80 ? msg.slice(0, 80) + '…' : msg, 'error');
   } finally {
     state.analyzingSentenceIds.delete(id);
   }
@@ -2047,7 +2474,18 @@ async function analyzeSentence(id) {
 
 function applyFeedback(id, sentence, parsed, ta, statusEl) {
   sentence.feedback = parsed;
-  sentence.status   = parsed.status === 'Excellent' ? 'great' : 'error';
+  sentence.feedbackUnits = [{
+    text: sentence.text,
+    feedback: parsed,
+    analysisSource: sentence.analysisSource,
+  }];
+  applyParagraphFeedback(id, sentence, ta, statusEl);
+}
+
+function applyParagraphFeedback(id, sentence, ta, statusEl) {
+  const units = feedbackUnitsFor(sentence);
+  const anyNeedsWork = units.some(u => u.feedback && u.feedback.status !== 'Excellent');
+  sentence.status = anyNeedsWork ? 'error' : 'great';
   ta.classList.remove('analyzing');
   ta.classList.toggle('is-great', sentence.status === 'great');
   ta.classList.toggle('has-error', sentence.status === 'error');
@@ -2061,6 +2499,20 @@ function applyFeedback(id, sentence, parsed, ta, statusEl) {
   }
 }
 
+function feedbackUnitsFor(sentence) {
+  if (Array.isArray(sentence.feedbackUnits) && sentence.feedbackUnits.length) {
+    return sentence.feedbackUnits;
+  }
+  if (sentence.feedback) {
+    return [{
+      text: sentence.text,
+      feedback: sentence.feedback,
+      analysisSource: sentence.analysisSource,
+    }];
+  }
+  return [];
+}
+
 // ── FEEDBACK DISPLAY ──────────────────────────────────────────────
 function switchTab(tab, btn) {
   document.querySelectorAll('.feedback-tab').forEach(t => t.classList.remove('active'));
@@ -2068,6 +2520,9 @@ function switchTab(tab, btn) {
   document.getElementById('feedbackInner').style.display  = tab === 'feedback' ? 'flex' : 'none';
   document.getElementById('promptsInner').style.display   = tab === 'prompts'  ? 'flex' : 'none';
   document.getElementById('guideInner').style.display     = tab === 'guide'    ? 'flex' : 'none';
+  // Tapping any tab on the phone bottom-sheet layout should reveal it —
+  // it never collapses a tab switch, only the dedicated toggle button does.
+  openFeedbackSheet();
 }
 
 function clearFeedbackCards() {
@@ -2130,7 +2585,7 @@ function showErrorInPanel(msg) {
   card.innerHTML = `
     <div class="error-panel-icon">⚠</div>
     <div class="error-panel-msg">${escapeHTML(msg)}</div>
-    <button class="error-panel-btn" onclick="openAISettings()">⚙ Open AI Settings</button>
+    <button class="btn btn-primary error-panel-btn" onclick="openAISettings()">⚙ Open AI Settings</button>
   `;
   inner.appendChild(card);
 }
@@ -2144,7 +2599,8 @@ function showFeedback(id) {
   if (waiting) waiting.style.display = 'none';
   inner.querySelectorAll('.feedback-card, .analyzing-card, .webllm-progress-card, .error-panel-card').forEach(el => el.remove());
 
-  if (!sentence.feedback) {
+  const units = feedbackUnitsFor(sentence);
+  if (!units.length) {
     // Only show the analyzing spinner when analysis is actually running.
     // Focusing a draft used to fake that UI and made Coach look stuck.
     if (state.analyzingSentenceIds.has(id)) {
@@ -2155,7 +2611,14 @@ function showFeedback(id) {
     return;
   }
 
-  const fb          = sentence.feedback;
+  units.forEach((unit, i) => {
+    inner.appendChild(buildFeedbackCard(unit, `Sentence ${i + 1}`));
+  });
+  inner.scrollTop = 0;
+}
+
+function buildFeedbackCard(unit, refLabel) {
+  const fb          = unit.feedback;
   const isExcellent = fb.status === 'Excellent';
   const statusLabel = isExcellent ? 'Excellent' : 'Needs Work';
   const statusClass = isExcellent ? 'score-excellent' : 'score-needs-work';
@@ -2170,23 +2633,23 @@ function showFeedback(id) {
   if (complexityNote) {
     body += feedbackItem('label-complexity', i18n.t('complexityNoteLabel'), complexityNote);
   }
-  body += feedbackItem('label-rule',         '📐 Grammar Rule',  fb.grammar_rule);
+  body += feedbackItem('label-rule',         'Grammar Rule',  fb.grammar_rule);
   if (fb.correction && !isExcellent) {
-    body += feedbackItem('label-correction', '✍ Corrected Sentence', fb.correction);
+    body += feedbackItem('label-correction', 'Corrected Sentence', fb.correction);
   }
   body += feedbackItem(
     'label-explanation',
-    isExcellent ? '✨ Why This Works' : '⚠ What Needs Work',
+    isExcellent ? 'Why This Works' : 'What Needs Work',
     fb.explanation
   );
   if (fb.correction && isExcellent) {
-    body += feedbackItem('label-correction', '✍ Corrected Sentence', fb.correction);
+    body += feedbackItem('label-correction', 'Corrected Sentence', fb.correction);
   }
-  if (fb.register)         body += feedbackItem('label-register',   '🎭 Register',               fb.register);
-  if (fb.next_level_alt)   body += feedbackItem('label-next',       `🔼 ${nextLabel} Version`,   fb.next_level_alt);
+  if (fb.register)         body += feedbackItem('label-register',   'Register',              fb.register);
+  if (fb.next_level_alt)   body += feedbackItem('label-next',       `${nextLabel} Version`,  fb.next_level_alt);
   if (fb.target_level_alt && targetLabel)
-                           body += feedbackItem('label-target',     `🎯 ${targetLabel} Version`, fb.target_level_alt);
-  if (fb.tip)              body += feedbackItem('label-tip',        '💡 Tip',                    fb.tip);
+                           body += feedbackItem('label-target',     `${targetLabel} Version`, fb.target_level_alt);
+  if (fb.tip)              body += feedbackItem('label-tip',        'Tip',                   fb.tip);
   if (fb._coach_warning) {
     body += `<div class="feedback-coach-warning">${escapeHTML(fb._coach_warning)}</div>`;
   }
@@ -2197,25 +2660,22 @@ function showFeedback(id) {
     body += `<div class="feedback-rag-topics"><span class="feedback-rag-label">Reference</span>${chips}</div>`;
   }
 
-  const sourceLabel = sentence.analysisSource || 'AI';
-  const idx         = state.sentences.findIndex(s => s.id === id) + 1;
-
+  const sourceLabel = unit.analysisSource || 'AI';
   const card = document.createElement('div');
   card.className = 'feedback-card';
   card.innerHTML = `
     <div class="feedback-card-header">
-      <div class="feedback-sentence-ref">Sentence ${idx}</div>
+      <div class="feedback-sentence-ref">${escapeHTML(refLabel)}</div>
       <div class="feedback-header-badges">
         ${assessedLevel ? `<div class="feedback-level-badge" title="${escapeHTML(i18n.t('assessedLevelHint'))}">~${assessedLevel}</div>` : ''}
         <div class="feedback-score ${statusClass}">${statusLabel}</div>
         <div class="feedback-source">${escapeHTML(sourceLabel)}</div>
       </div>
     </div>
-    <div class="feedback-original">"${escapeHTML(sentence.text)}"</div>
+    <div class="feedback-original">"${escapeHTML(unit.text)}"</div>
     <div class="feedback-body">${body}</div>
   `;
-  inner.appendChild(card);
-  inner.scrollTop = 0;
+  return card;
 }
 
 function feedbackItem(labelClass, label, text) {
@@ -2239,10 +2699,10 @@ function loadGuide() {
 }
 
 function openGuideOverlay(kind = 'grammar') {
-  // Plus is a StoreKit (native-only) purchase — there's no way to buy or restore
-  // it on the web build, so gating medical/legal here would just permanently
-  // lock them out with no path through. Only gate inside the native app.
-  if ((kind === 'medical' || kind === 'legal') && isNativeParlanceApp() && !isPlusActive()) {
+  // Gating medical/legal where Plus cannot be bought would lock them out with
+  // no path through, so this follows the purchase capability rather than the
+  // bridge: web and Android (no Play Billing yet) keep open access.
+  if ((kind === 'medical' || kind === 'legal') && nativeSupportsPurchases() && !isPlusActive()) {
     showPlusPaywall(kind);
     return;
   }
@@ -2257,7 +2717,7 @@ function openGuideOverlay(kind = 'grammar') {
   };
   const file = fileByKind[kind] || lang.guideFile;
 
-  if (!file) { showToast(i18n.t('guideComingSoon')); return; }
+  if (!file) { showToast(i18n.t('guideComingSoon'), 'error'); return; }
 
   // Pass interface language so dialect pages show English when the app UI is
   // English. Prefer the live <select> value so a just-changed language sticks
@@ -2297,7 +2757,7 @@ window.addEventListener('message', (e) => {
 function saveEntry() {
   const title     = document.getElementById('entryTitle').value || 'Untitled Entry';
   const sentences = state.sentences.filter(s => s.text.trim());
-  if (!sentences.length) { showToast(i18n.t('writeFirst')); return; }
+  if (!sentences.length) { showToast(i18n.t('writeFirst'), 'error'); return; }
 
   const entry = {
     id:       Date.now(),
@@ -2307,6 +2767,7 @@ function saveEntry() {
     sentences: sentences.map(s => ({
       text: s.text,
       feedback: s.feedback || null,
+      feedbackUnits: s.feedbackUnits || null,
       analysisSource: s.analysisSource || null,
     })),
   };
@@ -2315,34 +2776,89 @@ function saveEntry() {
   try { localStorage.setItem('parlance_entries', JSON.stringify(state.savedEntries)); } catch (_) {}
 
   renderPastEntries();
-  showToast(i18n.t('entrySaved') + ' ✓');
+  const bar = document.getElementById('pastBar');
+  if (bar) bar.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  showToast(i18n.t('entrySaved'), 'success');
 }
 
 function loadSavedEntries() {
   try {
     const saved = localStorage.getItem('parlance_entries');
-    if (saved) { state.savedEntries = JSON.parse(saved); renderPastEntries(); }
+    if (saved) state.savedEntries = JSON.parse(saved);
   } catch (_) {}
+  // Always render (even with zero entries) — Past Entries shows a real
+  // empty state now instead of staying hidden until the first save.
+  renderPastEntries();
 }
 
 function renderPastEntries() {
-  if (!state.savedEntries.length) return;
   const bar  = document.getElementById('pastBar');
   const list = document.getElementById('pastEntries');
-  bar.style.display = 'block';
+  if (!bar || !list) return;
+  bar.hidden = false;
   list.innerHTML = '';
-  state.savedEntries.slice(0, 8).forEach(entry => {
-    const chip = document.createElement('div');
-    chip.className = 'past-entry-chip';
+  if (!state.savedEntries.length) {
+    const empty = document.createElement('p');
+    empty.className = 'past-entries-empty';
+    empty.textContent = i18n.t('pastEntriesEmpty');
+    list.appendChild(empty);
+    return;
+  }
+  state.savedEntries.slice(0, 8).forEach((entry, i) => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'past-entry-chip' + (i === state.viewingEntryIndex ? ' current' : '');
     const langLabel = entry.language ? ` [${entry.language.toUpperCase()}]` : '';
-    chip.textContent = `${entry.date} — ${entry.title}${langLabel}`;
-    chip.onclick = () => viewEntry(entry);
+    chip.textContent = `${entry.date} · ${entry.title}${langLabel}`;
+    chip.addEventListener('click', () => {
+      const overlay = document.getElementById('entryOverlay');
+      const alreadyOpen = overlay && overlay.style.display !== 'none';
+      if (alreadyOpen && i === state.viewingEntryIndex) return;
+      const dir = !alreadyOpen ? 'open'
+        : i > state.viewingEntryIndex ? 'next'
+        : 'prev';
+      viewEntry(entry, dir);
+    });
     list.appendChild(chip);
   });
 }
 
 // ── ENTRY VIEWER ──────────────────────────────────────────────────
-function viewEntry(entry) {
+let entryTurnBusy = false;
+let entryViewerChromeBound = false;
+let entryTouchStartX = null;
+
+function prefersReducedMotion() {
+  return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function bindEntryViewerChrome() {
+  if (entryViewerChromeBound) return;
+  entryViewerChromeBound = true;
+  document.addEventListener('keydown', onEntryViewerKey);
+  const stage = document.getElementById('entryBookStage');
+  if (!stage) return;
+  stage.addEventListener('touchstart', (e) => {
+    entryTouchStartX = e.changedTouches[0].clientX;
+  }, { passive: true });
+  stage.addEventListener('touchend', (e) => {
+    if (entryTouchStartX == null) return;
+    const dx = e.changedTouches[0].clientX - entryTouchStartX;
+    entryTouchStartX = null;
+    if (Math.abs(dx) < 56) return;
+    turnEntryPage(dx < 0 ? 1 : -1);
+  }, { passive: true });
+}
+
+function onEntryViewerKey(e) {
+  const overlay = document.getElementById('entryOverlay');
+  if (!overlay || overlay.style.display === 'none') return;
+  if (e.key === 'Escape') { closeEntryViewer(); return; }
+  if (e.key === 'ArrowRight') { e.preventDefault(); turnEntryPage(1); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); turnEntryPage(-1); }
+}
+
+function fillEntryPage(entry) {
   document.getElementById('entryViewerTitle').textContent = entry.title || 'Untitled Entry';
   const langName = parlanceLanguageInfo(entry.language).name;
   document.getElementById('entryViewerMeta').textContent =
@@ -2351,18 +2867,17 @@ function viewEntry(entry) {
   const body = document.getElementById('entryViewerBody');
   body.innerHTML = '';
 
-  // "Load All to Editor" button at the top
   const loadAllRow = document.createElement('div');
   loadAllRow.style.cssText = 'margin-bottom: 1rem; text-align: right;';
   const loadAllBtn = document.createElement('button');
-  loadAllBtn.className = 'entry-load-btn';
+  loadAllBtn.id = 'loadAllToEditorBtn';
+  loadAllBtn.className = 'btn btn-primary entry-load-btn';
   loadAllBtn.textContent = i18n.t('loadAllToEditor');
   loadAllBtn.onclick = () => loadEntryToEditor(entry);
   loadAllRow.appendChild(loadAllBtn);
   body.appendChild(loadAllRow);
 
   (entry.sentences || []).forEach((s, i) => {
-    // Backward compatibility: old entries stored sentences as plain strings
     const text = typeof s === 'string' ? s : s.text;
     const feedback = typeof s === 'string' ? null : s.feedback;
     const analysisSource = typeof s === 'string' ? null : s.analysisSource;
@@ -2393,12 +2908,11 @@ function viewEntry(entry) {
         ${escapeHTML(text)}
         ${feedbackHTML}
         <div class="entry-sentence-actions" style="margin-top:0.4rem;">
-          <button class="entry-load-btn" data-index="${i}" title="Load this sentence into editor">Re-analyze</button>
+          <button class="btn btn-primary entry-load-btn" data-index="${i}" title="${escapeHTML(i18n.t('reAnalyze'))}">${escapeHTML(i18n.t('reAnalyze'))}</button>
         </div>
       </div>
     `;
 
-    // Attach re-analyze click handler
     row.querySelector('.entry-load-btn[data-index]').addEventListener('click', () => {
       loadSentenceToEditor(text, entry.language);
     });
@@ -2407,10 +2921,66 @@ function viewEntry(entry) {
   });
 
   document.getElementById('entryDeleteBtn').onclick = () => deleteEntry(entry.id);
+  body.scrollTop = 0;
+  updateEntryPager();
+}
+
+function updateEntryPager() {
+  const total = state.savedEntries.length;
+  const idx = state.viewingEntryIndex;
+  const pageOf = document.getElementById('entryPageOf');
+  const prev = document.getElementById('entryPagePrev');
+  const next = document.getElementById('entryPageNext');
+  if (pageOf) {
+    pageOf.textContent = (idx >= 0 && total)
+      ? i18n.t('entryPageOf', { current: idx + 1, total })
+      : '';
+  }
+  if (prev) {
+    prev.disabled = idx <= 0;
+    prev.title = i18n.t('previousEntry');
+    prev.setAttribute('aria-label', i18n.t('previousEntry'));
+  }
+  if (next) {
+    next.disabled = idx < 0 || idx >= total - 1;
+    next.title = i18n.t('nextEntry');
+    next.setAttribute('aria-label', i18n.t('nextEntry'));
+  }
+}
+
+function playPageTurn(direction) {
+  const viewer = document.getElementById('entryViewer');
+  if (!viewer || prefersReducedMotion()) return;
+  viewer.classList.remove('page-in-open', 'page-in-next', 'page-in-prev');
+  void viewer.offsetWidth;
+  const cls = direction === 'prev' ? 'page-in-prev'
+    : direction === 'next' ? 'page-in-next'
+    : 'page-in-open';
+  viewer.classList.add(cls);
+}
+
+function viewEntry(entry, direction) {
+  const idx = state.savedEntries.findIndex(e => e.id === entry.id);
+  if (idx === -1) return;
+  bindEntryViewerChrome();
+  state.viewingEntryIndex = idx;
+  fillEntryPage(entry);
+  playPageTurn(direction || 'open');
+  renderPastEntries();
 
   const overlay = document.getElementById('entryOverlay');
   overlay.style.display = 'flex';
   overlay.onclick = (e) => { if (e.target === overlay) closeEntryViewer(); };
+  if (typeof closeFeedbackSheet === 'function') closeFeedbackSheet();
+}
+
+function turnEntryPage(delta) {
+  if (entryTurnBusy) return;
+  const next = state.viewingEntryIndex + delta;
+  if (next < 0 || next >= state.savedEntries.length) return;
+  entryTurnBusy = true;
+  viewEntry(state.savedEntries[next], delta > 0 ? 'next' : 'prev');
+  setTimeout(() => { entryTurnBusy = false; }, prefersReducedMotion() ? 0 : 480);
 }
 
 function loadSentenceToEditor(text, language) {
@@ -2465,7 +3035,7 @@ function loadEntryToEditor(entry) {
 
   closeEntryViewer();
   switchTab('feedback', document.querySelector('.feedback-tab'));
-  showToast(i18n.t('entryLoaded'));
+  showToast(i18n.t('entryLoaded'), 'success');
 }
 
 function deleteEntry(entryId) {
@@ -2473,22 +3043,35 @@ function deleteEntry(entryId) {
   if (idx === -1) return;
   state.savedEntries.splice(idx, 1);
   try { localStorage.setItem('parlance_entries', JSON.stringify(state.savedEntries)); } catch (_) {}
-  closeEntryViewer();
+  if (state.savedEntries.length) {
+    const nextIdx = Math.min(idx, state.savedEntries.length - 1);
+    viewEntry(state.savedEntries[nextIdx], 'next');
+  } else {
+    closeEntryViewer();
+  }
   renderPastEntries();
-  if (!state.savedEntries.length) document.getElementById('pastBar').style.display = 'none';
-  showToast(i18n.t('entryDeleted'));
+  showToast(i18n.t('entryDeleted'), 'success');
 }
 
 function closeEntryViewer() {
   document.getElementById('entryOverlay').style.display = 'none';
+  state.viewingEntryIndex = -1;
+  const viewer = document.getElementById('entryViewer');
+  if (viewer) viewer.classList.remove('page-in-open', 'page-in-next', 'page-in-prev');
+  renderPastEntries();
 }
 
 // ── UTILS ─────────────────────────────────────────────────────────
-function showToast(msg) {
-  const t = document.getElementById('errorToast');
+/** type: 'info' (default) | 'success' | 'error' — drives styling + the
+ *  role announced to screen readers (status vs. alert). */
+function showToast(msg, type = 'info') {
+  const t = document.getElementById('toast');
+  if (!t) return;
   t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3500);
+  t.className = 'toast show toast-' + type;
+  t.setAttribute('role', type === 'error' ? 'alert' : 'status');
+  clearTimeout(t._hideTimer);
+  t._hideTimer = setTimeout(() => t.classList.remove('show'), 3500);
 }
 
 function escapeHTML(str) {

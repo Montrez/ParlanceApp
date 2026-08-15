@@ -23,6 +23,13 @@ final class StoreKitManager: ObservableObject {
     /// Local, verified entitlement check via Transaction.currentEntitlements —
     /// gates client-only features (medical/legal guides) without a server round trip.
     @Published private(set) var isPlusActive = false
+    /// Last `Product.products(for:)` failure, if any. An empty catalog and a
+    /// failed fetch look identical to callers otherwise, and they need very
+    /// different fixes (App Store Connect setup vs. retry).
+    @Published private(set) var productLoadError: String?
+    /// False until the first catalog fetch finishes, so the paywall can wait
+    /// instead of claiming the subscription is unavailable during launch.
+    @Published private(set) var didAttemptProductLoad = false
 
     // MARK: - Internal
 
@@ -46,9 +53,36 @@ final class StoreKitManager: ObservableObject {
         do {
             let fetched = try await Product.products(for: Self.allProductIDs)
             products = fetched.sorted { $0.price < $1.price }
+            productLoadError = nil
+            if fetched.isEmpty {
+                print("[StoreKit] App Store returned no products for \(Self.allProductIDs)")
+            }
         } catch {
+            productLoadError = error.localizedDescription
             print("[StoreKit] Failed to load products:", error)
         }
+        didAttemptProductLoad = true
+    }
+
+    /// True once the App Store has actually returned the subscription. The
+    /// paywall keys its Subscribe button off this so the button is never live
+    /// when a tap could only ever fail.
+    var isPlusPurchasable: Bool {
+        products.contains { $0.id == Self.plusMonthly }
+    }
+
+    var isCallPackPurchasable: Bool {
+        products.contains { $0.id == Self.callPack100 }
+    }
+
+    /// Distinguishes "the App Store call failed" from "the App Store answered
+    /// but this product is not in the catalog", which is an App Store Connect
+    /// configuration problem the user can do nothing about.
+    private func unavailableMessage() -> String {
+        if let productLoadError {
+            return "Could not reach the App Store (\(productLoadError)). Check your connection and try again."
+        }
+        return "This purchase isn't available right now. Please try again later."
     }
 
     // MARK: - Purchase
@@ -63,7 +97,7 @@ final class StoreKitManager: ObservableObject {
         guard let product = products.first(where: { $0.id == Self.callPack100 }) else {
             await loadProducts()
             guard let product = products.first(where: { $0.id == Self.callPack100 }) else {
-                return .failed("Product unavailable. Check your connection and try again.")
+                return .failed(unavailableMessage())
             }
             return await purchase(product)
         }
@@ -118,7 +152,7 @@ final class StoreKitManager: ObservableObject {
         guard let product = products.first(where: { $0.id == Self.plusMonthly }) else {
             await loadProducts()
             guard let product = products.first(where: { $0.id == Self.plusMonthly }) else {
-                return .failed("Product unavailable. Check your connection and try again.")
+                return .failed(unavailableMessage())
             }
             return await purchase(product)
         }

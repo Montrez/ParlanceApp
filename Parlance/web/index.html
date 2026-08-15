@@ -6,7 +6,7 @@
 <title>Parlance</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Spectral:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css?v=1">
-<link rel="stylesheet" href="styles.css?v=16">
+<link rel="stylesheet" href="styles.css?v=19">
 </head>
 <body>
 
@@ -16,24 +16,34 @@
     <div class="date-badge" id="dateBadge"></div>
   </div>
   <div class="header-right">
-    <div class="header-langs" role="group" data-i18n-title="langControlsTitle" title="Language settings">
-      <label class="lang-control lang-control-app" for="uiLangSelect">
-        <span class="lang-control-label" id="uiLangLabel" data-i18n="interfaceLangLabel">App</span>
-        <select class="header-select" id="uiLangSelect" onchange="onUILangChange()" data-i18n-title="interfaceLangTitle" title="App language (menus and guides)" aria-labelledby="uiLangLabel">
-          <option value="en">EN</option>
-          <option value="es">ES</option>
-          <option value="fr">FR</option>
-        </select>
-      </label>
-      <span class="lang-control-sep" aria-hidden="true"></span>
-      <label class="lang-control lang-control-write" for="langSelect">
-        <span class="lang-control-label" id="practiceLangLabel" data-i18n="practiceLangLabel">Write</span>
-        <select class="header-select" id="langSelect" onchange="onLanguageChange()" data-i18n-title="practiceLangTitle" title="Practice language (what you write)" aria-labelledby="practiceLangLabel">
-          <option value="es">Español</option>
-          <option value="en">English</option>
-          <option value="fr">Français</option>
-        </select>
-      </label>
+    <!-- On phones .lang-summary-btn is what actually shows; tapping it
+         reveals .header-langs below as a small dropdown instead of
+         shrinking both selects to near-illegible sizes (see styles.css
+         ≤768px block). The wrapper gives the dropdown a stable anchor
+         regardless of how header-right's other buttons wrap. -->
+    <div class="lang-summary-wrap">
+      <button type="button" class="lang-summary-btn" id="langSummaryBtn" onclick="toggleLangControls()" aria-expanded="false" aria-controls="headerLangs" data-i18n-title="langControlsTitle" title="Language settings">
+        <span id="langSummaryText">EN · ES</span><span class="lang-summary-chevron" aria-hidden="true">▾</span>
+      </button>
+      <div class="header-langs" id="headerLangs" role="group" data-i18n-title="langControlsTitle" title="Language settings">
+        <label class="lang-control lang-control-app" for="uiLangSelect">
+          <span class="lang-control-label" id="uiLangLabel" data-i18n="interfaceLangLabel">App</span>
+          <select class="header-select" id="uiLangSelect" onchange="onUILangChange()" data-i18n-title="interfaceLangTitle" title="App language (menus and guides)" aria-labelledby="uiLangLabel">
+            <option value="en">EN</option>
+            <option value="es">ES</option>
+            <option value="fr">FR</option>
+          </select>
+        </label>
+        <span class="lang-control-sep" aria-hidden="true"></span>
+        <label class="lang-control lang-control-write" for="langSelect">
+          <span class="lang-control-label" id="practiceLangLabel" data-i18n="practiceLangLabel">Write</span>
+          <select class="header-select" id="langSelect" onchange="onLanguageChange()" data-i18n-title="practiceLangTitle" title="Practice language (what you write)" aria-labelledby="practiceLangLabel">
+            <option value="es">Español</option>
+            <option value="en">English</option>
+            <option value="fr">Français</option>
+          </select>
+        </label>
+      </div>
     </div>
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" data-i18n-title="toggleTheme" aria-label="Toggle theme">☀</button>
     <button class="privacy-link ai-settings-btn" id="aiSettingsBtn" onclick="openAISettings()" data-i18n-title="aiSettingsTitle" title="AI settings"><span data-i18n="aiSettings">AI</span></button>
@@ -58,23 +68,30 @@
     </div>
     <div class="journal-footer">
       <div class="word-count" id="wordCount">0 words</div>
-      <button class="save-btn" onclick="saveEntry()" data-i18n="saveEntry">Save Entry</button>
+      <button class="btn btn-primary save-btn" onclick="saveEntry()" data-i18n="saveEntry">Save Entry</button>
+    </div>
+    <!-- History lives in the journal column so phones can reach it
+         without scrolling under the coaching sheet. -->
+    <div class="past-bar" id="pastBar">
+      <div class="past-bar-title" data-i18n="pastEntries">Past Entries</div>
+      <div class="past-entries" id="pastEntries"></div>
     </div>
   </div>
 
-  <!-- ── SIDE PANEL ── -->
+  <!-- ── SIDE PANEL (a bottom sheet on phones — see .feedback-panel ≤768px) ── -->
   <div class="feedback-panel" id="feedbackPanel">
     <div class="feedback-panel-tabs">
       <button class="feedback-tab active" onclick="switchTab('feedback', this)" data-i18n="feedback">Feedback</button>
       <button class="feedback-tab" onclick="switchTab('prompts', this)" data-i18n="prompts">Prompts</button>
       <button class="feedback-tab" onclick="switchTab('guide', this)" data-i18n="guide">Guide</button>
+      <button type="button" class="feedback-sheet-toggle" id="feedbackSheetToggle" onclick="toggleFeedbackSheet()" aria-expanded="false" aria-label="Collapse coaching panel" data-i18n-title="collapseCoachPanel" title="Collapse coaching panel">▾</button>
     </div>
     <div class="feedback-panel-inner" id="feedbackInner">
       <div class="waiting-card" id="waitingCard">
         <div class="waiting-icon">🖊️</div>
         <div class="waiting-text" id="waitingText" data-i18n-html="waitingText">Write in your practice language, then tap <strong>Feedback</strong>.<br><br>Parlance splits it into sentences, infers CEFR level, and shows coaching here.</div>
         <div class="waiting-provider-hint" id="waitingProviderHint"></div>
-        <button type="button" class="waiting-analyze-btn" id="waitingAnalyzeBtn" onclick="analyzeActiveOrFirstReady()" data-i18n="getFeedback">Feedback</button>
+        <button type="button" class="btn btn-primary waiting-analyze-btn" id="waitingAnalyzeBtn" onclick="analyzeActiveOrFirstReady()" data-i18n="analyzeEntry">Analyze this entry</button>
       </div>
     </div>
     <div class="feedback-panel-inner" id="promptsInner" style="display:none">
@@ -112,30 +129,37 @@
 
 </div>
 
-<!-- Past entries bar -->
-<div class="past-bar" id="pastBar" style="display:none">
-  <div class="past-bar-title" data-i18n="pastEntries">Past Entries</div>
-  <div class="past-entries" id="pastEntries"></div>
-</div>
+<!-- Backdrop for the mobile feedback bottom sheet (≤768px only, see styles.css) -->
+<div class="feedback-sheet-backdrop" id="feedbackSheetBackdrop" onclick="closeFeedbackSheet()"></div>
 
-<!-- Entry viewer overlay -->
-<div id="entryOverlay" style="display:none">
-  <div class="entry-viewer">
-    <div class="entry-viewer-header">
-      <div>
-        <div class="entry-viewer-title" id="entryViewerTitle"></div>
-        <div class="entry-viewer-meta" id="entryViewerMeta"></div>
-      </div>
-      <div class="entry-viewer-actions">
-        <button class="entry-viewer-delete" id="entryDeleteBtn" data-i18n="delete">Delete</button>
-        <button class="entry-viewer-close" onclick="closeEntryViewer()">&times;</button>
+<!-- Entry viewer overlay (page-turn between saved entries) -->
+<div id="entryOverlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="entryViewerTitle">
+  <div class="entry-book">
+    <button type="button" class="entry-page-nav entry-page-prev" id="entryPagePrev" onclick="turnEntryPage(-1)" data-i18n-title="previousEntry" title="Previous entry" aria-label="Previous entry">‹</button>
+    <div class="entry-book-stage" id="entryBookStage">
+      <div class="entry-book-stack" aria-hidden="true"></div>
+      <div class="entry-viewer" id="entryViewer">
+        <div class="entry-viewer-header">
+          <div>
+            <div class="entry-viewer-title" id="entryViewerTitle"></div>
+            <div class="entry-viewer-meta" id="entryViewerMeta"></div>
+          </div>
+          <div class="entry-viewer-actions">
+            <button class="entry-viewer-delete" id="entryDeleteBtn" data-i18n="delete">Delete</button>
+            <button class="entry-viewer-close" onclick="closeEntryViewer()">&times;</button>
+          </div>
+        </div>
+        <div class="entry-viewer-body" id="entryViewerBody"></div>
+        <div class="entry-page-footer">
+          <span class="entry-page-of" id="entryPageOf"></span>
+        </div>
       </div>
     </div>
-    <div class="entry-viewer-body" id="entryViewerBody"></div>
+    <button type="button" class="entry-page-nav entry-page-next" id="entryPageNext" onclick="turnEntryPage(1)" data-i18n-title="nextEntry" title="Next entry" aria-label="Next entry">›</button>
   </div>
 </div>
 
-<div class="error-toast" id="errorToast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <!-- Guide overlay -->
 <div id="guideOverlay" style="display:none;position:fixed;inset:0;z-index:200;background:#0e0e0f;">
@@ -150,11 +174,45 @@
       <button class="modal-close" onclick="closePlusPaywall()">&times;</button>
     </div>
     <div class="modal-body">
-      <p data-i18n="plusPaywallDesc">Medical and legal interpreting guides are part of Parlance Plus — unlimited AI coaching plus domain-specific vocabulary, register, and practice scenarios.</p>
+      <p data-i18n="plusPaywallDesc">Everything you need for domain interpreting, without the free-tier limits.</p>
+      <ul class="plus-paywall-benefits">
+        <li><span class="plus-benefit-check" aria-hidden="true">✓</span><span data-i18n="plusBenefitUnlimited">Unlimited cloud AI coaching — no monthly cap</span></li>
+        <li><span class="plus-benefit-check" aria-hidden="true">✓</span><span data-i18n="plusBenefitMedical">Medical interpreting guide — clinical vocabulary, register, and ethics</span></li>
+        <li><span class="plus-benefit-check" aria-hidden="true">✓</span><span data-i18n="plusBenefitLegal">Legal interpreting guide — court roles, rights language, and protocol</span></li>
+      </ul>
       <p class="plus-paywall-price" id="plusPaywallPrice" data-i18n="plusPaywallPrice">$9.99/month</p>
-      <button type="button" class="plus-paywall-subscribe" id="plusPaywallSubscribeBtn" onclick="triggerPlusPurchase()" data-i18n="plusPaywallSubscribe">Subscribe to Parlance Plus</button>
-      <button type="button" class="plus-paywall-restore" onclick="triggerPlusRestore()" data-i18n="plusPaywallRestore">Restore purchase</button>
-      <button type="button" class="plus-paywall-cancel" onclick="closePlusPaywall()" data-i18n="plusPaywallCancel">Not now</button>
+      <p class="plus-paywall-terms" id="plusPaywallTerms" data-i18n="plusPaywallTerms">Parlance Plus is a monthly auto-renewing subscription. Payment is charged to your Apple Account at confirmation of purchase. It renews automatically unless you turn off auto-renew at least 24 hours before the end of the current period, and your account is charged for renewal within 24 hours before the period ends. You can manage or cancel your subscription in your Apple Account settings.</p>
+      <p class="plus-paywall-unavailable" id="plusPaywallUnavailable" style="display:none" data-i18n="plusPaywallUnavailable">The subscription isn't available from the App Store right now. Please try again later.</p>
+      <button type="button" class="btn btn-primary plus-paywall-subscribe" id="plusPaywallSubscribeBtn" onclick="triggerPlusPurchase()" data-i18n="plusPaywallSubscribe">Subscribe to Parlance Plus</button>
+      <button type="button" class="btn btn-tertiary plus-paywall-restore" onclick="triggerPlusRestore()" data-i18n="plusPaywallRestore">Restore purchase</button>
+      <button type="button" class="btn btn-tertiary plus-paywall-cancel" onclick="closePlusPaywall()" data-i18n="plusPaywallCancel">Not now</button>
+      <p class="plus-paywall-legal-links">
+        <button type="button" class="plus-paywall-legal-link" onclick="showPrivacyPolicy()" data-i18n="privacyPolicyLink">Privacy Policy</button>
+        <span aria-hidden="true">·</span>
+        <button type="button" class="plus-paywall-legal-link" onclick="openTermsOfUse()" data-i18n="termsOfUseLink">Terms of Use</button>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ── DELETE ACCOUNT CONFIRMATION ── -->
+<div id="deleteAccountOverlay" style="display:none" class="modal-overlay" onclick="if(event.target===this)closeDeleteAccountConfirm()">
+  <div class="modal-card delete-account-card">
+    <div class="modal-header">
+      <h2 data-i18n="deleteAccountTitle">Delete your Parlance account</h2>
+      <button class="modal-close" onclick="closeDeleteAccountConfirm()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p data-i18n="deleteAccountLead">This permanently deletes your account. It cannot be undone.</p>
+      <ul class="delete-account-list">
+        <li data-i18n="deleteAccountItemAuth">Your Parlance sign-in (Apple or Google) is removed.</li>
+        <li data-i18n="deleteAccountItemUsage">Your cloud AI usage counter is erased.</li>
+        <li data-i18n="deleteAccountItemPacks">Any remaining call pack balance is erased and is not refundable.</li>
+        <li data-i18n="deleteAccountItemPlus">Your Parlance Plus record is erased. Cancel the subscription separately in your Apple Account settings so it stops billing.</li>
+        <li data-i18n="deleteAccountItemJournal">Your journal entries stay on this device. Delete them from Past Entries if you want them gone.</li>
+      </ul>
+      <button type="button" class="btn btn-danger delete-account-confirm" id="deleteAccountConfirmBtn" onclick="deleteParlanceAccount()" data-i18n="deleteAccountConfirm">Delete my account</button>
+      <button type="button" class="btn btn-tertiary delete-account-cancel" onclick="closeDeleteAccountConfirm()" data-i18n="deleteAccountCancel">Keep my account</button>
     </div>
   </div>
 </div>
@@ -181,11 +239,16 @@
           <button type="button" class="auth-btn auth-btn-outline" onclick="signOutFirebase()" data-i18n="signOut">Sign out</button>
           <p class="settings-hint" id="authCloudNote" style="display:none" data-i18n="authCloudNote">Cloud providers use your Parlance account — no API key needed.</p>
           <button type="button" class="auth-btn auth-btn-outline" id="buyCallPackBtn" style="display:none" onclick="triggerCallPackPurchase()" data-i18n="buyCallPack">Buy Call Pack (100 calls)</button>
+          <button type="button" class="auth-btn auth-btn-danger" id="deleteAccountBtn" onclick="showDeleteAccountConfirm()" data-i18n="deleteAccount">Delete account</button>
         </div>
       </div>
       <div class="settings-section">
         <div class="settings-label" data-i18n="selectProvider">Select a provider</div>
         <div class="ai-provider-grid" id="providerGrid"></div>
+        <details class="provider-grid-more" id="providerGridMore">
+          <summary data-i18n="moreProviders">More providers</summary>
+          <div class="ai-provider-grid" id="providerGridMoreInner"></div>
+        </details>
       </div>
       <div class="settings-section" id="apiKeySection" style="display:none">
         <label class="settings-label" for="apiKeyInput" data-i18n="apiKey">API Key</label>
@@ -202,7 +265,7 @@
     </div>
     <div class="modal-footer">
       <button class="settings-privacy-link" onclick="closeAISettings();showPrivacyPolicy()" data-i18n="privacy">Privacy Policy</button>
-      <button class="settings-save-btn" onclick="saveAISettingsFromModal()" data-i18n="saveAndClose">Save &amp; Close</button>
+      <button class="btn btn-primary settings-save-btn" onclick="saveAISettingsFromModal()" data-i18n="saveAndClose">Save &amp; Close</button>
     </div>
   </div>
 </div>
@@ -233,6 +296,6 @@
 <script src="coach-rules-fr.js?v=14"></script>
 <script src="coach-rules-engine.js?v=14"></script>
 <script src="feedback-sanitize.js?v=14"></script>
-<script src="journal.js?v=15"></script>
+<script src="journal.js?v=19"></script>
 </body>
 </html>
