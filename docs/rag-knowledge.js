@@ -768,9 +768,11 @@ function getRAGContextWithMeta(language, level, sentence, options = {}) {
     parts.push('EXAM CONTEXT: ' + examLine);
   }
 
-  const domain = buildDomainContext(langKey, lowerSentence, condensed);
-  parts.push(...domain.parts);
-  topics.push(...domain.topics);
+  if (options.includePlusDomains !== false) {
+    const domain = buildDomainContext(langKey, lowerSentence, condensed);
+    parts.push(...domain.parts);
+    topics.push(...domain.topics);
+  }
 
   let context = parts.join('\n').trim();
   const maxLen = condensed ? 900 : 2400;

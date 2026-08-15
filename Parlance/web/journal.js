@@ -915,10 +915,9 @@ function postToNative(message) {
 }
 
 /**
- * Platforms ship different subsets of the bridge — Android has no Play Billing
- * integration yet and no native settings sheet. Gate on the capability rather
- * than on the platform so adding one to Android is a config change, not a
- * hunt through every call site.
+ * Platforms ship different subsets of the bridge — Android has no native
+ * settings sheet. Gate on the capability rather than on the platform so
+ * adding one is a config change, not a hunt through every call site.
  *
  * Hosts that predate capability reporting (older iOS builds) advertise nothing,
  * and those were all iOS, so treat a missing list as "supports everything".
@@ -930,7 +929,7 @@ function nativeSupports(capability) {
   return !!caps[capability];
 }
 
-/** In-app purchase (StoreKit today). Gates call packs, Plus, and Plus content. */
+/** In-app purchase (StoreKit on iPhone, Play Billing on Android). */
 function nativeSupportsPurchases() {
   return nativeSupports('inAppPurchase');
 }
@@ -1103,9 +1102,16 @@ function unloadNativeParlanceSLM() {
   } catch (_) {}
 }
 
+function plusDomainUnlocked() {
+  return !isNativeParlanceApp() || isPlusActive();
+}
+
 function buildRAGMeta(language, level, sentence, condensed = false) {
   if (typeof getRAGContextWithMeta === 'function') {
-    return getRAGContextWithMeta(language, level, sentence, { condensed });
+    return getRAGContextWithMeta(language, level, sentence, {
+      condensed,
+      includePlusDomains: plusDomainUnlocked(),
+    });
   }
   const context = typeof getRAGContext === 'function'
     ? getRAGContext(language, level, sentence, { condensed }) : '';
@@ -1544,6 +1550,7 @@ function refreshDynamicI18nUI() {
   const loadAll = document.getElementById('loadAllToEditorBtn');
   if (loadAll) loadAll.textContent = i18n.t('loadAllToEditor');
   refreshOpenGuideLanguage();
+  applyPlusStoreCopy();
   refreshPlusPaywallPrice();
   refreshPlusStatusPanel();
   updateLangSummary();
@@ -1777,14 +1784,32 @@ function isPlusActive() {
 
 const APPLE_STANDARD_EULA_URL =
   'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
+const PLAY_TERMS_URL = 'https://play.google.com/about/play-terms/';
+
+function isPlayStoreApp() {
+  return (window.__PARLANCE_CONFIG__ || {}).platform === 'android';
+}
 
 /** Opens a legal page outside the app. The webview has no navigation delegate,
  *  so a plain link would replace the journal instead of leaving the app. */
 function openTermsOfUse() {
-  if (postToNative({ action: 'openURL', url: APPLE_STANDARD_EULA_URL })) {
+  const url = isPlayStoreApp() ? PLAY_TERMS_URL : APPLE_STANDARD_EULA_URL;
+  if (postToNative({ action: 'openURL', url })) {
     return;
   }
-  window.open(APPLE_STANDARD_EULA_URL, '_blank', 'noopener');
+  window.open(url, '_blank', 'noopener');
+}
+
+function applyPlusStoreCopy() {
+  const play = isPlayStoreApp();
+  const terms = document.getElementById('plusPaywallTerms');
+  if (terms && typeof i18n !== 'undefined') {
+    terms.textContent = i18n.t(play ? 'plusPaywallTermsPlay' : 'plusPaywallTerms');
+  }
+  const unavailable = document.getElementById('plusPaywallUnavailable');
+  if (unavailable && typeof i18n !== 'undefined') {
+    unavailable.textContent = i18n.t(play ? 'plusPaywallUnavailablePlay' : 'plusPaywallUnavailable');
+  }
 }
 
 function showPlusPaywall(kind) {
@@ -1793,6 +1818,7 @@ function showPlusPaywall(kind) {
   if (!overlay) return;
   const subscribeBtn = document.getElementById('plusPaywallSubscribeBtn');
   if (subscribeBtn) subscribeBtn.style.display = nativeSupportsPurchases() ? '' : 'none';
+  applyPlusStoreCopy();
   overlay.style.display = 'flex';
   refreshPlusPaywallPrice();
 }
@@ -2902,11 +2928,12 @@ function loadGuide() {
   if (frame && frame.src) frame.src = '';
 }
 
+function guideRequiresPlus(kind) {
+  return (kind === 'medical' || kind === 'legal') && isNativeParlanceApp();
+}
+
 function openGuideOverlay(kind = 'grammar') {
-  // Gating medical/legal where Plus cannot be bought would lock them out with
-  // no path through, so this follows the purchase capability rather than the
-  // bridge: web and Android (no Play Billing yet) keep open access.
-  if ((kind === 'medical' || kind === 'legal') && nativeSupportsPurchases() && !isPlusActive()) {
+  if (guideRequiresPlus(kind) && !isPlusActive()) {
     showPlusPaywall(kind);
     return;
   }

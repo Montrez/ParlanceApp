@@ -23,9 +23,9 @@ import java.util.Map;
  *
  * <p>Message shapes and the {@code window.__parlance*} callbacks are identical
  * on both platforms, so {@code journal.js} never branches on platform. Where the
- * two genuinely differ — Android has no Play Billing integration and no native
- * settings sheet — it is reported through the capability flags in
- * {@link #getConfig()} rather than through platform sniffing.
+ * two genuinely differ — Android has no native settings sheet — it is
+ * reported through the capability flags in {@link #getConfig()} rather
+ * than through platform sniffing. Plus and call packs use Play Billing.
  *
  * <p>iOS injects its globals with a document-start {@code WKUserScript}. Android
  * has no equivalent, so {@link #getConfig()} and {@link #getAuth()} expose the
@@ -40,6 +40,7 @@ public class ParlanceBridge {
     private final WebView webView;
     private final ParlanceAuth auth;
     private final ParlanceSLMEngine slm;
+    private final ParlanceBilling billing;
 
     public ParlanceBridge(Activity activity, WebView webView) {
         this.activity = activity;
@@ -47,6 +48,8 @@ public class ParlanceBridge {
         this.auth = new ParlanceAuth(activity);
         this.slm = new ParlanceSLMEngine(activity);
         this.slm.setAvailabilityListener(this::publishCoachConfig);
+        this.billing = new ParlanceBilling(activity);
+        this.billing.setListener(this::publishBillingConfig);
     }
 
     // MARK: - Synchronous state for hydration
@@ -57,11 +60,7 @@ public class ParlanceBridge {
         JSONObject config = new JSONObject();
         try {
             capabilities.put("nativeAuth", true);
-            // Plus and call packs are StoreKit today. Until Play Billing is
-            // wired up, advertising these would show buttons that cannot
-            // complete, and would lock the medical/legal guides with no way to
-            // unlock them.
-            capabilities.put("inAppPurchase", false);
+            capabilities.put("inAppPurchase", true);
             // Android uses the web AI settings modal; there is no native sheet.
             capabilities.put("nativeSettings", false);
 
@@ -78,8 +77,11 @@ public class ParlanceBridge {
             config.put("parlanceCoachAvailable", coachLangs.length() > 0);
             config.put("parlanceCoachInstalling", slm.isInstalling());
             config.put("parlanceCoachLanguages", coachLangs);
-            config.put("isPlusActive", false);
-            config.put("plusPurchaseAvailable", false);
+            config.put("isPlusActive", billing.isPlusActive());
+            config.put("plusPurchaseAvailable", billing.isPlusPurchasable());
+            if (billing.plusMonthlyDisplayPrice() != null) {
+                config.put("plusMonthlyPriceDisplay", billing.plusMonthlyDisplayPrice());
+            }
         } catch (JSONException e) {
             Log.e(TAG, "Failed to build config", e);
         }
@@ -146,13 +148,20 @@ public class ParlanceBridge {
                 new Thread(slm::unload, "parlance-slm-unload").start();
                 break;
             case "purchaseCallPack":
-                failPurchase("window.__parlancePurchaseResult", requestId);
+                billing.purchaseCallPack((transactionId, error) ->
+                        finishPurchase("window.__parlancePurchaseResult", requestId, transactionId, error));
                 break;
             case "purchasePlus":
-                failPurchase("window.__parlancePlusPurchaseResult", requestId);
+                billing.purchasePlus((transactionId, error) ->
+                        finishPurchase("window.__parlancePlusPurchaseResult", requestId, transactionId, error));
                 break;
             case "restorePlus":
-                failPurchase("window.__parlancePlusRestoreResult", requestId);
+                billing.restorePlus((transactionId, error) -> {
+                    boolean restored = billing.isPlusActive();
+                    evaluateJs("window.__parlancePlusRestoreResult && window.__parlancePlusRestoreResult("
+                            + quote(requestId) + ", {restored:" + restored + "}, "
+                            + (error == null ? "null" : quote(error)) + ")");
+                });
                 break;
             default:
                 Log.w(TAG, "Unhandled bridge action: " + action);
@@ -225,9 +234,14 @@ public class ParlanceBridge {
                                 + quote(requestId) + ", null, " + quote(describe(error)) + ")"));
     }
 
-    private void failPurchase(String callback, String requestId) {
-        evaluateJs(callback + " && " + callback + "(" + quote(requestId) + ", null, "
-                + quote("Purchases are not available in the Android app yet.") + ")");
+    private void finishPurchase(String callback, String requestId, String transactionId, String error) {
+        if (error != null) {
+            evaluateJs(callback + " && " + callback + "(" + quote(requestId) + ", null, "
+                    + quote(error) + ")");
+            return;
+        }
+        String payload = "{success:true,transactionId:" + quote(transactionId == null ? "" : transactionId) + "}";
+        evaluateJs(callback + " && " + callback + "(" + quote(requestId) + ", " + payload + ", null)");
     }
 
     // MARK: - Callbacks into JavaScript
@@ -241,6 +255,18 @@ public class ParlanceBridge {
         String errorArg = error == null ? "null" : quote(error);
         evaluateJs("window.__parlanceAuthResult && window.__parlanceAuthResult("
                 + quote(requestId) + ", " + errorArg + ")");
+    }
+
+    void publishBillingConfig() {
+        String price = billing.plusMonthlyDisplayPrice();
+        StringBuilder js = new StringBuilder("window.__parlanceUpdateConfig && window.__parlanceUpdateConfig({");
+        js.append("isPlusActive:").append(billing.isPlusActive()).append(',');
+        js.append("plusPurchaseAvailable:").append(billing.isPlusPurchasable());
+        if (price != null) {
+            js.append(",plusMonthlyPriceDisplay:").append(quote(price));
+        }
+        js.append("})");
+        evaluateJs(js.toString());
     }
 
     void publishCoachConfig() {

@@ -30,7 +30,7 @@ struct PrivacyPolicyView: View {
         ),
         (
             "5. In-App Purchases and Parlance Plus",
-            "Call pack purchases are processed by Apple. Upon a successful purchase, Apple provides a signed transaction token that we verify server-side. We store a record of the transaction ID and the number of remaining calls in Firestore under your UID. We do not receive or store your payment information.\n\nParlance Plus is an auto-renewing monthly subscription, also processed by Apple. When you subscribe, we verify Apple's signed transaction server-side and store your subscription tier, the original transaction ID, the product ID, the renewal date, and the store environment in Firestore under your UID. We use this only to unlock unlimited cloud AI coaching and the medical and legal interpreting guides. Billing, renewal, and cancellation are handled entirely by Apple in your Apple Account settings, and we never receive your payment information."
+            "Call pack purchases and Parlance Plus subscriptions are processed by Apple on iPhone and by Google Play on Android. After a successful purchase, the store provides a signed transaction that we can verify. We store a record of the transaction and, for call packs, the number of remaining calls in Firestore under your UID. We do not receive or store your payment information.\n\nParlance Plus is an auto-renewing monthly subscription. We use it only to unlock unlimited cloud AI coaching and the medical and legal interpreting guides. Billing, renewal, and cancellation are handled by Apple in your Apple Account settings, or by Google Play in your Google account subscriptions. We never receive your payment information."
         ),
         (
             "6. Journal Entries",
@@ -42,7 +42,7 @@ struct PrivacyPolicyView: View {
         ),
         (
             "8. Data Retention and Deletion",
-            "Your usage and pack records in Firestore are retained as long as your account is active.\n\nYou can delete your account and all of its data from inside the app at any time: open AI settings while signed in, tap Delete account, and confirm. This immediately and permanently removes your Firebase Authentication account, your user profile, your monthly usage counter, your call pack balances, and your Parlance Plus record. It cannot be undone, and remaining call pack balances are not refundable. Journal entries are stored only on your device and are unaffected, so delete them from Past Entries if you also want them gone. If you subscribed to Parlance Plus, cancel the subscription separately in your Apple Account settings so that Apple stops billing it.\n\nIf you cannot access the app, you can also contact us at the address below and we will remove your records within 30 days."
+            "Your usage and pack records in Firestore are retained as long as your account is active.\n\nYou can delete your account and all of its data from inside the app at any time: open AI settings while signed in, tap Delete account, and confirm. This immediately and permanently removes your Firebase Authentication account, your user profile, your monthly usage counter, your call pack balances, and your Parlance Plus record. It cannot be undone, and remaining call pack balances are not refundable. Journal entries are stored only on your device and are unaffected, so delete them from Past Entries if you also want them gone. If you subscribed to Parlance Plus, cancel the subscription separately in your Apple Account settings or Google Play subscriptions so billing stops.\n\nIf you cannot access the app, you can also contact us at the address below and we will remove your records within 30 days."
         ),
         (
             "9. Children",
@@ -54,7 +54,7 @@ struct PrivacyPolicyView: View {
         ),
         (
             "11. Contact",
-            "Questions? Reach us at github.com/Montrez/ParlanceApp/issues or open an issue on GitHub."
+            "Questions or deletion requests: email parlance.lang@gmail.com. You can also open an issue at github.com/Montrez/ParlanceApp/issues."
         ),
     ]
 
@@ -82,7 +82,7 @@ struct PrivacyPolicyView: View {
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("Last updated: August 14, 2026")
+                        Text("Last updated: August 15, 2026")
                             .font(.footnote)
                             .foregroundColor(Color("Muted"))
 

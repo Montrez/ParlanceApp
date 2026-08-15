@@ -28,6 +28,7 @@ public class MainActivity extends BridgeActivity {
                 if (parlanceBridge != null) {
                     parlanceBridge.refreshAuthState();
                     parlanceBridge.publishCoachConfig();
+                    parlanceBridge.publishBillingConfig();
                 }
             }
         });
