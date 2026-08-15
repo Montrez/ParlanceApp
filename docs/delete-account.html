@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Delete Your Account — Parlance: Interpreter Journal</title>
+  <!--
+    Public account deletion request page.
+
+    Google Play requires apps that let people create an account to offer deletion
+    from outside the app as well as inside it. This URL is what gets submitted in
+    the Play Console Data safety form.
+
+    Keep the "what is removed" list in step with:
+    - Parlance/web/locales/*.json (deleteAccountItem* keys)
+    - Parlance/web/privacy.html section 8
+    - Parlance/PrivacyPolicyView.swift
+  -->
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      max-width: 680px;
+      margin: 48px auto;
+      padding: 0 24px 80px;
+      color: #1a1a1a;
+      line-height: 1.7;
+    }
+    h1 { font-size: 1.8rem; margin-bottom: 4px; }
+    h2 { font-size: 1.1rem; margin-top: 2rem; }
+    p, li { font-size: 0.97rem; color: #333; }
+    a { color: #2563eb; }
+    .updated { color: #666; font-size: 0.88rem; margin-bottom: 2rem; }
+    ol li, ul li { margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+
+<h1>Delete Your Parlance Account</h1>
+<p class="updated">Last updated: August 15, 2026</p>
+
+<p>This page explains how to delete your account and associated data from Parlance: Interpreter Journal (app ID <code>com.parlance.interpreterguide</code>).</p>
+
+<h2>1. Delete from inside the app</h2>
+<p>This is the fastest route and takes effect immediately.</p>
+<ol>
+  <li>Open Parlance and go to <strong>AI settings</strong>.</li>
+  <li>Under your signed-in account, choose <strong>Delete account</strong>.</li>
+  <li>Read what will be removed, then confirm with <strong>Delete my account</strong>.</li>
+</ol>
+<p>You will be asked to sign in again first. This confirms it is really you, and it is required before an account can be deleted.</p>
+
+<h2>2. Request deletion without the app</h2>
+<p>If you have already uninstalled Parlance or cannot sign in, you can ask us to delete the account for you. Open a request at <a href="https://github.com/Montrez/ParlanceApp/issues">github.com/Montrez/ParlanceApp/issues</a> and say that you want your Parlance account deleted. Please do not post your email address or any other personal details in a public issue. We will reply with a private way to confirm which account is yours.</p>
+<p>We action these requests within 30 days.</p>
+
+<h2>3. What is deleted</h2>
+<ul>
+  <li>Your Parlance sign-in, whether you used Apple or Google.</li>
+  <li>Your cloud AI usage counter.</li>
+  <li>Any remaining call pack balance. Unused balance is erased and is not refundable.</li>
+  <li>Your Parlance Plus record.</li>
+</ul>
+<p>Deletion is permanent and cannot be undone. We do not keep a backup copy of a deleted account.</p>
+
+<h2>4. What is not deleted</h2>
+<ul>
+  <li><strong>Your journal entries.</strong> These are stored on your device, not on our servers, so deleting your account does not touch them. Remove them yourself from Past Entries, or delete the app.</li>
+  <li><strong>Your subscription billing.</strong> Deleting your account erases our record of Parlance Plus, but it does not cancel the subscription. Cancel it separately in your Apple Account settings so it stops billing you.</li>
+</ul>
+
+<h2>5. Retention</h2>
+<p>Account data is removed as soon as the deletion runs. Sentences submitted for cloud AI analysis are not stored after the response is returned, so there is nothing further to delete. Ordinary infrastructure logs, which do not contain your journal text, roll off on our hosting provider's normal schedule.</p>
+
+<h2>6. Questions</h2>
+<p>See our <a href="privacy.html">Privacy Policy</a>, or open an issue at <a href="https://github.com/Montrez/ParlanceApp/issues">github.com/Montrez/ParlanceApp/issues</a>.</p>
+
+</body>
+</html>
