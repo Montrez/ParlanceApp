@@ -16,8 +16,8 @@ Checks:
          debt, tracked on #12) — adding to this list requires a comment
          explaining why.
   2. Every file that exists under both Parlance/web/ and docs/ is
-     byte-identical (docs/ is the Capacitor + GitHub Pages mirror; drift
-     between the two silently ships stale content to Android/web).
+     byte-identical (docs/ is the GitHub Pages twin from sync_web.py; drift
+     means Pages is stale. Android copies Parlance/web/ via Capacitor).
 
 Usage:
   python3 scripts/check_guide_i18n.py

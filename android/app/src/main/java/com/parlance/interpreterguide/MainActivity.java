@@ -27,6 +27,7 @@ public class MainActivity extends BridgeActivity {
             public void onPageLoaded(WebView view) {
                 if (parlanceBridge != null) {
                     parlanceBridge.refreshAuthState();
+                    parlanceBridge.publishCoachConfig();
                 }
             }
         });

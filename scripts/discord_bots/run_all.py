@@ -7,7 +7,8 @@ Required env vars:
   DISCORD_SENTINEL_TOKEN   Jordan  — bugs and feedback triage
 
 Optional:
-  DISCORD_HERALD_TOKEN     Claire — owns #announcements (/announce, /release, /testflight)
+  DISCORD_HERALD_TOKEN     Claire owns #announcements (/announce, /release, /testflight).
+                           /release also posts the longer notes to #whats-new.
 
   pip install -r requirements.txt
   export DISCORD_GUIDE_TOKEN=...

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Guard against the iOS and Android apps drifting apart.
 
-Both platforms run the same web layer out of Parlance/web/ (mirrored to docs/,
-which Capacitor bundles). The web layer talks to whichever host it is embedded
+Both platforms run the same web layer out of Parlance/web/ (Capacitor webDir
+and the iOS bundle). docs/ is a generated GitHub Pages twin. The web layer talks to whichever host it is embedded
 in through one message protocol: it posts {action: ...} objects and the host
 calls back into window.__parlance* functions. When only one host learns a new
 action, that feature silently disappears on the other platform instead of

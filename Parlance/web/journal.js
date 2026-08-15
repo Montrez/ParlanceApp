@@ -949,6 +949,12 @@ window.__parlanceUpdateConfig = function (patch) {
   }
   if ('plusMonthlyPriceDisplay' in patch) refreshPlusPaywallPrice();
   if ('plusPurchaseAvailable' in patch) refreshPlusPaywallPrice();
+  if ('parlanceCoachAvailable' in patch || 'parlanceCoachLanguages' in patch
+      || 'parlanceCoachInstalling' in patch || 'coachOnly' in patch) {
+    renderProviderGrid();
+    applyDefaultProvider();
+    updateWaitingCard();
+  }
 };
 
 /**
@@ -985,10 +991,35 @@ function effectiveRequiresKey(providerId) {
   return AI_PROVIDERS[providerId]?.requiresKey ?? false;
 }
 
+function isCoachOnlyNative() {
+  return isNativeParlanceApp() && !!(window.__PARLANCE_CONFIG__ || {}).coachOnly;
+}
+
 function parlanceCoachAvailableForLanguage(language) {
   const cfg = window.__PARLANCE_CONFIG__ || {};
   const langs = cfg.parlanceCoachLanguages || (cfg.parlanceCoachAvailable ? ['es', 'fr'] : []);
   return langs.includes(language);
+}
+
+function parlanceCoachCoversLanguage(language) {
+  return language === 'es' || language === 'fr';
+}
+
+function parlanceCoachErrorKey(language) {
+  if (!parlanceCoachCoversLanguage(language)) return 'errParlanceLang';
+  const cfg = window.__PARLANCE_CONFIG__ || {};
+  if (cfg.parlanceCoachInstalling) return 'errParlanceInstalling';
+  if (isCoachOnlyNative()) return 'errParlanceNotInstalled';
+  return 'errParlanceNotBundled';
+}
+
+function parlanceCoachWaitingKey(language) {
+  if (!parlanceCoachCoversLanguage(language)) return 'waitingParlanceLang';
+  const cfg = window.__PARLANCE_CONFIG__ || {};
+  if (parlanceCoachAvailableForLanguage(language)) return 'waitingParlanceOnDevice';
+  if (cfg.parlanceCoachInstalling) return 'waitingParlanceInstalling';
+  if (isCoachOnlyNative()) return 'waitingParlanceNotInstalled';
+  return 'waitingParlanceMissing';
 }
 
 /** The bundled coach can only stand in for a language whose weights shipped. */
@@ -1164,15 +1195,125 @@ function parseAIContent(raw) {
     .replace(/```\s*/g, '')
     .trim();
 
-  // Find the first JSON object in the response
   const start = cleaned.indexOf('{');
-  const end = cleaned.lastIndexOf('}');
-  if (start === -1 || end === -1) throw new Error('No JSON object found in response');
+  if (start === -1) throw new Error('No JSON object found in response');
 
-  const jsonStr = cleaned.slice(start, end + 1)
+  let jsonStr = repairUnescapedJsonQuotes(cleaned.slice(start));
+  jsonStr = closeTruncatedJson(jsonStr)
     .replace(/,\s*}/g, '}')
     .replace(/,\s*]/g, ']');
-  return JSON.parse(jsonStr);
+  try {
+    return JSON.parse(jsonStr);
+  } catch (err) {
+    const extracted = extractFeedbackFields(jsonStr);
+    if (extracted && (extracted.status || extracted.explanation || extracted.grammar_rule)) {
+      return extracted;
+    }
+    throw err;
+  }
+}
+
+/** Escape a " that sits inside a value, not the key/value delimiter. */
+function repairUnescapedJsonQuotes(json) {
+  let out = '';
+  let inString = false;
+  let escape = false;
+  for (let i = 0; i < json.length; i++) {
+    const ch = json[i];
+    if (!inString) {
+      out += ch;
+      if (ch === '"') inString = true;
+      continue;
+    }
+    if (escape) {
+      out += ch;
+      escape = false;
+      continue;
+    }
+    if (ch === '\\') {
+      out += ch;
+      escape = true;
+      continue;
+    }
+    if (ch === '"') {
+      let j = i + 1;
+      while (j < json.length && /\s/.test(json[j])) j++;
+      const next = json[j] || '';
+      if (next === ':' || next === ',' || next === '}' || next === ']' || next === '') {
+        out += ch;
+        inString = false;
+      } else {
+        out += '\\"';
+      }
+      continue;
+    }
+    out += ch;
+  }
+  return out;
+}
+
+function closeTruncatedJson(slice) {
+  let inString = false;
+  let escape = false;
+  let brace = 0;
+  let end = -1;
+  for (let i = 0; i < slice.length; i++) {
+    const ch = slice[i];
+    if (inString) {
+      if (escape) { escape = false; continue; }
+      if (ch === '\\') { escape = true; continue; }
+      if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') { inString = true; continue; }
+    if (ch === '{') brace++;
+    else if (ch === '}') {
+      brace--;
+      if (brace === 0) {
+        end = i;
+        break;
+      }
+    }
+  }
+  let out = end >= 0 ? slice.slice(0, end + 1) : slice;
+  if (end < 0) {
+    if (inString) out += '"';
+    out = out.replace(/,\s*$/, '');
+    while (brace > 0) {
+      out += '}';
+      brace--;
+    }
+  }
+  return out;
+}
+
+function extractFeedbackFields(json) {
+  const keys = [
+    'assessed_level', 'complexity_note', 'status', 'grammar_rule',
+    'explanation', 'correction', 'register', 'next_level_alt',
+    'target_level_alt', 'tip',
+  ];
+  const out = {};
+  for (const key of keys) {
+    const needle = `"${key}"`;
+    const keyAt = json.indexOf(needle);
+    if (keyAt < 0) continue;
+    const colon = json.indexOf(':', keyAt + needle.length);
+    if (colon < 0) continue;
+    let i = colon + 1;
+    while (i < json.length && /\s/.test(json[i])) i++;
+    if (json.startsWith('null', i) || json[i] !== '"') continue;
+    let escape = false;
+    let close = -1;
+    for (let j = i + 1; j < json.length; j++) {
+      if (escape) { escape = false; continue; }
+      if (json[j] === '\\') { escape = true; continue; }
+      if (json[j] === '"') { close = j; break; }
+    }
+    if (close < 0) continue;
+    out[key] = json.slice(i + 1, close).replace(/\\"/g, '"').replace(/\\n/g, '\n');
+  }
+  return out;
 }
 
 function normalizeResult(raw, sentence = '', language = 'es') {
@@ -1277,12 +1418,18 @@ async function analyzeWithAI(sentence, language, progressCallback) {
 
     if (providerId === 'parlance') {
       if (isNativeParlanceApp() && !parlanceCoachAvailableForLanguage(language)) {
-        throw new Error(i18n.t('errParlanceNotBundled'));
+        throw new Error(i18n.t(parlanceCoachErrorKey(language)));
       }
       if (isNativeParlanceApp()) {
         const nativeRaw = await callNativeParlanceSLM(sentence, language, ragContext);
-        // Native bridge returns pre-validated JSON from ParlanceSLMFeedbackValidator.
-        const nativeParsed = typeof nativeRaw === 'string' ? JSON.parse(nativeRaw) : nativeRaw;
+        // iOS pre-validates via ParlanceSLMFeedbackValidator. Android repairs
+        // almost-JSON from the 0.5B coach, then this path normalizes.
+        let nativeParsed;
+        try {
+          nativeParsed = typeof nativeRaw === 'string' ? JSON.parse(nativeRaw) : nativeRaw;
+        } catch (_) {
+          nativeParsed = parseAIContent(String(nativeRaw || ''));
+        }
         return attachRAGMeta(normalizeResult(nativeParsed, sentence, language), ragMeta.topics);
       }
       rawContent = await callParlanceSLM(sentence, language, ragContext);
@@ -1640,14 +1787,37 @@ function refreshPlusStatusPanel() {
   const list = document.getElementById('plusStatusList');
   const lead = document.getElementById('plusStatusLead');
   const actions = document.getElementById('plusStatusActions');
+  const details = document.getElementById('plusStatusDetails');
+  const toggle = document.getElementById('plusStatusToggle');
   const active = isPlusActive();
   if (list) list.classList.toggle('is-active', active);
   if (lead) lead.textContent = i18n.t(active ? 'plusStatusLeadActive' : 'plusStatusLeadLocked');
   const mark = i18n.t(active ? 'plusStatusIncluded' : 'plusStatusLocked');
   document.querySelectorAll('[data-plus-mark]').forEach((el) => { el.textContent = mark; });
+  if (active) {
+    if (details) details.hidden = false;
+    if (toggle) toggle.hidden = true;
+  } else {
+    if (details && !details.dataset.opened) details.hidden = true;
+    if (toggle) {
+      toggle.hidden = false;
+      const open = details && !details.hidden;
+      toggle.textContent = i18n.t(open ? 'plusStatusHideFeatures' : 'plusStatusSeeFeatures');
+    }
+  }
   if (actions) {
     actions.style.display = (!active && nativeSupportsPurchases()) ? 'flex' : 'none';
   }
+}
+
+function togglePlusStatusDetails() {
+  const details = document.getElementById('plusStatusDetails');
+  if (!details || isPlusActive()) return;
+  const open = details.hidden;
+  details.hidden = !open;
+  if (open) details.dataset.opened = '1';
+  else delete details.dataset.opened;
+  refreshPlusStatusPanel();
 }
 
 function closePlusPaywall() {
@@ -1736,7 +1906,13 @@ function triggerPlusRestore() {
 /** Zero-setup or fastest-to-set-up options lead the grid; the rest live
  *  behind a "More providers" disclosure so first-run isn't 9 equal-weight
  *  cards. See journal_ux_revamp plan, Phase 2. */
-const RECOMMENDED_PROVIDER_IDS = ['webllm', 'groq', 'deepseek'];
+function recommendedProviderIds() {
+  if (isCoachOnlyNative()) return ['parlance'];
+  if (isNativeParlanceApp() && (window.__PARLANCE_CONFIG__ || {}).parlanceCoachAvailable) {
+    return ['parlance', 'groq', 'deepseek'];
+  }
+  return ['webllm', 'groq', 'deepseek'];
+}
 
 function makeProviderCard(p) {
   const card = document.createElement('button');
@@ -1775,6 +1951,7 @@ function renderProviderGrid() {
   moreGrid.setAttribute('role', 'listbox');
 
   const available = Object.values(AI_PROVIDERS).filter((p) => {
+    if (isCoachOnlyNative()) return p.id === 'parlance';
     if (p.id === 'webllm') return canUseWebLLM;
     // Coach runs from on-device weights bundled into the native app. A native
     // host without them has no dev-server fallback, so offering the card would
@@ -1784,7 +1961,7 @@ function renderProviderGrid() {
     }
     return true;
   });
-  const recommended = RECOMMENDED_PROVIDER_IDS
+  const recommended = recommendedProviderIds()
     .map(id => available.find(p => p.id === id))
     .filter(Boolean);
   const rest = available.filter(p => !recommended.includes(p));
@@ -2023,7 +2200,7 @@ async function init() {
   await applyDefaultProvider();
 
   // On Android/Capacitor with no cloud provider configured, prompt AI settings
-  if (!canUseWebLLM && getSelectedProvider() === 'webllm') {
+  if (!isCoachOnlyNative() && !canUseWebLLM && getSelectedProvider() === 'webllm') {
     setTimeout(() => openAISettings(), 500);
   }
 }
@@ -2050,6 +2227,13 @@ function migrateLegacyProviderChoice() {
  * whatever they chose instead.
  */
 async function applyDefaultProvider() {
+  if (isCoachOnlyNative()) {
+    setSelectedProvider('parlance');
+    syncParlanceModelToJournalLanguage();
+    updateWaitingCard();
+    return;
+  }
+
   if (hasUserChosenProvider()) {
     updateWaitingCard();
     return;
@@ -2075,6 +2259,7 @@ async function applyDefaultProvider() {
  * leave a signed-in user on the coach for the rest of the session.
  */
 function reapplyDefaultProviderIfUnchosen() {
+  if (isCoachOnlyNative()) return;
   if (hasUserChosenProvider() || !isFirebaseSignedIn()) return;
   if (isCloudProvider(getSelectedProvider())) return;
   setSelectedProvider(DEFAULT_CLOUD_PROVIDER);
@@ -2092,13 +2277,8 @@ function updateWaitingCard() {
     `<button type="button" onclick="openAISettings()" style="${linkStyle}">${label}</button>`;
 
   if (id === 'parlance') {
-    const cfg = window.__PARLANCE_CONFIG__ || {};
-    const lang = state.currentLanguage;
-    if (cfg.parlanceCoachAvailable && isNativeParlanceApp()) {
-      const key = parlanceCoachAvailableForLanguage(lang)
-        ? 'waitingParlanceOnDevice'
-        : 'waitingParlanceMissing';
-      hint.innerHTML = i18n.t(key, { icon: p.icon });
+    if (isNativeParlanceApp()) {
+      hint.innerHTML = i18n.t(parlanceCoachWaitingKey(state.currentLanguage), { icon: p.icon });
     } else {
       hint.innerHTML = i18n.t('waitingParlanceServer', { icon: p.icon });
     }
@@ -2588,10 +2768,13 @@ function showErrorInPanel(msg) {
   const inner = document.getElementById('feedbackInner');
   const card  = document.createElement('div');
   card.className = 'error-panel-card';
+  const settingsBtn = isCoachOnlyNative()
+    ? ''
+    : `<button class="btn btn-primary error-panel-btn" onclick="openAISettings()">⚙ Open AI Settings</button>`;
   card.innerHTML = `
     <div class="error-panel-icon">⚠</div>
     <div class="error-panel-msg">${escapeHTML(msg)}</div>
-    <button class="btn btn-primary error-panel-btn" onclick="openAISettings()">⚙ Open AI Settings</button>
+    ${settingsBtn}
   `;
   inner.appendChild(card);
 }

@@ -1,0 +1,47 @@
+# One Mac, both stores. Run from the repo root:
+#   fastlane both
+# iOS archive needs the local MLX weights. Android needs the GGUF pack
+# and android/play-service-account.json. Do not run this on Xcode Cloud.
+#
+# Fastlane's cwd is fastlane/. Always chdir to the repo root first.
+
+ROOT = File.expand_path("..", __dir__)
+
+desc "Ship Play internal and App Store Connect from this Mac"
+lane :both do
+  Dir.chdir(ROOT) do
+    sh("python3 scripts/sync_web.py")
+  end
+  android
+  ios
+end
+
+desc "Copy Parlance/web into Android, build the signed AAB, upload Play internal"
+lane :android do
+  Dir.chdir(ROOT) do
+    sh("python3 scripts/sync_web.py")
+    sh("npx cap copy android")
+    sh("find android/app/src/main/assets/models -name '*.gguf' -delete")
+    Dir.chdir("android") do
+      sh("./gradlew bundleRelease")
+      sh("fastlane android internal")
+    end
+  end
+end
+
+desc "Archive locally and upload to App Store Connect / TestFlight"
+lane :ios do
+  Dir.chdir(ROOT) do
+    sh("rm -rf build/Parlance.xcarchive build/export")
+    sh(
+      "xcodebuild -project Parlance.xcodeproj -scheme Parlance " \
+      "-configuration Release -destination 'generic/platform=iOS' " \
+      "-archivePath build/Parlance.xcarchive archive"
+    )
+    sh(
+      "xcodebuild -exportArchive -archivePath build/Parlance.xcarchive " \
+      "-exportOptionsPlist build/ExportOptions.plist " \
+      "-exportPath build/export -allowProvisioningUpdates"
+    )
+  end
+end

@@ -1,6 +1,8 @@
 package com.parlance.interpreterguide;
 
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import android.content.res.AssetManager;
 import android.util.Log;
 
 import org.json.JSONException;
@@ -18,6 +20,7 @@ import java.util.List;
 import com.google.android.play.core.assetpacks.AssetPackLocation;
 import com.google.android.play.core.assetpacks.AssetPackManager;
 import com.google.android.play.core.assetpacks.AssetPackManagerFactory;
+import com.google.android.play.core.assetpacks.model.AssetPackStatus;
 
 import net.ladenthin.llama.LlamaModel;
 import net.ladenthin.llama.parameters.InferenceParameters;
@@ -34,12 +37,36 @@ public class ParlanceSLMEngine {
     private static final List<String> SUPPORTED = Arrays.asList("es", "fr");
     private static final int MAX_TOKENS = 768;
 
+    public interface AvailabilityListener {
+        void onAvailabilityChanged();
+    }
+
     private final Context context;
+    private final Context assetsContext;
     private LlamaModel model;
     private String loadedLanguage;
+    private AvailabilityListener availabilityListener;
+    private volatile boolean installing;
 
     public ParlanceSLMEngine(Context context) {
         this.context = context.getApplicationContext();
+        // Activity AssetManager sees install-time Play packs. Application
+        // context often does not, which is why Play builds showed Groq and
+        // "re-archive" while Studio debug (base-module assets) worked.
+        this.assetsContext = context;
+        requestPack();
+        new Thread(this::warmup, "parlance-slm-warmup").start();
+    }
+
+    public boolean isInstalling() {
+        return installing;
+    }
+
+    public void setAvailabilityListener(AvailabilityListener listener) {
+        this.availabilityListener = listener;
+        if (listener != null) {
+            listener.onAvailabilityChanged();
+        }
     }
 
     public boolean isAvailable() {
@@ -78,9 +105,8 @@ public class ParlanceSLMEngine {
         File weights = resolveModelFile(language);
         if (weights == null) {
             throw new IllegalStateException(
-                    "Parlance Coach model is not installed in this build. "
-                            + "Run python3 training/export_parlance_gguf.py --lang "
-                            + language + " and rebuild.");
+                    "Parlance Coach is still installing on this phone. "
+                            + "Keep the app open, or update from Play internal testing.");
         }
         ensureLoaded(language, weights);
 
@@ -92,7 +118,12 @@ public class ParlanceSLMEngine {
                 .withTemperature(0f)
                 .withNPredict(MAX_TOKENS);
         String raw = model.complete(infer);
-        return parseFeedback(raw);
+        try {
+            return parseFeedback(raw);
+        } catch (Exception e) {
+            Log.w(TAG, "Coach JSON unusable, using fallback", e);
+            return fallbackFeedback();
+        }
     }
 
     private void ensureLoaded(String language, File weights) {
@@ -109,7 +140,7 @@ public class ParlanceSLMEngine {
         return resolveModelFile(language, true);
     }
 
-    private File resolveModelFile(String language, boolean copyAsset) {
+    private synchronized File resolveModelFile(String language, boolean copyAsset) {
         String name = "parlance-" + language + ".gguf";
         File onDisk = new File(new File(context.getFilesDir(), "models"), name);
         if (isUsableModel(onDisk)) {
@@ -119,18 +150,18 @@ public class ParlanceSLMEngine {
         if (isUsableModel(packed)) {
             return packed;
         }
-        String assetName = "models/" + name;
-        if (!assetExists(assetName)) {
+        AssetRef asset = findAsset(name);
+        if (asset == null) {
             return null;
         }
         if (!copyAsset) {
             return onDisk;
         }
         try {
-            copyAsset(assetName, onDisk);
+            copyAsset(asset, onDisk);
             return onDisk;
         } catch (IOException e) {
-            Log.e(TAG, "Could not copy " + assetName, e);
+            Log.e(TAG, "Could not copy " + asset.path, e);
             return null;
         }
     }
@@ -140,11 +171,127 @@ public class ParlanceSLMEngine {
         File onDisk = new File(new File(context.getFilesDir(), "models"), name);
         if (isUsableModel(onDisk)) return true;
         if (isUsableModel(playAssetPackFile(name))) return true;
-        return assetExists("models/" + name);
+        return findAsset(name) != null;
+    }
+
+    private static final class AssetRef {
+        final AssetManager manager;
+        final String path;
+
+        AssetRef(AssetManager manager, String path) {
+            this.manager = manager;
+            this.path = path;
+        }
+    }
+
+    /**
+     * Install-time Play packs are merged into {@link AssetManager}, same as
+     * debug {@code assets/models/}. Play Core {@code getPackLocation} is for
+     * fast-follow / on-demand packs and returns null here.
+     */
+    private AssetRef findAsset(String name) {
+        String[] candidates = { "models/" + name, name };
+        for (AssetManager manager : assetManagers()) {
+            for (String path : candidates) {
+                if (assetExists(manager, path)) {
+                    return new AssetRef(manager, path);
+                }
+            }
+            String walked = walkForGguf(manager, name);
+            if (walked != null) {
+                return new AssetRef(manager, walked);
+            }
+        }
+        return null;
+    }
+
+    private AssetManager[] assetManagers() {
+        AssetManager activityAssets = assetsContext.getAssets();
+        AssetManager appAssets = context.getAssets();
+        if (activityAssets == appAssets) {
+            return new AssetManager[] { activityAssets };
+        }
+        return new AssetManager[] { activityAssets, appAssets };
+    }
+
+    private static String walkForGguf(AssetManager manager, String name) {
+        String[] roots = { "", "models" };
+        for (String root : roots) {
+            String[] kids;
+            try {
+                kids = manager.list(root);
+            } catch (IOException e) {
+                continue;
+            }
+            if (kids == null) continue;
+            for (String kid : kids) {
+                if (name.equals(kid)) {
+                    return root.isEmpty() ? kid : root + "/" + kid;
+                }
+            }
+        }
+        return null;
+    }
+
+    private void warmup() {
+        installing = true;
+        notifyAvailability();
+        logSplits();
+        for (String lang : SUPPORTED) {
+            File weights = resolveModelFile(lang, true);
+            if (isUsableModel(weights)) {
+                Log.i(TAG, "ready " + lang + " " + weights.length() + " bytes");
+            } else {
+                Log.w(TAG, "missing " + lang);
+            }
+        }
+        installing = false;
+        notifyAvailability();
+    }
+
+    private void notifyAvailability() {
+        AvailabilityListener cb = availabilityListener;
+        if (cb != null) cb.onAvailabilityChanged();
+    }
+
+    private void logSplits() {
+        try {
+            ApplicationInfo info = context.getApplicationInfo();
+            Log.i(TAG, "sourceDir=" + info.sourceDir);
+            if (info.splitSourceDirs == null) {
+                Log.w(TAG, "no split APKs; Play may not have delivered parlance_models");
+                return;
+            }
+            for (String split : info.splitSourceDirs) {
+                Log.i(TAG, "split=" + split);
+            }
+        } catch (Throwable e) {
+            Log.w(TAG, "split probe failed", e);
+        }
     }
 
     private static boolean isUsableModel(File file) {
         return file != null && file.isFile() && file.length() > 1_000_000;
+    }
+
+    private void requestPack() {
+        try {
+            AssetPackManager manager = AssetPackManagerFactory.getInstance(context);
+            manager.registerListener(state -> {
+                if (!"parlance_models".equals(state.name())) return;
+                int status = state.status();
+                if (status == AssetPackStatus.COMPLETED) {
+                    new Thread(this::warmup, "parlance-slm-pack").start();
+                } else if (status == AssetPackStatus.FAILED) {
+                    notifyAvailability();
+                }
+            });
+            if (manager.getPackLocation("parlance_models") == null) {
+                manager.fetch(java.util.Collections.singletonList("parlance_models"));
+            }
+        } catch (Throwable e) {
+            Log.w(TAG, "asset pack probe failed", e);
+        }
     }
 
     private File playAssetPackFile(String name) {
@@ -154,27 +301,30 @@ public class ParlanceSLMEngine {
             if (location == null || location.assetsPath() == null) {
                 return null;
             }
-            return new File(location.assetsPath(), name);
+            File direct = new File(location.assetsPath(), name);
+            if (isUsableModel(direct)) return direct;
+            File nested = new File(location.assetsPath(), "models/" + name);
+            return isUsableModel(nested) ? nested : direct;
         } catch (Throwable e) {
             return null;
         }
     }
 
-    private boolean assetExists(String name) {
-        try (InputStream ignored = context.getAssets().open(name)) {
+    private boolean assetExists(AssetManager manager, String name) {
+        try (InputStream ignored = manager.open(name)) {
             return true;
         } catch (IOException e) {
             return false;
         }
     }
 
-    private void copyAsset(String name, File dest) throws IOException {
+    private void copyAsset(AssetRef asset, File dest) throws IOException {
         File parent = dest.getParentFile();
         if (parent != null && !parent.exists() && !parent.mkdirs()) {
             throw new IOException("Could not create " + parent);
         }
         File tmp = new File(dest.getAbsolutePath() + ".part");
-        try (InputStream in = context.getAssets().open(name);
+        try (InputStream in = asset.manager.open(asset.path);
              OutputStream out = new FileOutputStream(tmp)) {
             byte[] buf = new byte[64 * 1024];
             int n;
@@ -242,28 +392,222 @@ public class ParlanceSLMEngine {
         return prompt.toString();
     }
 
+    /**
+     * The 0.5B coach often emits almost-JSON: inner quotes in explanations,
+     * trailing commas, or a cut-off object at max tokens. iOS sanitizes via
+     * {@code ParlanceSLMFeedbackValidator}; Android must not throw that raw
+     * {@code JSONException} into the Feedback panel.
+     */
     static JSONObject parseFeedback(String raw) throws JSONException {
         String cleaned = raw == null ? "" : raw.replace("```json", "").replace("```", "").trim();
         int start = cleaned.indexOf('{');
         if (start < 0) {
             throw new JSONException("No JSON object in model output");
         }
-        int depth = 0;
-        int end = -1;
-        for (int i = start; i < cleaned.length(); i++) {
-            char ch = cleaned.charAt(i);
-            if (ch == '{') depth++;
-            if (ch == '}') {
-                depth--;
-                if (depth == 0) {
-                    end = i;
-                    break;
-                }
+        String slice = repairUnescapedQuotes(cleaned.substring(start));
+        int end = findObjectEnd(slice, 0);
+        if (end < 0) {
+            slice = closeTruncated(slice);
+        } else {
+            slice = slice.substring(0, end + 1);
+        }
+        slice = slice.replaceAll(",\\s*}", "}").replaceAll(",\\s*]", "]");
+        try {
+            return normalizeFeedback(new JSONObject(slice));
+        } catch (JSONException first) {
+            JSONObject extracted = extractFeedbackFields(slice);
+            if (extracted.length() > 0) {
+                return normalizeFeedback(extracted);
+            }
+            throw first;
+        }
+    }
+
+    static JSONObject fallbackFeedback() {
+        JSONObject out = new JSONObject();
+        try {
+            out.put("status", "Excellent");
+            out.put("grammar_rule", "");
+            out.put("explanation", "");
+        } catch (JSONException ignored) {
+            // keys above are valid
+        }
+        return out;
+    }
+
+    private static JSONObject normalizeFeedback(JSONObject raw) throws JSONException {
+        String status = raw.optString("status", "Excellent");
+        if (!"Excellent".equals(status) && !"Needs Improvement".equals(status)) {
+            status = "Excellent";
+        }
+        JSONObject out = new JSONObject();
+        out.put("status", status);
+        String rule = raw.optString("grammar_rule", raw.optString("grammarRule", ""));
+        out.put("grammar_rule", rule);
+        out.put("explanation", raw.optString("explanation", ""));
+        String[] optional = {
+            "correction", "register", "next_level_alt", "target_level_alt",
+            "tip", "assessed_level", "complexity_note"
+        };
+        for (String key : optional) {
+            String val = raw.optString(key, "");
+            if (!val.isEmpty() && !"null".equals(val)) {
+                out.put(key, val);
             }
         }
-        if (end < 0) {
-            throw new JSONException("Unclosed JSON object in model output");
+        return out;
+    }
+
+    private static final String[] FEEDBACK_KEYS = {
+        "assessed_level", "complexity_note", "status", "grammar_rule",
+        "explanation", "correction", "register", "next_level_alt",
+        "target_level_alt", "tip"
+    };
+
+    private static JSONObject extractFeedbackFields(String json) {
+        JSONObject out = new JSONObject();
+        for (String key : FEEDBACK_KEYS) {
+            String needle = "\"" + key + "\"";
+            int keyAt = json.indexOf(needle);
+            if (keyAt < 0) continue;
+            int colon = json.indexOf(':', keyAt + needle.length());
+            if (colon < 0) continue;
+            int i = colon + 1;
+            while (i < json.length() && Character.isWhitespace(json.charAt(i))) i++;
+            if (i >= json.length()) continue;
+            if (json.startsWith("null", i)) continue;
+            if (json.charAt(i) != '"') continue;
+            int close = findStringEnd(json, i);
+            if (close < 0) continue;
+            try {
+                out.put(key, json.substring(i + 1, close)
+                        .replace("\\\"", "\"")
+                        .replace("\\n", "\n"));
+            } catch (JSONException ignored) {
+                // skip unreadable field
+            }
         }
-        return new JSONObject(cleaned.substring(start, end + 1));
+        return out;
+    }
+
+    /** Escape a {@code "} that is inside a value, not the key/value delimiter. */
+    static String repairUnescapedQuotes(String json) {
+        StringBuilder out = new StringBuilder(json.length() + 16);
+        boolean inString = false;
+        boolean escape = false;
+        for (int i = 0; i < json.length(); i++) {
+            char ch = json.charAt(i);
+            if (!inString) {
+                out.append(ch);
+                if (ch == '"') inString = true;
+                continue;
+            }
+            if (escape) {
+                out.append(ch);
+                escape = false;
+                continue;
+            }
+            if (ch == '\\') {
+                out.append(ch);
+                escape = true;
+                continue;
+            }
+            if (ch == '"') {
+                int j = i + 1;
+                while (j < json.length() && Character.isWhitespace(json.charAt(j))) j++;
+                char next = j < json.length() ? json.charAt(j) : 0;
+                if (next == ':' || next == ',' || next == '}' || next == ']' || next == 0) {
+                    out.append(ch);
+                    inString = false;
+                } else {
+                    out.append('\\').append('"');
+                }
+                continue;
+            }
+            out.append(ch);
+        }
+        return out.toString();
+    }
+
+    private static int findObjectEnd(String s, int start) {
+        boolean inString = false;
+        boolean escape = false;
+        int depth = 0;
+        for (int i = start; i < s.length(); i++) {
+            char ch = s.charAt(i);
+            if (inString) {
+                if (escape) {
+                    escape = false;
+                    continue;
+                }
+                if (ch == '\\') {
+                    escape = true;
+                    continue;
+                }
+                if (ch == '"') inString = false;
+                continue;
+            }
+            if (ch == '"') {
+                inString = true;
+                continue;
+            }
+            if (ch == '{') depth++;
+            else if (ch == '}') {
+                depth--;
+                if (depth == 0) return i;
+            }
+        }
+        return -1;
+    }
+
+    private static int findStringEnd(String s, int openQuote) {
+        boolean escape = false;
+        for (int i = openQuote + 1; i < s.length(); i++) {
+            char ch = s.charAt(i);
+            if (escape) {
+                escape = false;
+                continue;
+            }
+            if (ch == '\\') {
+                escape = true;
+                continue;
+            }
+            if (ch == '"') return i;
+        }
+        return -1;
+    }
+
+    static String closeTruncated(String slice) {
+        boolean inString = false;
+        boolean escape = false;
+        int brace = 0;
+        for (int i = 0; i < slice.length(); i++) {
+            char ch = slice.charAt(i);
+            if (inString) {
+                if (escape) {
+                    escape = false;
+                    continue;
+                }
+                if (ch == '\\') {
+                    escape = true;
+                    continue;
+                }
+                if (ch == '"') inString = false;
+                continue;
+            }
+            if (ch == '"') inString = true;
+            else if (ch == '{') brace++;
+            else if (ch == '}') brace--;
+        }
+        StringBuilder sb = new StringBuilder(slice);
+        if (inString) sb.append('"');
+        int k = sb.length() - 1;
+        while (k >= 0 && Character.isWhitespace(sb.charAt(k))) k--;
+        if (k >= 0 && sb.charAt(k) == ',') sb.deleteCharAt(k);
+        while (brace > 0) {
+            sb.append('}');
+            brace--;
+        }
+        return sb.toString();
     }
 }

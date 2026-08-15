@@ -13,21 +13,21 @@ One web frontend. Two native hosts. Do not fork the UI.
 
 ## Sources of truth
 
-| Layer | Where | Mirror / copy |
-|---|---|---|
-| Journal, settings, guides, CSS, JS | `Parlance/web/` | Byte-identical twin in `docs/` |
-| GitHub Pages + Capacitor `webDir` | `docs/` | `npx cap copy android` after any `docs/` change |
-| iOS host | `Parlance/*.swift` | WKWebView loads the Xcode-bundled `Parlance/web/` |
-| Android host | `android/app/.../ParlanceBridge.java` | Capacitor WebView loads `docs/` |
+| Layer | Where |
+|---|---|
+| Journal, settings, guides, CSS, JS | `Parlance/web/` only |
+| iOS | WKWebView loads the Xcode-bundled `Parlance/web/` |
+| Android | Capacitor `webDir` is `Parlance/web/` (`npx cap copy android`) |
+| GitHub Pages | generated `docs/` via `python3 scripts/sync_web.py` |
 
-Never edit only `docs/` or only `Parlance/web/` for a shared file.
+Never edit app UI in `docs/`. Never ship one phone from a different web snapshot than the other.
 
 ## After every shared-frontend change
 
 ```
 parity progress:
-- [ ] Edited Parlance/web/ (not docs/ first)
-- [ ] Mirrored the same files to docs/
+- [ ] Edited Parlance/web/ only
+- [ ] python3 scripts/sync_web.py
 - [ ] python3 scripts/check_platform_sync.py
 - [ ] python3 scripts/check_guide_i18n.py
 - [ ] npx cap copy android   (if Android will run the change)

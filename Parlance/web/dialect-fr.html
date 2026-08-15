@@ -7,7 +7,7 @@
 <title>Regional Guide — French</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
 <link href="content-theme.css?v=1" rel="stylesheet"/>
-<link href="content-guide.css?v=3" rel="stylesheet"/>
+<link href="content-guide.css?v=5" rel="stylesheet"/>
 </head>
 <body class="dialect lang-fr" data-guide-ui="en">
 <div class="layout">
@@ -26,6 +26,7 @@
 <div class="nav-section-label" data-t-en="Tool" data-t-native="Outil">Tool</div>
 <a class="nav-item active" data-t-en="Your region → theirs" data-t-native="Ta région → la sienne" href="#picker">Your region → theirs</a>
 <div class="nav-section-label" data-t-en="Quick reference" data-t-native="Référence rapide">Quick reference</div>
+<a class="nav-item" data-t-en="Local vs formal" data-t-native="Local vs formel" href="#register">Local vs formal</a>
 <a class="nav-item" data-t-en="Pronouns" data-t-native="Pronoms" href="#pronouns">Pronouns</a>
 <a class="nav-item" data-t-en="Vocabulary" data-t-native="Vocabulaire" href="#vocab">Vocabulary</a>
 <a class="nav-item" data-t-en="Trap words" data-t-native="Mots pièges" href="#traps">Trap words</a>
@@ -65,12 +66,28 @@
 </select>
 </div>
 </div>
-<p class="picker-note" data-t-en="Tip: in interpreting, match your output to the speaker's register, not yours." data-t-native="Conseil : en interprétation, adapte ta sortie au registre du locuteur, pas au tien.">Tip: in interpreting, match your output to the speaker's register, not yours.</p>
+<p class="picker-note" data-t-en="Tip: each pairing shows everyday wording and the formal line you would put on a record. Match the speaker's register, not yours." data-t-native="Conseil : chaque paire montre l'oral quotidien et la ligne formelle d'un dossier. Adapte ta sortie au registre du locuteur, pas au tien.">Tip: each pairing shows everyday wording and the formal line you would put on a record. Match the speaker's register, not yours.</p>
 </div>
 <div class="pair-result" id="pairResult">
 <h3 id="pairTitle"></h3>
 <ul id="pairList"></ul>
 </div>
+</section>
+<section class="section" id="register">
+<h2 data-t-en="Local vs formal" data-t-native="Local vs formel">Local vs formal</h2>
+<p class="subtitle" data-t-en="Same idea, two registers. Everyday French on the left. The line for a clinic, a court, or a letter on the right." data-t-native="La même idée, deux registres. Le français quotidien à gauche. La ligne d'une clinique, d'un tribunal ou d'une lettre à droite.">Same idea, two registers. Everyday French on the left. The line for a clinic, a court, or a letter on the right.</p>
+<div class="table-scroll"><table class="data">
+<thead>
+<tr data-t-en-html="&lt;th&gt;Situation&lt;/th&gt;&lt;th&gt;Local&lt;/th&gt;&lt;th&gt;Formal&lt;/th&gt;" data-t-native-html="&lt;th&gt;Situation&lt;/th&gt;&lt;th&gt;Local&lt;/th&gt;&lt;th&gt;Formel&lt;/th&gt;"><th>Situation</th><th>Local</th><th>Formal</th></tr>
+</thead>
+<tbody>
+<tr><td data-t-en="Greeting a peer" data-t-native="Saluer un pair">Greeting a peer</td><td class="mono">Salut. / Ça va?</td><td class="mono">Bonjour. / Comment allez-vous?</td></tr>
+<tr><td data-t-en="Car" data-t-native="Voiture">Car</td><td class="mono">bagnole (FR) / char (QC)</td><td class="mono">voiture / véhicule</td></tr>
+<tr><td data-t-en="Email" data-t-native="Courriel">Email</td><td class="mono">mail (FR) / courriel (QC)</td><td class="mono">courrier électronique / courriel</td></tr>
+<tr><td data-t-en="Numbers 70 / 90" data-t-native="70 / 90">Numbers 70 / 90</td><td class="mono">soixante-dix / quatre-vingt-dix (FR)</td><td class="mono">septante / nonante (BE, CH, QC official)</td></tr>
+<tr><td data-t-en="Agreeing" data-t-native="Accepter">Agreeing</td><td class="mono">Ouais. / C'est correct (QC).</td><td class="mono">Oui. / D'accord. / J'accepte.</td></tr>
+</tbody>
+</table></div>
 </section>
 <section class="section" id="pronouns">
 <h2 data-t-en="Pronouns and address" data-t-native="Pronoms et tutoiement">Pronouns and address</h2>
@@ -211,6 +228,7 @@
 <button class="mobile-nav-btn" data-t-en="☰ Contents" data-t-native="☰ Menu" onclick="toggleMobileNav()" type="button">☰ Contents</button>
 <button class="back-btn" data-t-en="Back to Journal" data-t-native="Retour au journal" onclick="window.parent.postMessage('closeGuide', '*')" type="button">Back to Journal</button>
 <script src="guide-ui.js"></script>
+<script src="dialect-compare.js"></script>
 <script>
 function toggleMobileNav() {
   document.querySelector('.sidebar').classList.toggle('mobile-open');
@@ -238,99 +256,282 @@ window.GuideUI.init({
 });
 </script>
 <script>
+const PAIR_LABELS = {
+  en: { local: 'Local / everyday', formal: 'Formal / official' },
+  fr: { local: 'Local / quotidien', formal: 'Formel / officiel' },
+};
+
+function pair(point, localFrom, localTo, formalFrom, formalTo, note) {
+  const item = {
+    point: point,
+    local: { from: localFrom, to: localTo },
+    formal: { from: formalFrom, to: formalTo },
+  };
+  if (note) item.note = note;
+  return item;
+}
+
 const PAIR_INSIGHTS = {
   en: {
     'france|quebec': [
-      'mail (FR) → courriel (QC). week-end → fin de semaine.',
-      'voiture → char (casual QC). portable → cellulaire.',
-      'soixante-dix / quatre-vingt-dix → septante / nonante.',
-      'Watch: blonde (QC) ≠ blonde hair (FR).',
-      'Meals: déjeuner/dîner do not fall at the same times.',
+      pair('Email, weekend, car, phone.',
+        'Je t’envoie un mail ce week-end. Prends la voiture. Mon portable.',
+        'Je t’envoie un courriel cette fin de semaine. Prends le char. Mon cellulaire.',
+        'Je vous enverrai un courrier électronique. Prenez le véhicule. Mon téléphone.',
+        'Je vous enverrai un courriel. Prenez le véhicule. Mon téléphone.'),
+      pair('70 and 90.',
+        'soixante-dix, quatre-vingt-dix',
+        'soixante-dix in speech; septante / nonante appear in some official QC use',
+        'soixante-dix, quatre-vingt-dix',
+        'septante, nonante (when the setting is official and the listener uses them)'),
+      pair('blonde is a partner in Quebec, a hair colour in France.',
+        'Ma copine s’appelle…',
+        'Ma blonde s’appelle…',
+        'Ma conjointe / mon épouse…',
+        'Ma conjointe / mon épouse…',
+        'Meals also shift: déjeuner / dîner do not fall at the same hours.'),
     ],
     'france|belgium': [
-      'soixante-dix → septante. quatre-vingt-dix → nonante.',
-      'Otherwise very close. « Une fois » in Brussels can mean please (local turn of phrase).',
-      'Day-to-day vocabulary is nearly identical.',
+      pair('Numbers.',
+        'soixante-dix, quatre-vingt-dix',
+        'septante, nonante',
+        'soixante-dix, quatre-vingt-dix',
+        'septante, nonante'),
+      pair('Brussels “une fois” is a local turn, not “one time.”',
+        'Tu peux venir, s’il te plaît?',
+        'Tu peux venir une fois?',
+        'Pourriez-vous venir, s’il vous plaît?',
+        'Pourriez-vous venir, s’il vous plaît?'),
     ],
     'france|swiss': [
-      'septante, huitante/octante, nonante instead of soixante-dix, etc.',
-      'adieu in Switzerland can be a greeting (not a final goodbye).',
-      'natel = older word for cell phone.',
+      pair('Numbers: septante, huitante / octante, nonante.',
+        'quatre-vingts, quatre-vingt-dix',
+        'huitante / octante, nonante',
+        'quatre-vingts, quatre-vingt-dix',
+        'huitante, nonante'),
+      pair('adieu can be a greeting in Switzerland, not a last goodbye.',
+        'Salut. À plus.',
+        'Adieu. (hello / see you)',
+        'Bonjour. Au revoir.',
+        'Bonjour. Au revoir.'),
     ],
     'france|africa': [
-      'vous often marks respect toward elders.',
-      'Local lexicon and vivid expressions are common.',
-      'Do not force Parisian French if African French is clear.',
+      pair('vous often marks respect toward elders. Do not force Parisian slang.',
+        'Salut, t’as vu?',
+        'Bonjour, vous allez bien?',
+        'Bonjour, comment allez-vous?',
+        'Bonjour, comment allez-vous?',
+        'Keep clear African French. Do not “Parisianise” it if the meaning is already clear.'),
     ],
     'france|caribbean': [
-      'Strong Creole influence. Rhythm and reductions.',
-      'Check false friends and cultural context before rephrasing.',
+      pair('Creole influence in rhythm and reductions. Formal French is still French.',
+        'J’arrive. On se voit tout à l’heure.',
+        'Everyday speech may shorten and mix with Creole.',
+        'J’arriverai. Nous nous verrons tout à l’heure.',
+        'J’arriverai. Nous nous verrons tout à l’heure.',
+        'Check cultural context before you rephrase. Render the meaning.'),
     ],
     'quebec|belgium': [
-      'septante/nonante: shared with Quebec.',
-      'char (QC) does not exist in Belgium; use voiture.',
-      'blonde (QC): watch this if you come from elsewhere.',
+      pair('Shared official numbers; everyday car words are not shared.',
+        'Prends le char. Envoie un courriel.',
+        'Prends la voiture. Envoie un mail.',
+        'Prenez le véhicule. Envoyez un courriel.',
+        'Prenez le véhicule. Envoyez un courrier.'),
+    ],
+    'quebec|swiss': [
+      pair('Numbers can align. char and blonde do not travel.',
+        'Ma blonde prend le char.',
+        'Ma copine prend la voiture.',
+        'Ma conjointe prend le véhicule.',
+        'Ma conjointe prend le véhicule.'),
     ],
     'quebec|africa': [
-      'Wider tutoiement in QC vs respectful vous in Africa.',
-      'Register and cultural context differ a lot.',
-      'Local vocabulary on both sides: do not mix them casually.',
+      pair('Wider tutoiement in Quebec vs respectful vous in much of Africa.',
+        'Salut, ça va-tu?',
+        'Bonjour, vous allez bien?',
+        'Bonjour, comment allez-vous?',
+        'Bonjour, comment allez-vous.'),
+    ],
+    'quebec|caribbean': [
+      pair('Two everyday Frenches with strong local colour. Formal French meets in the middle.',
+        'On se voit à soir. Prends le char.',
+        'Everyday speech may sit next to Creole.',
+        'Nous nous verrons ce soir. Prenez le véhicule.',
+        'Nous nous verrons ce soir. Prenez le véhicule.'),
     ],
     'belgium|swiss': [
-      'Similar number systems (septante, nonante).',
-      'huitante in parts of French-speaking Switzerland (variable).',
-      'Close vocabulary, different accents.',
+      pair('Close number systems. Accents differ. huitante is Swiss, not Belgian.',
+        'septante, nonante (not huitante)',
+        'septante, huitante / octante, nonante',
+        'septante, nonante',
+        'septante, huitante, nonante'),
+    ],
+    'belgium|africa': [
+      pair('Belgian everyday French is close to France. African vous of respect still matters.',
+        'Tu viens une fois?',
+        'Vous venez?',
+        'Pourriez-vous venir?',
+        'Pourriez-vous venir?'),
+    ],
+    'belgium|caribbean': [
+      pair('Belgian French is close to metropolitan. Caribbean speech may carry Creole.',
+        'On prend le bus.',
+        'Everyday wording may shorten.',
+        'Nous prendrons l’autobus.',
+        'Nous prendrons l’autobus.'),
+    ],
+    'swiss|africa': [
+      pair('Swiss numbers vs African respect forms.',
+        'Ça fait septante francs. Adieu.',
+        'Bonjour, vous allez bien?',
+        'Cela fait septante francs. Au revoir.',
+        'Bonjour, comment allez-vous?'),
+    ],
+    'swiss|caribbean': [
+      pair('Swiss official numbers; Caribbean Creole influence in speech.',
+        'Le natel est sur la table. (older CH)',
+        'Le portable / le cellulaire, selon l’île.',
+        'Le téléphone est sur la table.',
+        'Le téléphone est sur la table.'),
     ],
     'africa|caribbean': [
-      'Two Francophonies with strong local influence (African languages / Creole).',
-      'Respect and register: always adapt to the speaker.',
+      pair('Two Francophonies with strong local influence. Adapt to the speaker.',
+        'Respectful vous is common toward elders.',
+        'Creole may sit beside French in the same turn.',
+        'Bonjour, comment allez-vous?',
+        'Bonjour, comment allez-vous?',
+        'Do not flatten either variety into Parisian slang.'),
     ],
   },
   fr: {
     'france|quebec': [
-      'Mail (FR) → courriel (QC). Week-end → fin de semaine.',
-      'Voiture → char (familier QC). Portable → cellulaire.',
-      'Soixante-dix / quatre-vingt-dix → septante / nonante.',
-      'Attention : blonde (QC) ≠ cheveux blonds (FR).',
-      'Repas : déjeuner/dîner ne tombent pas aux mêmes moments.',
+      pair('Courriel, fin de semaine, voiture, téléphone.',
+        'Je t’envoie un mail ce week-end. Prends la voiture. Mon portable.',
+        'Je t’envoie un courriel cette fin de semaine. Prends le char. Mon cellulaire.',
+        'Je vous enverrai un courrier électronique. Prenez le véhicule. Mon téléphone.',
+        'Je vous enverrai un courriel. Prenez le véhicule. Mon téléphone.'),
+      pair('70 et 90.',
+        'soixante-dix, quatre-vingt-dix',
+        'soixante-dix à l’oral ; septante / nonante dans certains usages officiels QC',
+        'soixante-dix, quatre-vingt-dix',
+        'septante, nonante (si le cadre est officiel et que l’auditeur les utilise)'),
+      pair('blonde = partenaire au Québec, couleur de cheveux en France.',
+        'Ma copine s’appelle…',
+        'Ma blonde s’appelle…',
+        'Ma conjointe / mon épouse…',
+        'Ma conjointe / mon épouse…',
+        'Les repas aussi se décalent : déjeuner / dîner ne tombent pas aux mêmes heures.'),
     ],
     'france|belgium': [
-      'Soixante-dix → septante. Quatre-vingt-dix → nonante.',
-      'Sinon très proche. « Une fois » à Bruxelles = s\'il te plaît (tournure locale).',
-      'Vocabulaire presque identique au quotidien.',
+      pair('Nombres.',
+        'soixante-dix, quatre-vingt-dix',
+        'septante, nonante',
+        'soixante-dix, quatre-vingt-dix',
+        'septante, nonante'),
+      pair('« Une fois » à Bruxelles n’est pas « one time ».',
+        'Tu peux venir, s’il te plaît?',
+        'Tu peux venir une fois?',
+        'Pourriez-vous venir, s’il vous plaît?',
+        'Pourriez-vous venir, s’il vous plaît?'),
     ],
     'france|swiss': [
-      'Septante, huitante/octante, nonante au lieu de soixante-dix, etc.',
-      'Adieu en Suisse peut saluer (pas « adieu définitif »).',
-      'Natel = vieux mot pour portable.',
+      pair('Nombres : septante, huitante / octante, nonante.',
+        'quatre-vingts, quatre-vingt-dix',
+        'huitante / octante, nonante',
+        'quatre-vingts, quatre-vingt-dix',
+        'huitante, nonante'),
+      pair('adieu peut saluer en Suisse, ce n’est pas un adieu définitif.',
+        'Salut. À plus.',
+        'Adieu. (bonjour / à tout à l’heure)',
+        'Bonjour. Au revoir.',
+        'Bonjour. Au revoir.'),
     ],
     'france|africa': [
-      'Vous souvent marque de respect envers les aînés.',
-      'Lexique local et expressions imagées fréquentes.',
-      'Ne « parisianise » pas si le sens est clair en français africain.',
+      pair('vous marque souvent le respect envers les aînés. N’impose pas l’argot parisien.',
+        'Salut, t’as vu?',
+        'Bonjour, vous allez bien?',
+        'Bonjour, comment allez-vous?',
+        'Bonjour, comment allez-vous?',
+        'Garde un français africain clair. Ne le « parisianise » pas si le sens est déjà net.'),
     ],
     'france|caribbean': [
-      'Influence créole forte. Rythme et réductions.',
-      'Faux amis et contexte culturel à vérifier avant de reformuler.',
+      pair('Influence créole dans le rythme et les réductions. Le français formel reste du français.',
+        'J’arrive. On se voit tout à l’heure.',
+        'L’oral quotidien peut raccourcir et se mêler au créole.',
+        'J’arriverai. Nous nous verrons tout à l’heure.',
+        'J’arriverai. Nous nous verrons tout à l’heure.',
+        'Vérifie le contexte culturel avant de reformuler. Rends le sens.'),
     ],
     'quebec|belgium': [
-      'Septante/nonante : point commun avec le Québec.',
-      'Char (QC) n\'existe pas en Belgique ; voiture.',
-      'Blonde (QC) : attention si tu viens d\'ailleurs.',
+      pair('Nombres officiels partagés ; les mots de voiture du quotidien ne le sont pas.',
+        'Prends le char. Envoie un courriel.',
+        'Prends la voiture. Envoie un mail.',
+        'Prenez le véhicule. Envoyez un courriel.',
+        'Prenez le véhicule. Envoyez un courrier.'),
+    ],
+    'quebec|swiss': [
+      pair('Les nombres peuvent s’aligner. char et blonde ne voyagent pas.',
+        'Ma blonde prend le char.',
+        'Ma copine prend la voiture.',
+        'Ma conjointe prend le véhicule.',
+        'Ma conjointe prend le véhicule.'),
     ],
     'quebec|africa': [
-      'Tutoiement large au QC vs vous de respect en Afrique.',
-      'Registre et contexte culturel très différents.',
-      'Vocabulaire local des deux côtés : ne pas mélanger.',
+      pair('Tutoiement plus large au Québec vs vous de respect dans une grande partie de l’Afrique.',
+        'Salut, ça va-tu?',
+        'Bonjour, vous allez bien?',
+        'Bonjour, comment allez-vous?',
+        'Bonjour, comment allez-vous?'),
+    ],
+    'quebec|caribbean': [
+      pair('Deux français quotidiens très locaux. Le français formel se rejoint au milieu.',
+        'On se voit à soir. Prends le char.',
+        'L’oral peut côtoyer le créole.',
+        'Nous nous verrons ce soir. Prenez le véhicule.',
+        'Nous nous verrons ce soir. Prenez le véhicule.'),
     ],
     'belgium|swiss': [
-      'Systèmes de numération similaires (septante, nonante).',
-      'Huitante en Suisse romande (variable).',
-      'Vocabulaire proche, accents différents.',
+      pair('Systèmes de nombres proches. Accents différents. huitante est suisse, pas belge.',
+        'septante, nonante (pas huitante)',
+        'septante, huitante / octante, nonante',
+        'septante, nonante',
+        'septante, huitante, nonante'),
+    ],
+    'belgium|africa': [
+      pair('Le français quotidien belge est proche de la France. Le vous de respect africain compte encore.',
+        'Tu viens une fois?',
+        'Vous venez?',
+        'Pourriez-vous venir?',
+        'Pourriez-vous venir?'),
+    ],
+    'belgium|caribbean': [
+      pair('Le français belge est proche du français métropolitain. L’oral caribéen peut porter le créole.',
+        'On prend le bus.',
+        'L’oral quotidien peut raccourcir.',
+        'Nous prendrons l’autobus.',
+        'Nous prendrons l’autobus.'),
+    ],
+    'swiss|africa': [
+      pair('Nombres suisses vs formes de respect africaines.',
+        'Ça fait septante francs. Adieu.',
+        'Bonjour, vous allez bien?',
+        'Cela fait septante francs. Au revoir.',
+        'Bonjour, comment allez-vous?'),
+    ],
+    'swiss|caribbean': [
+      pair('Nombres officiels suisses ; influence créole à l’oral caribéen.',
+        'Le natel est sur la table. (CH plus ancien)',
+        'Le portable / le cellulaire, selon l’île.',
+        'Le téléphone est sur la table.',
+        'Le téléphone est sur la table.'),
     ],
     'africa|caribbean': [
-      'Deux francophonies avec forte influence locale (langues africaines / créole).',
-      'Respect et registre : toujours adapter au locuteur.',
+      pair('Deux francophonies à forte couleur locale. Adapte-toi au locuteur.',
+        'Le vous de respect est fréquent envers les aînés.',
+        'Le créole peut côtoyer le français dans le même tour.',
+        'Bonjour, comment allez-vous?',
+        'Bonjour, comment allez-vous?',
+        'N’aplatis ni l’une ni l’autre variété en argot parisien.'),
     ],
   },
 };
@@ -360,8 +561,8 @@ function guideLang() {
 
 function pairKey(a, b) {
   if (!a || !b || a === b) return null;
-  const k1 = `${a}|${b}`;
-  const k2 = `${b}|${a}`;
+  const k1 = a + '|' + b;
+  const k2 = b + '|' + a;
   const pack = PAIR_INSIGHTS[guideLang()];
   if (pack[k1]) return { key: k1 };
   if (pack[k2]) return { key: k2 };
@@ -379,14 +580,13 @@ function updatePair() {
   const to = toSel.value;
   const lang = guideLang();
   const names = REGION_NAMES[lang];
+  const labels = PAIR_LABELS[lang];
   if (!from || !to) {
     result.classList.remove('visible');
     return;
   }
   if (from === to) {
-    title.textContent = lang === 'fr'
-      ? `Même région : ${names[from]}`
-      : `Same region: ${names[from]}`;
+    title.textContent = lang === 'fr' ? 'Même région : ' + names[from] : 'Same region: ' + names[from];
     list.innerHTML = lang === 'fr'
       ? '<li>Même région : vocabulaire et tutoiement alignés. Consulte « Mots pièges » pour les nuances locales.</li>'
       : '<li>Same region: vocabulary and address usually align. Check Trap words for local nuance.</li>';
@@ -396,20 +596,16 @@ function updatePair() {
   const pk = pairKey(from, to);
   let items = PAIR_INSIGHTS[lang][pk.key];
   if (!items || pk.fallback) {
-    items = lang === 'fr' ? [
-      `Contraste ${names[from]} ↔ ${names[to]} : vois les tableaux pronoms et vocabulaire.`,
-      'Compare chiffres (septante/nonante), repas, et tutoiement.',
-      'En doute, adapte ta sortie au registre du locuteur.',
-      'Consulte « Mots pièges » avant d\'utiliser un mot neutre chez toi.',
-    ] : [
-      `Contrast ${names[from]} ↔ ${names[to]}: check the pronoun and vocabulary tables.`,
-      'Compare numbers (septante/nonante), meal names, and address.',
-      'When unsure, match your output to the speaker\'s register.',
-      'Check Trap words before using a word that feels neutral where you are from.',
-    ];
+    items = [pair(
+      (lang === 'fr' ? 'Contraste ' : 'Contrast ') + names[from] + ' ↔ ' + names[to],
+      'tu / mail / voiture',
+      'vous / courriel / char ou septante',
+      'vous / courrier / véhicule',
+      'vous / courrier / véhicule'
+    )];
   }
-  title.textContent = `${names[from]} → ${names[to]}`;
-  list.innerHTML = items.map(i => `<li>${i}</li>`).join('');
+  title.textContent = names[from] + ' → ' + names[to];
+  list.innerHTML = DialectCompare.renderPairItems(items, labels, names[from], names[to]);
   result.classList.add('visible');
 }
 

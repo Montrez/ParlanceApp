@@ -16,6 +16,9 @@ class HeraldCog(commands.Cog):
     def _announce_channel(self, guild: discord.Guild) -> discord.TextChannel | None:
         return discord.utils.get(guild.text_channels, name=CHANNELS["announcements"])
 
+    def _whats_new_channel(self, guild: discord.Guild) -> discord.TextChannel | None:
+        return discord.utils.get(guild.text_channels, name=CHANNELS["whats-new"])
+
     @app_commands.command(name="announce", description="Post to #announcements")
     @app_commands.describe(
         title="Headline",
@@ -44,9 +47,9 @@ class HeraldCog(commands.Cog):
         await channel.send(content)
         await interaction.response.send_message("Posted.", ephemeral=True)
 
-    @app_commands.command(name="release", description="Post a release note")
+    @app_commands.command(name="release", description="Post What's New and a Claire announcement")
     @app_commands.describe(
-        version="e.g. 2.3 or v2.3.1",
+        version="e.g. 2.4 (25)",
         highlights="Community changelog only (no Archive / Still open)",
     )
     async def release(self, interaction: discord.Interaction, version: str, highlights: str):
@@ -56,19 +59,38 @@ class HeraldCog(commands.Cog):
         if not admin_member(interaction.user):
             await interaction.response.send_message("Admins only.", ephemeral=True)
             return
-        channel = self._announce_channel(interaction.guild)
-        if not channel:
+        announce = self._announce_channel(interaction.guild)
+        whats_new = self._whats_new_channel(interaction.guild)
+        if not announce:
             await interaction.response.send_message("#announcements not found.", ephemeral=True)
             return
-        text = (
+        if not whats_new:
+            await interaction.response.send_message("#whats-new not found.", ephemeral=True)
+            return
+
+        notes = highlights.strip()
+        play = "https://play.google.com/apps/internaltest/4701648803954304490"
+        short_lines = [
+            line for line in notes.splitlines()
+            if line.strip().startswith(("-", "*"))
+        ][:4]
+        short = "\n".join(short_lines) if short_lines else notes.split("\n", 1)[0]
+        whats_text = (
+            f"**Parlance {version}**\n\n"
+            f"{notes}\n\n"
+            "iPhone: TestFlight\n"
+            f"Android: {play}"
+        )
+        claire_text = (
             f"**Parlance {version}** is out.\n\n"
-            f"{highlights.strip()}\n\n"
-            "Available now on **GitHub Pages**: https://montrez.github.io/ParlanceApp/\n"
-            "Coming soon to **TestFlight** for iOS users.\n\n"
+            f"{short}\n\n"
+            "iPhone: update in TestFlight.\n"
+            f"Android: {play}\n\n"
             "Full notes in #whats-new."
         )
-        await channel.send(text)
-        await interaction.response.send_message("Posted.", ephemeral=True)
+        await whats_new.send(whats_text)
+        await announce.send(claire_text)
+        await interaction.response.send_message("Posted to #whats-new and #announcements.", ephemeral=True)
 
     @app_commands.command(name="testflight", description="Call for TestFlight testers")
     @app_commands.describe(build="Build label", notes="What to test", link="Invite URL")

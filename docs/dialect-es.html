@@ -7,7 +7,7 @@
 <title>Regional Guide — Spanish</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
 <link href="content-theme.css?v=1" rel="stylesheet"/>
-<link href="content-guide.css?v=3" rel="stylesheet"/>
+<link href="content-guide.css?v=5" rel="stylesheet"/>
 </head>
 <body class="dialect lang-es" data-guide-ui="en">
 <div class="layout">
@@ -26,6 +26,7 @@
 <div class="nav-section-label" data-t-en="Tool" data-t-native="Herramienta">Tool</div>
 <a class="nav-item active" data-t-en="Your region → theirs" data-t-native="Tu región → la suya" href="#picker">Your region → theirs</a>
 <div class="nav-section-label" data-t-en="Quick reference" data-t-native="Referencia rápida">Quick reference</div>
+<a class="nav-item" data-t-en="Local vs formal" data-t-native="Local vs formal" href="#register">Local vs formal</a>
 <a class="nav-item" data-t-en="Pronouns" data-t-native="Pronombres" href="#pronouns">Pronouns</a>
 <a class="nav-item" data-t-en="Vocabulary" data-t-native="Vocabulario" href="#vocab">Vocabulary</a>
 <a class="nav-item" data-t-en="Trap words" data-t-native="Palabras trampa" href="#traps">Trap words</a>
@@ -63,12 +64,28 @@
 </select>
 </div>
 </div>
-<p class="picker-note" data-t-en="Tip: in interpreting, match your output to the speaker's register, not yours." data-t-native="Consejo: en interpretación, adapta tu salida al registro del hablante, no al tuyo.">Tip: in interpreting, match your output to the speaker's register, not yours.</p>
+<p class="picker-note" data-t-en="Tip: each pairing shows everyday wording and the formal line you would put on a record. Match the speaker's register, not yours." data-t-native="Consejo: cada par muestra el habla cotidiana y la línea formal que iría en un expediente. Adapta tu salida al registro del hablante, no al tuyo.">Tip: each pairing shows everyday wording and the formal line you would put on a record. Match the speaker's register, not yours.</p>
 </div>
 <div class="pair-result" id="pairResult">
 <h3 id="pairTitle"></h3>
 <ul id="pairList"></ul>
 </div>
+</section>
+<section class="section" id="register">
+<h2 data-t-en="Local vs formal" data-t-native="Local vs formal">Local vs formal</h2>
+<p class="subtitle" data-t-en="Same idea, two registers. The left column is what people say. The right column belongs in a clinic, a court, or a letter." data-t-native="La misma idea, dos registros. La columna izquierda es lo que se dice. La derecha va en una clínica, un tribunal o una carta.">Same idea, two registers. The left column is what people say. The right column belongs in a clinic, a court, or a letter.</p>
+<div class="table-scroll"><table class="data">
+<thead>
+<tr data-t-en-html="&lt;th&gt;Situation&lt;/th&gt;&lt;th&gt;Local&lt;/th&gt;&lt;th&gt;Formal&lt;/th&gt;" data-t-native-html="&lt;th&gt;Situación&lt;/th&gt;&lt;th&gt;Local&lt;/th&gt;&lt;th&gt;Formal&lt;/th&gt;"><th>Situation</th><th>Local</th><th>Formal</th></tr>
+</thead>
+<tbody>
+<tr><td data-t-en="Greeting a peer" data-t-native="Saludar a un par">Greeting a peer</td><td class="mono">¿Qué onda? / ¿Cómo andás? / ¿Qué tal?</td><td class="mono">Buenos días. / ¿Cómo está usted?</td></tr>
+<tr><td data-t-en="Asking someone to wait" data-t-native="Pedir que esperen">Asking someone to wait</td><td class="mono">Aguántame. / Espérate.</td><td class="mono">Un momento, por favor.</td></tr>
+<tr><td data-t-en="Money" data-t-native="Dinero">Money</td><td class="mono">lana / plata / pasta / guita</td><td class="mono">dinero / el importe</td></tr>
+<tr><td data-t-en="Car" data-t-native="Coche">Car</td><td class="mono">carro / auto / coche</td><td class="mono">automóvil / vehículo</td></tr>
+<tr><td data-t-en="Agreeing" data-t-native="Aceptar">Agreeing</td><td class="mono">sale / dale / vale / chévere</td><td class="mono">De acuerdo. / Sí, acepto.</td></tr>
+</tbody>
+</table></div>
 </section>
 <section class="section" id="pronouns">
 <h2 data-t-en="Pronouns and address" data-t-native="Pronombres y trato">Pronouns and address</h2>
@@ -221,6 +238,7 @@
 <button class="mobile-nav-btn" data-t-en="☰ Contents" data-t-native="☰ Menú" onclick="toggleMobileNav()" type="button">☰ Contents</button>
 <button class="back-btn" data-t-en="Back to Journal" data-t-native="Volver al diario" onclick="window.parent.postMessage('closeGuide', '*')" type="button">Back to Journal</button>
 <script src="guide-ui.js"></script>
+<script src="dialect-compare.js"></script>
 <script>
 function toggleMobileNav() {
   document.querySelector('.sidebar').classList.toggle('mobile-open');
@@ -248,115 +266,194 @@ window.GuideUI.init({
 });
 </script>
 <script>
+const PAIR_LABELS = {
+  en: { local: 'Local / everyday', formal: 'Formal / official' },
+  es: { local: 'Local / cotidiano', formal: 'Formal / oficial' },
+};
+
 const PAIR_INSIGHTS = {
   en: {
     'mexico|rioplatense': [
-      'tú vs vos: in Argentina/Uruguay expect «vos hablás», not «tú hablas».',
-      'carro (MX) → auto (AR). camión (MX) → colectivo/bondi (AR).',
-      'plata (both) but guita is very Argentine.',
-      'Do not correct voseo. It is standard, not incorrect informal speech.',
+      { point: 'tú vs vos. Voseo is standard in Argentina and Uruguay, not sloppy speech.',
+        local: { from: '¿Cómo estás? ¿Tú tienes tiempo?', to: '¿Cómo andás? ¿Vos tenés tiempo?' },
+        formal: { from: '¿Cómo está usted? ¿Dispone de un momento?', to: '¿Cómo está usted? ¿Dispone de un momento?' },
+        note: 'In court or a clinic, both regions move to usted. Do not “correct” vos in the speaker’s voice.' },
+      { point: 'Car and bus words.',
+        local: { from: 'Voy en el carro. Tomo el camión.', to: 'Voy en el auto. Tomo el bondi / colectivo.' },
+        formal: { from: 'Viajaré en automóvil. Tomaré el autobús.', to: 'Viajaré en automóvil. Tomaré el colectivo.' } },
+      { point: 'Money. plata is shared; guita is very Argentine.',
+        local: { from: 'No tengo lana / plata.', to: 'No tengo guita / plata.' },
+        formal: { from: 'No dispongo del importe.', to: 'No dispongo del importe.' } },
     ],
     'mexico|spain': [
-      'carro → coche. computadora → ordenador. celular → móvil.',
-      'manejar → conducir. ustedes (MX) vs vosotros (ES) for informal plural.',
-      'Avoid «coger» with Mexicans if you can say «tomar» or «agarrar».',
-      'popote (MX) is not understood in Spain; say «pajita» or «cañita».',
+      { point: 'Everyday objects change name. Formal Spanish often picks the more international word.',
+        local: { from: 'El carro, la computadora, el celular, el popote.', to: 'El coche, el ordenador, el móvil, la pajita.' },
+        formal: { from: 'El automóvil, el equipo informático, el teléfono móvil.', to: 'El automóvil, el equipo informático, el teléfono móvil.' } },
+      { point: 'Informal plural: ustedes in Mexico, vosotros in Spain.',
+        local: { from: '¿Ustedes vienen?', to: '¿Vosotros venís?' },
+        formal: { from: '¿Ustedes van a asistir?', to: '¿Ustedes van a asistir?' },
+        note: 'On a record, ustedes is safe toward both sides.' },
+      { point: 'coger is neutral in Spain and vulgar in much of Latin America.',
+        local: { from: 'Voy a tomar / agarrar el camión.', to: 'Voy a coger el autobús.' },
+        formal: { from: 'Tomaré el autobús.', to: 'Tomaré el autobús.' } },
     ],
     'mexico|caribbean': [
-      'usted is more common in the Caribbean, even where Mexico would use tú.',
-      'camión (MX) = bus; guagua (Caribbean) = bus.',
-      'Faster rhythm and dropped -s in the Caribbean. Not "bad pronunciation."',
-      'apartamento (Caribbean) vs departamento (MX): same idea, different word.',
+      { point: 'usted is more common in the Caribbean, even where Mexico would use tú.',
+        local: { from: '¿Cómo estás, amigo?', to: '¿Cómo está usted?' },
+        formal: { from: '¿Cómo está usted?', to: '¿Cómo está usted?' } },
+      { point: 'Bus and housing.',
+        local: { from: 'Tomo el camión. Vivo en un departamento.', to: 'Tomo la guagua. Vivo en un apartamento.' },
+        formal: { from: 'Tomaré el autobús. Resido en un departamento.', to: 'Tomaré el autobús. Resido en un apartamento.' } },
+      { point: 'Caribbean rhythm and dropped -s are dialect, not errors.',
+        local: { from: 'Estamos listos.', to: 'Ehtamo lihto. (fast, aspirated -s)' },
+        formal: { from: 'Estamos listos.', to: 'Estamos listos.' },
+        note: 'Interpret the meaning. Do not “restore” every -s in the booth if the sense is clear.' },
     ],
     'mexico|andean': [
-      'In Colombia, usted with family is normal. Do not read it as coldness.',
-      'chévere, bacano, parce (Colombia) are everyday.',
-      'Vocabulary often feels close to Mexican, but watch local false friends.',
+      { point: 'In Colombia, usted with family is custom, not coldness.',
+        local: { from: 'Mamá, ¿cómo estás?', to: 'Mamá, ¿cómo está usted?' },
+        formal: { from: 'Señora, ¿cómo está usted?', to: 'Señora, ¿cómo está usted?' } },
+      { point: 'Colloquial yes-words.',
+        local: { from: 'Sale. ¿Qué onda, carnal?', to: 'Listo, parce. Está chévere / bacano.' },
+        formal: { from: 'De acuerdo.', to: 'De acuerdo.' } },
     ],
     'rioplatense|spain': [
-      'vos vs tú/vosotros: different pronoun systems.',
-      'auto vs coche. celular vs móvil.',
-      'concha: watch context (strong insult in Rioplatense).',
-      'Argentine yeísmo can sound unfamiliar to Peninsular ears.',
+      { point: 'Different pronoun systems: vos vs tú / vosotros.',
+        local: { from: 'Vos hablás muy bien.', to: 'Tú hablas muy bien. / Vosotros habláis muy bien.' },
+        formal: { from: 'Usted habla con claridad.', to: 'Usted habla con claridad.' } },
+      { point: 'Car and phone.',
+        local: { from: 'Dejé el celular en el auto.', to: 'Dejé el móvil en el coche.' },
+        formal: { from: 'Dejé el teléfono en el automóvil.', to: 'Dejé el teléfono en el automóvil.' } },
+      { point: 'concha is a seashell in some countries and a strong insult in Rioplatense.',
+        local: { from: 'Cuidado con concha en este registro.', to: 'En España, concha is usually a shell.' },
+        formal: { from: 'Avoid the word unless the speaker said it and you must render it.', to: 'Prefer concha marina if the meaning is a shell.' } },
     ],
     'rioplatense|caribbean': [
-      'vos (AR) vs tú/usted (Caribbean): big address difference.',
-      'guagua (Caribbean) vs bondi/colectivo (AR).',
-      'Caribbean rhythm/elision vs Rioplatense intonation.',
+      { point: 'Address: vos vs tú / usted.',
+        local: { from: 'Che, ¿cómo andás?', to: '¿Cómo está usted? / ¿Cómo tú estás?' },
+        formal: { from: '¿Cómo está usted?', to: '¿Cómo está usted?' } },
+      { point: 'Bus words.',
+        local: { from: 'Tomo el bondi.', to: 'Tomo la guagua.' },
+        formal: { from: 'Tomaré el colectivo.', to: 'Tomaré el autobús.' } },
     ],
     'rioplatense|andean': [
-      'vos (AR) vs tú/usted (Andes, especially Colombia with familiar usted).',
-      'Register: Colombia often more polite in formal settings; Argentina more direct by comparison.',
-      'plata in both; local vocab differs (che vs parce/chévere).',
+      { point: 'vos vs familiar usted in Colombia.',
+        local: { from: 'Vos tenés razón, che.', to: 'Usted tiene razón, parce.' },
+        formal: { from: 'Usted tiene razón.', to: 'Usted tiene razón.' },
+        note: 'Colombia often sounds more courteous in formal rooms. Argentina often sounds more direct. Neither is rude by default.' },
     ],
     'caribbean|spain': [
-      'guagua (Caribbean) does not exist in Spain; use autobús.',
-      'usted very frequent in Caribbean vs tú in Spain.',
-      'Caribbean speed/elision vs fuller articulation in many Peninsular contexts.',
+      { point: 'guagua is not a Spanish word in Spain.',
+        local: { from: 'Espero la guagua.', to: 'Espero el autobús.' },
+        formal: { from: 'Esperaré el autobús.', to: 'Esperaré el autobús.' } },
+      { point: 'usted is everyday in much of the Caribbean; tú is the default informal in Spain.',
+        local: { from: '¿Cómo está usted, mi amor?', to: '¿Cómo estás?' },
+        formal: { from: '¿Cómo está usted?', to: '¿Cómo está usted?' } },
     ],
     'caribbean|andean': [
-      'usted in both, for different reasons (Caribbean habit vs Andean courtesy).',
-      'Shared vocabulary in many areas, but different rhythm.',
+      { point: 'usted in both, for different reasons: Caribbean habit vs Andean courtesy.',
+        local: { from: 'Pase usted. Tomamos la guagua.', to: 'Pase usted. Está chévere.' },
+        formal: { from: 'Pase usted, por favor.', to: 'Pase usted, por favor.' } },
     ],
     'andean|spain': [
-      'Extended usted in Colombia can surprise Peninsular speakers.',
-      'celular vs móvil. carro vs coche.',
-      'High Andean formality in professional contexts.',
+      { point: 'Extended usted in Colombia can surprise Peninsular speakers.',
+        local: { from: 'Hijo, ¿cómo está usted?', to: 'Hijo, ¿cómo estás?' },
+        formal: { from: '¿Cómo está usted?', to: '¿Cómo está usted?' } },
+      { point: 'Phone and car.',
+        local: { from: 'El celular está en el carro.', to: 'El móvil está en el coche.' },
+        formal: { from: 'El teléfono está en el automóvil.', to: 'El teléfono está en el automóvil.' } },
     ],
   },
   es: {
     'mexico|rioplatense': [
-      'Tú vs vos: en Argentina/Uruguay espera «vos hablás», no «tú hablas».',
-      'Carro (MX) → auto (AR). Camión (MX) → colectivo/bondi (AR).',
-      'Plata (ambos) pero guita es muy argentino.',
-      'No corrijas el voseo. Es estándar, no es informal incorrecto.',
+      { point: 'Tú vs vos. El voseo es estándar en Argentina y Uruguay, no es habla descuidada.',
+        local: { from: '¿Cómo estás? ¿Tú tienes tiempo?', to: '¿Cómo andás? ¿Vos tenés tiempo?' },
+        formal: { from: '¿Cómo está usted? ¿Dispone de un momento?', to: '¿Cómo está usted? ¿Dispone de un momento?' },
+        note: 'En un tribunal o una clínica, ambas regiones pasan a usted. No “corrijas” el vos en la voz del hablante.' },
+      { point: 'Coche y autobús.',
+        local: { from: 'Voy en el carro. Tomo el camión.', to: 'Voy en el auto. Tomo el bondi / colectivo.' },
+        formal: { from: 'Viajaré en automóvil. Tomaré el autobús.', to: 'Viajaré en automóvil. Tomaré el colectivo.' } },
+      { point: 'Dinero. plata es compartida; guita es muy argentina.',
+        local: { from: 'No tengo lana / plata.', to: 'No tengo guita / plata.' },
+        formal: { from: 'No dispongo del importe.', to: 'No dispongo del importe.' } },
     ],
     'mexico|spain': [
-      'Carro → coche. Computadora → ordenador. Celular → móvil.',
-      'Manejar → conducir. Ustedes (MX) vs vosotros (ES) en plural informal.',
-      'Evita «coger» al hablar con mexicanos si puedes decir «tomar» o «agarrar».',
-      'Popote (MX) no se entiende en España; di «pajita» o «cañita».',
+      { point: 'Los objetos cotidianos cambian de nombre. El español formal suele elegir la palabra más internacional.',
+        local: { from: 'El carro, la computadora, el celular, el popote.', to: 'El coche, el ordenador, el móvil, la pajita.' },
+        formal: { from: 'El automóvil, el equipo informático, el teléfono móvil.', to: 'El automóvil, el equipo informático, el teléfono móvil.' } },
+      { point: 'Plural informal: ustedes en México, vosotros en España.',
+        local: { from: '¿Ustedes vienen?', to: '¿Vosotros venís?' },
+        formal: { from: '¿Ustedes van a asistir?', to: '¿Ustedes van a asistir?' },
+        note: 'En un expediente, ustedes es seguro hacia los dos lados.' },
+      { point: 'coger es neutral en España y vulgar en gran parte de Latinoamérica.',
+        local: { from: 'Voy a tomar / agarrar el camión.', to: 'Voy a coger el autobús.' },
+        formal: { from: 'Tomaré el autobús.', to: 'Tomaré el autobús.' } },
     ],
     'mexico|caribbean': [
-      'Usted más extendido en el Caribe, incluso en contextos que en México serían tú.',
-      'Camión (MX) = autobús; guagua (Caribe) = autobús.',
-      'Ritmo más rápido y elisión de -s en el Caribe. No es «mala pronunciación».',
-      'Apartamento (Caribe) vs departamento (MX): misma idea, distinta palabra.',
+      { point: 'usted es más común en el Caribe, incluso donde México usaría tú.',
+        local: { from: '¿Cómo estás, amigo?', to: '¿Cómo está usted?' },
+        formal: { from: '¿Cómo está usted?', to: '¿Cómo está usted?' } },
+      { point: 'Autobús y vivienda.',
+        local: { from: 'Tomo el camión. Vivo en un departamento.', to: 'Tomo la guagua. Vivo en un apartamento.' },
+        formal: { from: 'Tomaré el autobús. Resido en un departamento.', to: 'Tomaré el autobús. Resido en un apartamento.' } },
+      { point: 'El ritmo caribeño y la -s aspirada son dialecto, no error.',
+        local: { from: 'Estamos listos.', to: 'Ehtamo lihto. (rápido, -s aspirada)' },
+        formal: { from: 'Estamos listos.', to: 'Estamos listos.' },
+        note: 'Interpreta el significado. No “restaures” cada -s en cabina si el sentido es claro.' },
     ],
     'mexico|andean': [
-      'En Colombia, usted con familia es normal. No lo interpretes como frialdad.',
-      'Chévere, bacano, parce (Colombia) son cotidianos.',
-      'Vocabulario muy parecido al mexicano en lo general, pero ojo con falsos amigos locales.',
+      { point: 'En Colombia, usted con familia es costumbre, no frialdad.',
+        local: { from: 'Mamá, ¿cómo estás?', to: 'Mamá, ¿cómo está usted?' },
+        formal: { from: 'Señora, ¿cómo está usted?', to: 'Señora, ¿cómo está usted?' } },
+      { point: 'Afirmaciones coloquiales.',
+        local: { from: 'Sale. ¿Qué onda, carnal?', to: 'Listo, parce. Está chévere / bacano.' },
+        formal: { from: 'De acuerdo.', to: 'De acuerdo.' } },
     ],
     'rioplatense|spain': [
-      'Vos vs tú/vosotros: sistemas pronominales distintos.',
-      'Auto vs coche. Celular vs móvil.',
-      'Concha: cuidado con contexto (insulto en Rioplatense).',
-      'Yeísmo rehilado argentino puede sonar unfamiliar para oídos peninsulares.',
+      { point: 'Sistemas pronominales distintos: vos vs tú / vosotros.',
+        local: { from: 'Vos hablás muy bien.', to: 'Tú hablas muy bien. / Vosotros habláis muy bien.' },
+        formal: { from: 'Usted habla con claridad.', to: 'Usted habla con claridad.' } },
+      { point: 'Coche y teléfono.',
+        local: { from: 'Dejé el celular en el auto.', to: 'Dejé el móvil en el coche.' },
+        formal: { from: 'Dejé el teléfono en el automóvil.', to: 'Dejé el teléfono en el automóvil.' } },
+      { point: 'concha es una concha marina en algunos países y un insulto fuerte en Rioplatense.',
+        local: { from: 'Cuidado con concha en este registro.', to: 'En España, concha suele ser una concha.' },
+        formal: { from: 'Evita la palabra salvo que el hablante la haya dicho y debas transmitirla.', to: 'Prefiere concha marina si el sentido es una concha.' } },
     ],
     'rioplatense|caribbean': [
-      'Vos (AR) vs tú/usted (Caribe): diferencia grande en trato.',
-      'Guagua (Caribe) vs bondi/colectivo (AR).',
-      'Ritmo y elisión caribeña vs entonación rioplatense.',
+      { point: 'Trato: vos vs tú / usted.',
+        local: { from: 'Che, ¿cómo andás?', to: '¿Cómo está usted? / ¿Cómo tú estás?' },
+        formal: { from: '¿Cómo está usted?', to: '¿Cómo está usted?' } },
+      { point: 'Autobús.',
+        local: { from: 'Tomo el bondi.', to: 'Tomo la guagua.' },
+        formal: { from: 'Tomaré el colectivo.', to: 'Tomaré el autobús.' } },
     ],
     'rioplatense|andean': [
-      'Vos (AR) vs tú/usted (Andes, especialmente Colombia con usted familiar).',
-      'Registro: Colombia muy cortés en formal; Argentina más directa en comparación.',
-      'Plata en ambos; vocabulario local distinto (che vs parce/chévere).',
+      { point: 'vos vs usted familiar en Colombia.',
+        local: { from: 'Vos tenés razón, che.', to: 'Usted tiene razón, parce.' },
+        formal: { from: 'Usted tiene razón.', to: 'Usted tiene razón.' },
+        note: 'Colombia suele sonar más cortés en salas formales. Argentina suele sonar más directa. Ninguna es grosera por defecto.' },
     ],
     'caribbean|spain': [
-      'Guagua (Caribe) no existe en España; autobús.',
-      'Usted muy frecuente en Caribe vs tú en España.',
-      'Velocidad y elisión caribeña vs articulación más plena en muchos contextos peninsulares.',
+      { point: 'guagua no es una palabra de España.',
+        local: { from: 'Espero la guagua.', to: 'Espero el autobús.' },
+        formal: { from: 'Esperaré el autobús.', to: 'Esperaré el autobús.' } },
+      { point: 'usted es cotidiano en gran parte del Caribe; tú es el informal por defecto en España.',
+        local: { from: '¿Cómo está usted, mi amor?', to: '¿Cómo estás?' },
+        formal: { from: '¿Cómo está usted?', to: '¿Cómo está usted?' } },
     ],
     'caribbean|andean': [
-      'Usted en ambos, pero por razones distintas (costumbre caribeña vs cortesía andina).',
-      'Vocabulario compartido en muchas zonas pero ritmo diferente.',
+      { point: 'usted en ambos, por razones distintas: costumbre caribeña vs cortesía andina.',
+        local: { from: 'Pase usted. Tomamos la guagua.', to: 'Pase usted. Está chévere.' },
+        formal: { from: 'Pase usted, por favor.', to: 'Pase usted, por favor.' } },
     ],
     'andean|spain': [
-      'Usted extendido en Colombia puede sorprender a hablantes peninsulares.',
-      'Celular vs móvil. Carro vs coche.',
-      'Formalidad andina alta en contextos profesionales.',
+      { point: 'El usted extendido en Colombia puede sorprender a hablantes peninsulares.',
+        local: { from: 'Hijo, ¿cómo está usted?', to: 'Hijo, ¿cómo estás?' },
+        formal: { from: '¿Cómo está usted?', to: '¿Cómo está usted?' } },
+      { point: 'Teléfono y coche.',
+        local: { from: 'El celular está en el carro.', to: 'El móvil está en el coche.' },
+        formal: { from: 'El teléfono está en el automóvil.', to: 'El teléfono está en el automóvil.' } },
     ],
   },
 };
@@ -384,12 +481,12 @@ function guideLang() {
 
 function pairKey(a, b) {
   if (!a || !b || a === b) return null;
-  const k1 = `${a}|${b}`;
-  const k2 = `${b}|${a}`;
+  const k1 = a + '|' + b;
+  const k2 = b + '|' + a;
   const pack = PAIR_INSIGHTS[guideLang()];
-  if (pack[k1]) return { key: k1, reverse: false };
-  if (pack[k2]) return { key: k2, reverse: true };
-  return { key: k1, reverse: false, fallback: true };
+  if (pack[k1]) return { key: k1 };
+  if (pack[k2]) return { key: k2 };
+  return { key: k1, fallback: true };
 }
 
 const fromSel = document.getElementById('fromRegion');
@@ -403,17 +500,18 @@ function updatePair() {
   const to = toSel.value;
   const lang = guideLang();
   const names = REGION_NAMES[lang];
+  const labels = PAIR_LABELS[lang];
   if (!from || !to) {
     result.classList.remove('visible');
     return;
   }
   if (from === to) {
     title.textContent = lang === 'es'
-      ? `Ambos hablan como en ${names[from]}`
-      : `Both speak like people from ${names[from]}`;
+      ? 'Ambos hablan como en ' + names[from]
+      : 'Both speak like people from ' + names[from];
     list.innerHTML = lang === 'es'
-      ? '<li>Misma región: el vocabulario y el trato suelen coincidir. Revisa «Palabras trampa» si hay generación o país específico dentro de la zona.</li>'
-      : '<li>Same region: vocabulary and address usually align. Check Trap words if a specific country inside the zone matters.</li>';
+      ? '<li>Misma región: el vocabulario y el trato suelen coincidir. Revisa «Palabras trampa» si un país dentro de la zona cambia el registro (vos en Centroamérica, usted familiar en Colombia).</li>'
+      : '<li>Same region: vocabulary and address usually align. Check Trap words if a country inside the zone changes register (vos in Central America, familiar usted in Colombia).</li>';
     result.classList.add('visible');
     return;
   }
@@ -421,19 +519,17 @@ function updatePair() {
   let items = PAIR_INSIGHTS[lang][pk.key];
   if (!items || pk.fallback) {
     items = lang === 'es' ? [
-      `Contraste ${names[from]} ↔ ${names[to]}: revisa las tablas de pronombres y vocabulario.`,
-      'Compara «carro/auto/coche», «camión/guagua/colectivo», y tú/vos/usted.',
-      'En duda, adapta tu salida al registro del hablante, no al tuyo.',
-      'Consulta «Palabras trampa» antes de usar palabras que pueden sonar neutras en tu país.',
+      { point: 'Contraste ' + names[from] + ' ↔ ' + names[to] + ': revisa pronombres y vocabulario.',
+        local: { from: 'carro / camión / tú', to: 'auto / guagua / vos o usted' },
+        formal: { from: 'automóvil / autobús / usted', to: 'automóvil / autobús / usted' } },
     ] : [
-      `Contrast ${names[from]} ↔ ${names[to]}: check the pronoun and vocabulary tables.`,
-      'Compare carro/auto/coche, camión/guagua/colectivo, and tú/vos/usted.',
-      'When unsure, match your output to the speaker\'s register, not yours.',
-      'Check Trap words before using a word that feels neutral in your country.',
+      { point: 'Contrast ' + names[from] + ' ↔ ' + names[to] + ': check pronouns and vocabulary.',
+        local: { from: 'carro / camión / tú', to: 'auto /  guagua / vos or usted' },
+        formal: { from: 'automóvil / autobús / usted', to: 'automóvil / autobús / usted' } },
     ];
   }
-  title.textContent = `${names[from]} → ${names[to]}`;
-  list.innerHTML = items.map(i => `<li>${i}</li>`).join('');
+  title.textContent = names[from] + ' → ' + names[to];
+  list.innerHTML = DialectCompare.renderPairItems(items, labels, names[from], names[to]);
   result.classList.add('visible');
 }
 

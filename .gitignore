@@ -37,6 +37,7 @@ training/.llama.cpp/
 training/.llama-bin/
 *.gguf
 android/app/src/main/assets/models/*.gguf
+android/app/src/debug/assets/models/*.gguf
 android/parlance_models/src/main/assets/*.gguf
 
 # Xcode DerivedData / SourcePackages archives (xcodebuild -resultBundlePath, CI artifacts)
@@ -62,6 +63,7 @@ android/keystore.properties
 android/play-service-account.json
 android/fastlane/report.xml
 android/fastlane/README.md
+fastlane/report.xml
 android/.gradle/
 android/app/build/
 android/build/

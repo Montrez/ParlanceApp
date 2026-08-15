@@ -70,6 +70,8 @@
 		8EC53A0A681D4DC4A50FC8A8 /* domain-medical.html in Resources */ = {isa = PBXBuildFile; fileRef = 64A289553972460C9833426C /* domain-medical.html */; };
 		3A711952A45D4632BBAD77BB /* domain-legal.html in Resources */ = {isa = PBXBuildFile; fileRef = 5087EB470E814C3D851A57F4 /* domain-legal.html */; };
 		C8645D8ACCB64040A5D83F1F /* coach-rules-en.js in Resources */ = {isa = PBXBuildFile; fileRef = 1CB9E65407CC4B2FBAD0DF20 /* coach-rules-en.js */; };
+		4C7CB7CAE79B4ADFBA91D883 /* dialect-compare.js in Resources */ = {isa = PBXBuildFile; fileRef = 7AE6180B949A4C38B6B575E2 /* dialect-compare.js */; };
+		E9B1E4BDB96942768C3FE309 /* dialect-en-pairs.js in Resources */ = {isa = PBXBuildFile; fileRef = 3071D890D0B54EDC938AB416 /* dialect-en-pairs.js */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -133,6 +135,8 @@
 		64A289553972460C9833426C /* domain-medical.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "domain-medical.html"; sourceTree = "<group>"; };
 		5087EB470E814C3D851A57F4 /* domain-legal.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "domain-legal.html"; sourceTree = "<group>"; };
 		1CB9E65407CC4B2FBAD0DF20 /* coach-rules-en.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "coach-rules-en.js"; sourceTree = "<group>"; };
+		7AE6180B949A4C38B6B575E2 /* dialect-compare.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "dialect-compare.js"; sourceTree = "<group>"; };
+		3071D890D0B54EDC938AB416 /* dialect-en-pairs.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "dialect-en-pairs.js"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -247,6 +251,8 @@
 				64A289553972460C9833426C /* domain-medical.html */,
 				5087EB470E814C3D851A57F4 /* domain-legal.html */,
 				1CB9E65407CC4B2FBAD0DF20 /* coach-rules-en.js */,
+				7AE6180B949A4C38B6B575E2 /* dialect-compare.js */,
+				3071D890D0B54EDC938AB416 /* dialect-en-pairs.js */,
 			);
 			path = web;
 			sourceTree = "<group>";
@@ -367,6 +373,8 @@
 				8EC53A0A681D4DC4A50FC8A8 /* domain-medical.html in Resources */,
 				3A711952A45D4632BBAD77BB /* domain-legal.html in Resources */,
 				C8645D8ACCB64040A5D83F1F /* coach-rules-en.js in Resources */,
+				4C7CB7CAE79B4ADFBA91D883 /* dialect-compare.js in Resources */,
+				E9B1E4BDB96942768C3FE309 /* dialect-en-pairs.js in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -528,7 +536,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = Parlance/Parlance.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 23;
+				CURRENT_PROJECT_VERSION = 27;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 9869W49GYJ;
 				ENABLE_PREVIEWS = YES;
@@ -554,7 +562,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = Parlance/Parlance.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 23;
+				CURRENT_PROJECT_VERSION = 27;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = 9869W49GYJ;
 				ENABLE_PREVIEWS = YES;

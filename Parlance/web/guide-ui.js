@@ -14,8 +14,8 @@
  *
  * 2. Multi (content pages whose audience's interface language can be any of
  *    en/es/fr regardless of what's being taught — e.g. guide-en.html /
- *    dialect-en.html, which teach English contrastively to ES *and* FR L1
- *    speakers, so a binary toggle can't cover both):
+ *    dialect-en.html, which teach English; instruction language follows the
+ *    app UI, so a binary toggle can't cover Spanish and French):
  *      <h1 data-t-en="English" data-t-es="Inglés" data-t-fr="Anglais"></h1>
  *    GuideUI.init({ langs: ['en','es','fr'], storageKey, titles: {en,es,fr} })
  *    Untranslated elements fall back to data-t-en.

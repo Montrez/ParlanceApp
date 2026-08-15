@@ -922,6 +922,21 @@ header {
 .plus-status-list.is-active .plus-status-mark {
   color: var(--green);
 }
+.plus-status-toggle {
+  display: inline-block;
+  margin: 0 0 0.65rem;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-family: inherit;
+  font-size: 0.86rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.plus-status-toggle[hidden] {
+  display: none;
+}
 .plus-status-actions {
   display: flex;
   flex-direction: column;

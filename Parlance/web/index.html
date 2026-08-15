@@ -6,7 +6,7 @@
 <title>Parlance</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Spectral:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css?v=1">
-<link rel="stylesheet" href="styles.css?v=20">
+<link rel="stylesheet" href="styles.css?v=21">
 </head>
 <body>
 
@@ -111,7 +111,7 @@
         <button type="button" class="guide-picker-card" onclick="openGuideOverlay('dialect')">
           <span class="guide-picker-icon">🌎</span>
           <span class="guide-picker-title" data-i18n="dialectGuideTitle">Regional Guide</span>
-          <span class="guide-picker-desc" data-i18n="dialectGuideDesc">Regional vocabulary, pronouns, and words to know.</span>
+          <span class="guide-picker-desc" data-i18n="dialectGuideDesc">Compare regions. Local speech next to the formal line, including English-speaking countries.</span>
         </button>
         <button type="button" class="guide-picker-card" onclick="openGuideOverlay('medical')">
           <span class="guide-picker-icon">🩺</span>
@@ -229,12 +229,15 @@
       <div class="settings-section" id="plusStatusSection">
         <div class="settings-label" data-i18n="plusStatusTitle">Your Parlance Plus</div>
         <p class="settings-hint" id="plusStatusLead" data-i18n="plusStatusLeadLocked">Parlance Plus unlocks domain guides and unlimited cloud coaching.</p>
-        <ul class="plus-status-list" id="plusStatusList">
-          <li><span class="plus-status-mark" data-plus-mark></span><span data-i18n="plusBenefitUnlimited">Unlimited cloud AI coaching — no monthly cap</span></li>
-          <li><span class="plus-status-mark" data-plus-mark></span><span data-i18n="plusBenefitMedical">Medical interpreting guide — clinical vocabulary, register, and ethics</span></li>
-          <li><span class="plus-status-mark" data-plus-mark></span><span data-i18n="plusBenefitLegal">Legal interpreting guide — court roles, rights language, and protocol</span></li>
-          <li><span class="plus-status-mark" data-plus-mark></span><span data-i18n="plusBenefitRag">Coach adds medical or legal context when a journal sentence uses those terms</span></li>
-        </ul>
+        <button type="button" class="plus-status-toggle" id="plusStatusToggle" onclick="togglePlusStatusDetails()" data-i18n="plusStatusSeeFeatures">See what's included</button>
+        <div id="plusStatusDetails" hidden>
+          <ul class="plus-status-list" id="plusStatusList">
+            <li><span class="plus-status-mark" data-plus-mark></span><span data-i18n="plusBenefitUnlimited">Unlimited cloud AI coaching — no monthly cap</span></li>
+            <li><span class="plus-status-mark" data-plus-mark></span><span data-i18n="plusBenefitMedical">Medical interpreting guide — clinical vocabulary, register, and ethics</span></li>
+            <li><span class="plus-status-mark" data-plus-mark></span><span data-i18n="plusBenefitLegal">Legal interpreting guide — court roles, rights language, and protocol</span></li>
+            <li><span class="plus-status-mark" data-plus-mark></span><span data-i18n="plusBenefitRag">Coach adds medical or legal context when a journal sentence uses those terms</span></li>
+          </ul>
+        </div>
         <div class="plus-status-actions" id="plusStatusActions" style="display:none">
           <button type="button" class="auth-btn" onclick="triggerPlusPurchase()" data-i18n="plusPaywallSubscribe">Subscribe to Parlance Plus</button>
           <button type="button" class="auth-btn auth-btn-outline" onclick="triggerPlusRestore()" data-i18n="plusPaywallRestore">Restore purchase</button>
@@ -307,6 +310,6 @@
 <script src="coach-rules-fr.js?v=14"></script>
 <script src="coach-rules-engine.js?v=14"></script>
 <script src="feedback-sanitize.js?v=14"></script>
-<script src="journal.js?v=20"></script>
+<script src="journal.js?v=23"></script>
 </body>
 </html>

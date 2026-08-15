@@ -25,7 +25,7 @@ Practice language (what the user writes: ES/FR) ≠ interface language
 | Journal, settings, toasts, waiting hints | `Parlance/web/locales/{en,es,fr}.json` | `data-i18n` / `data-i18n-html` / `data-i18n-placeholder` / `data-i18n-title` or `i18n.t('key')` |
 | Offline fallback | `i18n.js` `_embedded` | **Generated** — never hand-edit |
 | Dialect/guide bilingual or trilingual body/chrome | One DOM node with `data-t-en` + `data-t-native` (2-way) or `data-t-en`/`data-t-es`/`data-t-fr` (3-way, `-html` variants too) | `guide-ui.js` fills on language change |
-| GitHub Pages | `docs/` | Must stay byte-identical to `Parlance/web/` for shared assets |
+| GitHub Pages | `docs/` (generated) | `python3 scripts/sync_web.py` from `Parlance/web/` |
 | Xcode bundle | `project.pbxproj` | New web files via `scripts/xcode_add_web_resources.py` |
 
 ## Mandatory checklist (every UI-string change)
@@ -41,7 +41,7 @@ i18n progress:
 - [ ] python3 scripts/sync_i18n_embedded.py
 - [ ] python3 scripts/check_i18n.py  (must exit 0)
 - [ ] python3 scripts/check_guide_i18n.py  (must exit 0)
-- [ ] Mirrored changed files into docs/
+- [ ] python3 scripts/sync_web.py
 - [ ] If new .js/.html under Parlance/web/: python3 scripts/xcode_add_web_resources.py <file>
 ```
 
@@ -59,10 +59,8 @@ python3 scripts/check_i18n.py
 # Guard against un-wired guide pages + Parlance/web <-> docs/ drift
 python3 scripts/check_guide_i18n.py
 
-# Mirror (example — sync every file you touched)
-cp Parlance/web/locales/*.json docs/locales/
-cp Parlance/web/i18n.js docs/i18n.js
-# …and any other edited Parlance/web/* twin under docs/
+# Pages twin (never hand-edit docs/ for app UI)
+python3 scripts/sync_web.py
 ```
 
 ## How to add a string
@@ -135,13 +133,15 @@ python3 scripts/convert_dialect_bilingual.py
 Parent journal must keep passing `?ui=` / `?theme=` and posting
 `{ type: 'parlanceGuideEnv', ui, theme }` when UI language or theme changes.
 
-### Content pages whose audience isn't binary (e.g. teaching English to both
-### ES and FR L1 speakers): use `langs` mode, not `nativeLang`
+### Content pages whose audience isn't binary (English guide, medical, legal):
+### use `langs` mode, not `nativeLang`
 
 `nativeLang` only toggles EN vs. one other language — wrong for pages like
 `guide-en.html` / `dialect-en.html` / `domain-medical.html` /
 `domain-legal.html`, where the interface language can be en **or** es **or**
-fr regardless of what's being taught. Use three-way attributes instead:
+fr regardless of what's being taught. The English grammar guide teaches
+English; instruction language follows the app UI (Spanish UI = Spanish
+instructions, French UI = French instructions). Use three-way attributes:
 
 ```html
 <h1 data-t-en="English" data-t-es="Inglés" data-t-fr="Anglais">English</h1>
@@ -184,7 +184,7 @@ Practice languages (new writing language) use `ADDING_A_LANGUAGE.md` /
 - Updating one locale file only
 - Hardcoding toast/button copy in `journal.js` while locales already have a key
 - Dual HTML for EN/native on dialect pages
-- Editing `docs/` without `Parlance/web/` (or the reverse)
+- Editing `docs/` for app UI. Edit `Parlance/web/` and run `sync_web.py`.
 - Hand-editing `i18n.js` `_embedded`
 - Fixing “Feedback stays English” by changing the HTML default text without a locale key + `data-i18n`
 - Shipping without `check_i18n.py` exit 0

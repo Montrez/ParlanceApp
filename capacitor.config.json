@@ -1,7 +1,7 @@
 {
   "appId": "com.parlance.interpreterguide",
   "appName": "Parlance",
-  "webDir": "docs",
+  "webDir": "Parlance/web",
   "backgroundColor": "#faf7f2",
   "android": {
     "allowMixedContent": true,

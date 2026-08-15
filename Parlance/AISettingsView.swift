@@ -11,6 +11,7 @@ struct AISettingsView: View {
     @State private var showKeySaved = false
     @ObservedObject private var storeKit = StoreKitManager.shared
     @State private var plusBusy = false
+    @State private var plusDetailsOpen = false
 
     var body: some View {
         NavigationStack {
@@ -81,13 +82,13 @@ struct AISettingsView: View {
                 .font(.subheadline)
                 .foregroundStyle(Color.secondary)
 
-            ForEach(plusBenefits, id: \.self) { benefit in
-                HStack(alignment: .top, spacing: 10) {
-                    Text(storeKit.isPlusActive ? "Included" : "Locked")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(storeKit.isPlusActive ? Color.green : Color.secondary)
-                        .frame(width: 64, alignment: .leading)
-                    Text(benefit)
+            if storeKit.isPlusActive {
+                plusBenefitList
+            } else {
+                DisclosureGroup(isExpanded: $plusDetailsOpen) {
+                    plusBenefitList
+                } label: {
+                    Text("See what's included")
                         .font(.subheadline)
                 }
             }
@@ -113,6 +114,19 @@ struct AISettingsView: View {
             }
         } header: {
             Text("Your Parlance Plus")
+        }
+    }
+
+    private var plusBenefitList: some View {
+        ForEach(plusBenefits, id: \.self) { benefit in
+            HStack(alignment: .top, spacing: 10) {
+                Text(storeKit.isPlusActive ? "Included" : "Locked")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(storeKit.isPlusActive ? Color.green : Color.secondary)
+                    .frame(width: 64, alignment: .leading)
+                Text(benefit)
+                    .font(.subheadline)
+            }
         }
     }
 

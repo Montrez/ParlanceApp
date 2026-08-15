@@ -22,18 +22,19 @@ jobs:
         run: |
           set -euo pipefail
 
+          PLAY_LINK="https://play.google.com/apps/internaltest/4701648803954304490"
           if [ "$PRERELEASE" = "true" ]; then
-            LABEL="TestFlight beta"
+            LABEL="TestFlight and Play beta"
             COLOR=16753920
-            PLATFORM_NOTE="Available now on **TestFlight**. Update in the app or accept the invite."
+            PLATFORM_NOTE="iPhone: **TestFlight**. Android: Play internal testing ${PLAY_LINK}"
           elif [ "$APP_STORE_LIVE" = "true" ]; then
-            LABEL="App Store release"
+            LABEL="Store release"
             COLOR=5763719
-            PLATFORM_NOTE="Available now on the **App Store**. Update in the App Store or search Parlance."
+            PLATFORM_NOTE="iPhone: the **App Store**. Android: Play internal testing ${PLAY_LINK}"
           else
             LABEL="Product update"
             COLOR=5763719
-            PLATFORM_NOTE="Available now on **GitHub Pages**: https://montrez.github.io/ParlanceApp/. Coming soon to **TestFlight** for iOS users."
+            PLATFORM_NOTE="iPhone: **TestFlight**. Android: Play internal testing ${PLAY_LINK}. Web: https://montrez.github.io/ParlanceApp/"
           fi
 
           # Community-facing notes only: drop GitHub/dev sections (Archive, Still open, etc.)

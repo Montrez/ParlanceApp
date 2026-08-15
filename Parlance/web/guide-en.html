@@ -3,10 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>English A1→C2 Guide — for Spanish &amp; French speakers</title>
+<title>English A1→C2 Guide</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="content-theme.css?v=1">
 <link rel="stylesheet" href="content-guide.css?v=3">
+<style>
+  body[data-guide-ui="es"] .l1-fr { display: none !important; }
+  body[data-guide-ui="fr"] .l1-es { display: none !important; }
+</style>
 </head>
 <body class="guide lang-en">
 <div class="layout">
@@ -14,32 +18,72 @@
 <nav class="sidebar">
   <div class="sidebar-logo">
     <h1 data-t-en="English" data-t-es="Inglés" data-t-fr="Anglais">English</h1>
-    <p data-t-en="A1 → C2 · contrastive for ES/FR" data-t-es="A1 → C2 · contrastivo para ES/FR" data-t-fr="A1 → C2 · contrastif pour ES/FR">A1 → C2 · contrastive for ES/FR</p>
+    <p data-t-en="A1 → C2 Deep Reference" data-t-es="Referencia profunda A1 → C2" data-t-fr="Référence approfondie A1 → C2">A1 → C2 Deep Reference</p>
   </div>
 
   <div class="nav-section-label" data-t-en="A1 Foundations" data-t-es="A1 Fundamentos" data-t-fr="A1 Fondamentaux">A1 Foundations</div>
+  <a class="nav-item" href="#be-have"><span data-t-en="Be, have, there is" data-t-es="Be, have, there is" data-t-fr="Be, have, there is">Be, have, there is</span> <span class="nav-badge a1-nav-badge">A1</span></a>
+
   <a class="nav-item" href="#articles"><span data-t-en="Articles (a/an/the)" data-t-es="Artículos (a/an/the)" data-t-fr="Articles (a/an/the)">Articles (a/an/the)</span> <span class="nav-badge a1-nav-badge">A1</span></a>
+
   <a class="nav-item" href="#present"><span data-t-en="Present simple vs continuous" data-t-es="Presente simple vs continuo" data-t-fr="Présent simple vs continu">Present simple vs continuous</span> <span class="nav-badge a1-nav-badge">A1</span></a>
-  <a class="nav-item" href="#do-support"><span data-t-en="Do-support &amp; questions" data-t-es="Do-support y preguntas" data-t-fr="Do-support et questions">Do-support &amp; questions</span> <span class="nav-badge a1-nav-badge">A1</span></a>
+
+  <a class="nav-item" href="#do-support"><span data-t-en="Questions and negation" data-t-es="Preguntas y negación" data-t-fr="Questions et négation">Questions and negation</span> <span class="nav-badge a1-nav-badge">A1</span></a>
+
+  <a class="nav-item" href="#pronouns"><span data-t-en="Pronouns and possessives" data-t-es="Pronombres y posesivos" data-t-fr="Pronoms et possessifs">Pronouns and possessives</span> <span class="nav-badge a1-nav-badge">A1</span></a>
+
+  <a class="nav-item" href="#plurals"><span data-t-en="Plurals and demonstratives" data-t-es="Plurales y demostrativos" data-t-fr="Pluriels et démonstratifs">Plurals and demonstratives</span> <span class="nav-badge a1-nav-badge">A1</span></a>
+
 
   <div class="nav-section-label" style="margin-top:0.5rem" data-t-en="A2 Building Blocks" data-t-es="A2 Bloques básicos" data-t-fr="A2 Éléments de base">A2 Building Blocks</div>
   <a class="nav-item" href="#past"><span data-t-en="Past simple vs present perfect" data-t-es="Pasado simple vs presente perfecto" data-t-fr="Passé simple vs present perfect">Past simple vs present perfect</span> <span class="nav-badge a2-nav-badge">A2</span></a>
-  <a class="nav-item" href="#countable"><span data-t-en="Countable / uncountable" data-t-es="Contable / incontable" data-t-fr="Dénombrable / indénombrable">Countable / uncountable</span> <span class="nav-badge a2-nav-badge">A2</span></a>
-  <a class="nav-item" href="#prepositions"><span data-t-en="Prepositions (ES/FR traps)" data-t-es="Preposiciones (trampas ES/FR)" data-t-fr="Prépositions (pièges ES/FR)">Prepositions (ES/FR traps)</span> <span class="nav-badge a2-nav-badge">A2</span></a>
 
-  <div class="nav-section-label" style="margin-top:0.5rem">B1</div>
+  <a class="nav-item" href="#countable"><span data-t-en="Countable / uncountable" data-t-es="Contable / incontable" data-t-fr="Dénombrable / indénombrable">Countable / uncountable</span> <span class="nav-badge a2-nav-badge">A2</span></a>
+
+  <a class="nav-item" href="#prepositions"><span data-t-en="Prepositions" data-t-es="Preposiciones" data-t-fr="Prépositions">Prepositions</span> <span class="nav-badge a2-nav-badge">A2</span></a>
+
+  <a class="nav-item" href="#future"><span data-t-en="Will, going to, present" data-t-es="Will, going to, presente" data-t-fr="Will, going to, présent">Will, going to, present</span> <span class="nav-badge a2-nav-badge">A2</span></a>
+
+  <a class="nav-item" href="#comparatives"><span data-t-en="Comparatives and superlatives" data-t-es="Comparativos y superlativos" data-t-fr="Comparatifs et superlatifs">Comparatives and superlatives</span> <span class="nav-badge a2-nav-badge">A2</span></a>
+
+
+  <div class="nav-section-label" style="margin-top:0.5rem" data-t-en="B1 Tenses" data-t-es="B1 Tiempos" data-t-fr="B1 Temps">B1</div>
   <a class="nav-item" href="#conditionals"><span data-t-en="Conditionals" data-t-es="Condicionales" data-t-fr="Conditionnels">Conditionals</span> <span class="nav-badge b1-nav-badge">B1</span></a>
+
   <a class="nav-item" href="#modals"><span data-t-en="Modals" data-t-es="Verbos modales" data-t-fr="Verbes modaux">Modals</span> <span class="nav-badge b1-nav-badge">B1</span></a>
+
   <a class="nav-item" href="#gerund-inf"><span data-t-en="Gerund vs infinitive" data-t-es="Gerundio vs infinitivo" data-t-fr="Gérondif vs infinitif">Gerund vs infinitive</span> <span class="nav-badge b1-nav-badge">B1</span></a>
 
-  <div class="nav-section-label" style="margin-top:0.5rem">B2</div>
-  <a class="nav-item" href="#passive"><span data-t-en="Passive voice" data-t-es="Voz pasiva" data-t-fr="Voix passive">Passive voice</span> <span class="nav-badge b2-nav-badge">B2</span></a>
-  <a class="nav-item" href="#phrasal"><span data-t-en="Phrasal verbs" data-t-es="Verbos frasales" data-t-fr="Verbes à particule">Phrasal verbs</span> <span class="nav-badge b2-nav-badge">B2</span></a>
-  <a class="nav-item" href="#false-friends"><span data-t-en="False friends (ES / FR)" data-t-es="Falsos amigos (ES / FR)" data-t-fr="Faux amis (ES / FR)">False friends (ES / FR)</span> <span class="nav-badge b2-nav-badge">B2</span></a>
+  <a class="nav-item" href="#relatives"><span data-t-en="Relative clauses" data-t-es="Oraciones de relativo" data-t-fr="Propositions relatives">Relative clauses</span> <span class="nav-badge b1-nav-badge">B1</span></a>
 
-  <div class="nav-section-label" style="margin-top:0.5rem">C1–C2</div>
+  <a class="nav-item" href="#reported"><span data-t-en="Reported speech" data-t-es="Estilo indirecto" data-t-fr="Discours rapporté">Reported speech</span> <span class="nav-badge b1-nav-badge">B1</span></a>
+
+  <a class="nav-item" href="#used-to"><span data-t-en="Used to / would" data-t-es="Used to / would" data-t-fr="Used to / would">Used to / would</span> <span class="nav-badge b1-nav-badge">B1</span></a>
+
+
+  <div class="nav-section-label" style="margin-top:0.5rem" data-t-en="B2 Tenses" data-t-es="B2 Tiempos" data-t-fr="B2 Temps">B2</div>
+  <a class="nav-item" href="#passive"><span data-t-en="Passive voice" data-t-es="Voz pasiva" data-t-fr="Voix passive">Passive voice</span> <span class="nav-badge b2-nav-badge">B2</span></a>
+
+  <a class="nav-item" href="#phrasal"><span data-t-en="Phrasal verbs" data-t-es="Verbos frasales" data-t-fr="Verbes à particule">Phrasal verbs</span> <span class="nav-badge b2-nav-badge">B2</span></a>
+
+  <a class="nav-item" href="#false-friends"><span data-t-en="False friends" data-t-es="Falsos amigos" data-t-fr="Faux amis">False friends</span> <span class="nav-badge b2-nav-badge">B2</span></a>
+
+  <a class="nav-item" href="#past-perfect"><span data-t-en="Past perfect" data-t-es="Pasado perfecto" data-t-fr="Plus-que-parfait anglais">Past perfect</span> <span class="nav-badge b2-nav-badge">B2</span></a>
+
+  <a class="nav-item" href="#wish"><span data-t-en="Wish / if only" data-t-es="Wish / if only" data-t-fr="Wish / if only">Wish / if only</span> <span class="nav-badge b2-nav-badge">B2</span></a>
+
+
+  <div class="nav-section-label" style="margin-top:0.5rem" data-t-en="C1–C2 Mastery" data-t-es="C1–C2 Dominio" data-t-fr="C1–C2 Maîtrise">C1–C2</div>
   <a class="nav-item" href="#register"><span data-t-en="Professional register" data-t-es="Registro profesional" data-t-fr="Registre professionnel">Professional register</span> <span class="nav-badge c1-nav-badge">C1</span></a>
-  <a class="nav-item" href="#hedging"><span data-t-en="Hedging &amp; cohesion" data-t-es="Matización y cohesión" data-t-fr="Atténuation et cohésion">Hedging &amp; cohesion</span> <span class="nav-badge c2-nav-badge">C2</span></a>
+
+  <a class="nav-item" href="#clefts"><span data-t-en="Clefts and nominalization" data-t-es="Clefts y nominalización" data-t-fr="Clefts et nominalisation">Clefts and nominalization</span> <span class="nav-badge c1-nav-badge">C1</span></a>
+
+  <a class="nav-item" href="#inversion"><span data-t-en="Inversion and emphasis" data-t-es="Inversión y énfasis" data-t-fr="Inversion et emphase">Inversion and emphasis</span> <span class="nav-badge c1-nav-badge">C1</span></a>
+
+  <a class="nav-item" href="#hedging"><span data-t-en="Hedging and cohesion" data-t-es="Matización y cohesión" data-t-fr="Atténuation et cohésion">Hedging and cohesion</span> <span class="nav-badge c2-nav-badge">C2</span></a>
+
+  <a class="nav-item" href="#discourse"><span data-t-en="Discourse and implication" data-t-es="Discurso e implicación" data-t-fr="Discours et implicite">Discourse and implication</span> <span class="nav-badge c2-nav-badge">C2</span></a>
+
 </nav>
 
 <div class="content">
@@ -47,242 +91,1088 @@
 <div class="intro-box">
   <div class="intro-flag">📚</div>
   <div>
-    <div class="intro-title" data-t-en="English for Spanish &amp; French speakers" data-t-es="Inglés para hispanohablantes y francófonos" data-t-fr="Anglais pour hispanophones et francophones">English for Spanish &amp; French speakers</div>
-    <div class="intro-desc" data-t-en="Contrastive rules for interpreters and learners whose L1 is Spanish or French. Each section flags the typical transfer error and the fix." data-t-es="Reglas contrastivas para intérpretes y estudiantes cuya lengua materna es el español o el francés. Cada sección señala el error de transferencia típico y su corrección." data-t-fr="Règles contrastives pour les interprètes et les apprenants dont la langue maternelle est l'espagnol ou le français. Chaque section signale l'erreur de transfert typique et sa correction.">Contrastive rules for interpreters and learners whose L1 is Spanish or French. Each section flags the typical transfer error and the fix.</div>
+    <div class="intro-title" data-t-en="A1 → C2 English Guide" data-t-es="Guía de inglés A1 → C2" data-t-fr="Guide d'anglais A1 → C2">A1 → C2 English Guide</div>
+    <div class="intro-desc" data-t-en="Rules, tables, trigger words, and real examples for every key topic. Open any section in the sidebar to jump there." data-t-es="Reglas, tablas, palabras clave y ejemplos reales para cada tema importante. Abre cualquier sección del menú para ir allí." data-t-fr="Règles, tableaux, mots déclencheurs et exemples concrets pour chaque thème important. Ouvrez une section dans le menu pour y aller.">Rules, tables, trigger words, and real examples for every key topic. Open any section in the sidebar to jump there.</div>
   </div>
 </div>
-
+<section class="tense-section" id="be-have">
+<div class="section-chapter" data-t-en="Essential verbs · A1" data-t-es="Verbos esenciales · A1" data-t-fr="Verbes essentiels · A1">Essential verbs · A1</div>
+<div class="tense-header-row">
+<h2 class="tense-title">Be, have, there is / there are</h2>
+<span class="level-pill a1-pill">A1</span>
+</div>
+<p class="tense-nickname" data-t-en="The first verbs you need in every sentence." data-t-es="Los primeros verbos que necesitas en cada oración." data-t-fr="Les premiers verbes dont vous avez besoin dans chaque phrase.">The first verbs you need in every sentence.</p>
+<div class="rule-box">
+<div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
+<p data-t-en-html="<strong>Be</strong> (am / is / are) names identity, age, nationality, and location with <em>there</em>. <strong>Have</strong> (have / has) shows possession and some states (<em>I have a fever</em>). Use <em>there is</em> (singular) and <em>there are</em> (plural) to introduce something new." data-t-es-html="<strong>Be</strong> (am / is / are) nombra identidad, edad, nacionalidad y ubicación con <em>there</em>. <strong>Have</strong> (have / has) indica posesión y algunos estados (<em>I have a fever</em>). Usa <em>there is</em> (singular) y <em>there are</em> (plural) para presentar algo nuevo." data-t-fr-html="<strong>Be</strong> (am / is / are) nomme l'identité, l'âge, la nationalité et le lieu avec <em>there</em>. <strong>Have</strong> (have / has) marque la possession et certains états (<em>I have a fever</em>). Utilisez <em>there is</em> (singulier) et <em>there are</em> (pluriel) pour présenter quelque chose de nouveau."><strong>Be</strong> (am / is / are) names identity, age, nationality, and location with <em>there</em>. <strong>Have</strong> (have / has) shows possession and some states (<em>I have a fever</em>). Use <em>there is</em> (singular) and <em>there are</em> (plural) to introduce something new.</p>
+</div>
+<div class="conj-grid">
+<div class="conj-block">
+<div class="conj-block-header">be</div>
+<table class="conj-table">
+<tr><td>I</td><td>am</td></tr>
+<tr><td>you / we / they</td><td>are</td></tr>
+<tr><td>he / she / it</td><td>is</td></tr>
+<tr><td>past</td><td>was / were</td></tr>
+<tr><td>negative</td><td>am not / isn't / aren't</td></tr>
+</table>
+</div>
+<div class="conj-block">
+<div class="conj-block-header">have</div>
+<table class="conj-table">
+<tr><td>I / you / we / they</td><td>have</td></tr>
+<tr><td>he / she / it</td><td>has</td></tr>
+<tr><td>past</td><td>had</td></tr>
+<tr><td>negative</td><td>don't have / doesn't have</td></tr>
+<tr><td>there is / are</td><td>There is a form. There are two forms.</td></tr>
+</table>
+</div>
+</div>
+<div class="when-grid">
+<div class="when-card">
+<div class="when-icon">🪪</div>
+<div>
+<div class="when-rule" data-t-en="Identity and age" data-t-es="Identidad y edad" data-t-fr="Identité et âge">Identity and age</div>
+<div class="when-example-native">She is a nurse. I am 34.</div>
+<div class="when-example-en" data-t-en="Use be, not have, for age." data-t-es="Usa be, no have, para la edad." data-t-fr="Utilisez be, pas have, pour l'âge.">Use be, not have, for age.</div>
+</div>
+</div>
+<div class="when-card">
+<div class="when-icon">📍</div>
+<div>
+<div class="when-rule" data-t-en="There is / there are" data-t-es="There is / there are" data-t-fr="There is / there are">There is / there are</div>
+<div class="when-example-native">There is a problem. There are three patients.</div>
+<div class="when-example-en" data-t-en="Introduces new information." data-t-es="Presenta información nueva." data-t-fr="Présente une information nouvelle.">Introduces new information.</div>
+</div>
+</div>
+<div class="when-card">
+<div class="when-icon">🤝</div>
+<div>
+<div class="when-rule" data-t-en="Possession" data-t-es="Posesión" data-t-fr="Possession">Possession</div>
+<div class="when-example-native">They have two children. He has a question.</div>
+<div class="when-example-en" data-t-en="Have / has, not be." data-t-es="Have / has, no be." data-t-fr="Have / has, pas be.">Have / has, not be.</div>
+</div>
+</div>
+<div class="when-card l1-es">
+<div class="when-icon">🚫</div>
+<div>
+<div class="when-rule" data-t-en="Common miss" data-t-es="Error frecuente" data-t-fr="Erreur fréquente">Common miss</div>
+<div class="when-example-native">*I have 20 years. → I am 20. / I am 20 years old.</div>
+<div class="when-example-en" data-t-en="Age uses be." data-t-es="La edad usa be." data-t-fr="L'âge utilise be.">Age uses be.</div>
+</div>
+</div>
+<div class="when-card l1-fr">
+<div class="when-icon">🚫</div>
+<div>
+<div class="when-rule" data-t-en="Common miss" data-t-es="Erreur fréquente" data-t-fr="Erreur fréquente">Common miss</div>
+<div class="when-example-native">*I have 20 years. → I am 20. / I am 20 years old.</div>
+<div class="when-example-en" data-t-en="Age uses be, not avoir." data-t-es="La edad usa be, no avoir." data-t-fr="L'âge utilise be, pas avoir.">Age uses be, not avoir.</div>
+</div>
+</div>
+</div>
+</section>
+<hr class="sec-divider"/>
 <section class="tense-section" id="articles">
-  <div class="section-chapter"><span data-t-en="Articles" data-t-es="Artículos" data-t-fr="Articles">Articles</span> · A1</div>
-  <div class="tense-header-row">
-    <h2 class="tense-title">a / an / the / zero article</h2>
-    <span class="level-pill a1-pill">A1</span>
-  </div>
-  <p class="tense-nickname" data-t-en="English marks definiteness more often than Spanish or French generics." data-t-es="El inglés marca la definitud con más frecuencia que los genéricos del español o el francés." data-t-fr="L'anglais marque la définitude plus souvent que les génériques de l'espagnol ou du français.">English marks definiteness more often than Spanish or French generics.</p>
-  <div class="rule-box">
-    <div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
-    <p data-t-en-html="<strong>a/an</strong> = first mention, one of many. <strong>the</strong> = known, unique, or previously mentioned. <strong>Zero article</strong> with plural/uncountable generics (<em>Dogs bark</em>, <em>Water is essential</em>) — not <em>the dogs bark</em> in general statements." data-t-es-html="<strong>a/an</strong> = primera mención, uno entre varios. <strong>the</strong> = conocido, único o ya mencionado. <strong>Artículo cero</strong> con genéricos plurales/incontables (<em>Dogs bark</em>, <em>Water is essential</em>) — no <em>the dogs bark</em> en afirmaciones generales." data-t-fr-html="<strong>a/an</strong> = première mention, un parmi d'autres. <strong>the</strong> = connu, unique ou déjà mentionné. <strong>Article zéro</strong> avec les génériques pluriels/indénombrables (<em>Dogs bark</em>, <em>Water is essential</em>) — pas <em>the dogs bark</em> dans une affirmation générale.">a/an = first mention, one of many. the = known, unique, or previously mentioned. Zero article with plural/uncountable generics (Dogs bark, Water is essential) — not the dogs bark in general statements.</p>
-  </div>
-  <div class="when-grid">
-    <div class="when-card">
-      <div class="when-icon">🇪🇸</div>
-      <div>
-        <div class="when-rule" data-t-en="From Spanish" data-t-es="Desde el español" data-t-fr="Depuis l'espagnol">From Spanish</div>
-        <div class="when-example-native">Me gusta la música. → I like music. (not *the music* as a general taste)</div>
-        <div class="when-example-en">El paciente tiene fiebre. → The patient has a fever. (countable illness often needs a)</div>
-      </div>
-    </div>
-    <div class="when-card">
-      <div class="when-icon">🇫🇷</div>
-      <div>
-        <div class="when-rule" data-t-en="From French" data-t-es="Desde el francés" data-t-fr="Depuis le français">From French</div>
-        <div class="when-example-native">J’aime le café. → I like coffee. (not *the coffee* for the drink in general)</div>
-        <div class="when-example-en">C’est un problème. → It’s a problem. (keep a/an; don’t drop it)</div>
-      </div>
-    </div>
-  </div>
+<div class="section-chapter" data-t-en="Articles · A1" data-t-es="Artículos · A1" data-t-fr="Articles · A1">Articles · A1</div>
+<div class="tense-header-row">
+<h2 class="tense-title">a / an / the / zero article</h2>
+<span class="level-pill a1-pill">A1</span>
+</div>
+<p class="tense-nickname" data-t-en="English marks definiteness more often than many other languages do with generics." data-t-es="El inglés marca la definitud con más frecuencia que los genéricos del español." data-t-fr="L'anglais marque la définitude plus souvent que les génériques du français.">English marks definiteness more often than many other languages do with generics.</p>
+<div class="rule-box">
+<div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
+<p data-t-en-html="<strong>a/an</strong> = first mention, one of many (<em>an</em> before a vowel sound: <em>an hour, an MRI</em>). <strong>the</strong> = known, unique, or already mentioned. <strong>Zero article</strong> with plural or uncountable generics: <em>Dogs bark. Water is essential.</em> Not <em>the dogs bark</em> for a general truth." data-t-es-html="<strong>a/an</strong> = primera mención, uno entre varios (<em>an</em> ante sonido vocálico: <em>an hour, an MRI</em>). <strong>the</strong> = conocido, único o ya mencionado. <strong>Artículo cero</strong> con genéricos plurales o incontables: <em>Dogs bark. Water is essential.</em> No <em>the dogs bark</em> para una verdad general." data-t-fr-html="<strong>a/an</strong> = première mention, un parmi d'autres (<em>an</em> devant un son voyelle : <em>an hour, an MRI</em>). <strong>the</strong> = connu, unique ou déjà mentionné. <strong>Article zéro</strong> avec les génériques pluriels ou indénombrables : <em>Dogs bark. Water is essential.</em> Pas <em>the dogs bark</em> pour une vérité générale."><strong>a/an</strong> = first mention, one of many (<em>an</em> before a vowel sound: <em>an hour, an MRI</em>). <strong>the</strong> = known, unique, or already mentioned. <strong>Zero article</strong> with plural or uncountable generics: <em>Dogs bark. Water is essential.</em> Not <em>the dogs bark</em> for a general truth.</p>
+</div>
+<div class="irreg-table-wrap">
+<table class="irreg-table" style="border-radius:8px;overflow:hidden">
+<tr><th>Use</th><th>Example</th><th>Not</th></tr>
+<tr><td>a / an</td><td>I need <strong>a</strong> form. She had <strong>an</strong> idea.</td><td>*I need form.</td></tr>
+<tr><td>the (known)</td><td>Please sign <strong>the</strong> form.</td><td>first mention of a random form</td></tr>
+<tr><td>the (unique)</td><td><strong>the</strong> sun, <strong>the</strong> judge, <strong>the</strong> patient</td><td></td></tr>
+<tr><td>zero (generic)</td><td>I like music. Information helps.</td><td>*the music as a general taste</td></tr>
+<tr><td>zero (names, most countries)</td><td>Spain, France, Lake Erie</td><td>the United States, the Netherlands</td></tr>
+</table>
+</div>
+<div class="when-grid">
+<div class="when-card l1-es">
+<div class="when-icon">🇪🇸</div>
+<div>
+<div class="when-rule" data-t-en="From Spanish" data-t-es="Desde el español" data-t-fr="Depuis l'espagnol">From Spanish</div>
+<div class="when-example-native">Me gusta la música. → I like music.</div>
+<div class="when-example-en" data-t-en="Drop the for a general taste." data-t-es="Quita the para un gusto general." data-t-fr="Enlevez the pour un goût général.">Drop the for a general taste.</div>
+</div>
+</div>
+<div class="when-card l1-es">
+<div class="when-icon">🇪🇸</div>
+<div>
+<div class="when-rule" data-t-en="Illness" data-t-es="Enfermedad" data-t-fr="Maladie">Illness</div>
+<div class="when-example-native">El paciente tiene fiebre. → The patient has a fever.</div>
+<div class="when-example-en" data-t-en="Many countable illnesses need a." data-t-es="Muchas enfermedades contables llevan a." data-t-fr="Beaucoup de maladies dénombrables prennent a.">Many countable illnesses need a.</div>
+</div>
+</div>
+<div class="when-card l1-fr">
+<div class="when-icon">🇫🇷</div>
+<div>
+<div class="when-rule" data-t-en="From French" data-t-es="Desde el francés" data-t-fr="Depuis le français">From French</div>
+<div class="when-example-native">J’aime le café. → I like coffee.</div>
+<div class="when-example-en" data-t-en="Not the coffee for the drink in general." data-t-es="No the coffee para la bebida en general." data-t-fr="Pas the coffee pour la boisson en général.">Not the coffee for the drink in general.</div>
+</div>
+</div>
+<div class="when-card l1-fr">
+<div class="when-icon">🇫🇷</div>
+<div>
+<div class="when-rule" data-t-en="Keep a/an" data-t-es="Conserva a/an" data-t-fr="Gardez a/an">Keep a/an</div>
+<div class="when-example-native">C’est un problème. → It’s a problem.</div>
+<div class="when-example-en" data-t-en="Do not drop a/an." data-t-es="No sueltes a/an." data-t-fr="Ne laissez pas tomber a/an.">Do not drop a/an.</div>
+</div>
+</div>
+</div>
+<div class="tip">
+<div class="tip-label" data-t-en="Sound, not spelling" data-t-es="El sonido, no la letra" data-t-fr="Le son, pas la lettre">Sound, not spelling</div>
+<div data-t-en-html="<em>an hour</em> (silent h), <em>a university</em> (you-sound), <em>an MRI</em> (em-sound)." data-t-es-html="<em>an hour</em> (h muda), <em>a university</em> (sonido yu), <em>an MRI</em> (sonido em)." data-t-fr-html="<em>an hour</em> (h muet), <em>a university</em> (son you), <em>an MRI</em> (son em)."><em>an hour</em> (silent h), <em>a university</em> (you-sound), <em>an MRI</em> (em-sound).</div>
+</div>
 </section>
-
+<hr class="sec-divider"/>
 <section class="tense-section" id="present">
-  <div class="section-chapter"><span data-t-en="Present" data-t-es="Presente" data-t-fr="Présent">Present</span> · A1</div>
-  <div class="tense-header-row">
-    <h2 class="tense-title">Present simple vs continuous</h2>
-    <span class="level-pill a1-pill">A1</span>
-  </div>
-  <p class="tense-nickname" data-t-en="Habits and facts vs actions happening now (or temporary)." data-t-es="Hábitos y hechos frente a acciones que ocurren ahora (o son temporales)." data-t-fr="Habitudes et faits par rapport aux actions en cours (ou temporaires).">Habits and facts vs actions happening now (or temporary).</p>
-  <div class="rule-box">
-    <div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
-    <p data-t-en-html="<strong>I work</strong> = habit / job / truth. <strong>I am working</strong> = right now or temporary. Romance speakers often overuse <em>-ing</em> for habits." data-t-es-html="<strong>I work</strong> = hábito / trabajo / verdad general. <strong>I am working</strong> = ahora mismo o algo temporal. Los hablantes de lenguas romances suelen usar <em>-ing</em> en exceso para hábitos." data-t-fr-html="<strong>I work</strong> = habitude / travail / vérité générale. <strong>I am working</strong> = en ce moment ou temporaire. Les francophones et hispanophones surutilisent souvent <em>-ing</em> pour les habitudes.">I work = habit / job / truth. I am working = right now or temporary. Romance speakers often overuse -ing for habits.</p>
-  </div>
-  <div class="trigger-box">
-    <div class="trigger-box-title" data-t-en="Trigger words → simple" data-t-es="Palabras clave → simple" data-t-fr="Mots déclencheurs → simple">Trigger words → simple</div>
-    <div class="trigger-list">
-      <span class="trigger">always</span><span class="trigger">usually</span><span class="trigger">every day</span><span class="trigger">never</span><span class="trigger">often</span>
-    </div>
-  </div>
-  <div class="trigger-box">
-    <div class="trigger-box-title" data-t-en="Trigger words → continuous" data-t-es="Palabras clave → continuo" data-t-fr="Mots déclencheurs → continu">Trigger words → continuous</div>
-    <div class="trigger-list">
-      <span class="trigger">now</span><span class="trigger">right now</span><span class="trigger">at the moment</span><span class="trigger">currently</span><span class="trigger">this week</span>
-    </div>
-  </div>
+<div class="section-chapter" data-t-en="Present · A1" data-t-es="Presente · A1" data-t-fr="Présent · A1">Present · A1</div>
+<div class="tense-header-row">
+<h2 class="tense-title">Present simple vs continuous</h2>
+<span class="level-pill a1-pill">A1</span>
+</div>
+<p class="tense-nickname" data-t-en="Habits and facts vs actions happening now, or temporary." data-t-es="Hábitos y hechos frente a acciones que ocurren ahora, o son temporales." data-t-fr="Habitudes et faits par rapport aux actions en cours, ou temporaires.">Habits and facts vs actions happening now, or temporary.</p>
+<div class="rule-box">
+<div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
+<p data-t-en-html="<strong>I work</strong> = habit, job, or general truth. Add <strong>-s</strong> for he/she/it: <em>She works nights.</em> <strong>I am working</strong> = right now or a temporary situation. Do not use <em>-ing</em> for habits. Stative verbs rarely take <em>-ing</em>: <em>know, want, like, need, believe, belong.</em>" data-t-es-html="<strong>I work</strong> = hábito, trabajo o verdad general. Añade <strong>-s</strong> con he/she/it: <em>She works nights.</em> <strong>I am working</strong> = ahora mismo o una situación temporal. No uses <em>-ing</em> para hábitos. Los verbos de estado casi nunca llevan <em>-ing</em>: <em>know, want, like, need, believe, belong.</em>" data-t-fr-html="<strong>I work</strong> = habitude, métier ou vérité générale. Ajoutez <strong>-s</strong> avec he/she/it : <em>She works nights.</em> <strong>I am working</strong> = en ce moment ou une situation temporaire. N'utilisez pas <em>-ing</em> pour les habitudes. Les verbes d'état prennent rarement <em>-ing</em> : <em>know, want, like, need, believe, belong.</em>"><strong>I work</strong> = habit, job, or general truth. Add <strong>-s</strong> for he/she/it: <em>She works nights.</em> <strong>I am working</strong> = right now or a temporary situation. Do not use <em>-ing</em> for habits. Stative verbs rarely take <em>-ing</em>: <em>know, want, like, need, believe, belong.</em></p>
+</div>
+<div class="conj-grid">
+<div class="conj-block">
+<div class="conj-block-header">present simple · work</div>
+<table class="conj-table">
+<tr><td>I / you / we / they</td><td>work</td></tr>
+<tr><td>he / she / it</td><td>works</td></tr>
+<tr><td>negative</td><td>don't / doesn't work</td></tr>
+<tr><td>question</td><td>Do you work? Does she work?</td></tr>
+</table>
+</div>
+<div class="conj-block">
+<div class="conj-block-header">present continuous · work</div>
+<table class="conj-table">
+<tr><td>I</td><td>am working</td></tr>
+<tr><td>you / we / they</td><td>are working</td></tr>
+<tr><td>he / she / it</td><td>is working</td></tr>
+<tr><td>negative</td><td>isn't / aren't working</td></tr>
+</table>
+</div>
+</div>
+<div class="trigger-box">
+<div class="trigger-box-title" data-t-en="Trigger words → simple" data-t-es="Palabras clave → simple" data-t-fr="Mots déclencheurs → simple">Trigger words → simple</div>
+<div class="trigger-list"><span class="trigger">always</span><span class="trigger">usually</span><span class="trigger">every day</span><span class="trigger">never</span><span class="trigger">often</span><span class="trigger">on Mondays</span></div>
+</div>
+<div class="trigger-box">
+<div class="trigger-box-title" data-t-en="Trigger words → continuous" data-t-es="Palabras clave → continuo" data-t-fr="Mots déclencheurs → continu">Trigger words → continuous</div>
+<div class="trigger-list"><span class="trigger">now</span><span class="trigger">right now</span><span class="trigger">at the moment</span><span class="trigger">currently</span><span class="trigger">this week</span><span class="trigger">today</span></div>
+</div>
+<div class="when-grid">
+<div class="when-card">
+<div class="when-icon">🔁</div>
+<div>
+<div class="when-rule" data-t-en="Habit" data-t-es="Hábito" data-t-fr="Habitude">Habit</div>
+<div class="when-example-native">I take the bus to court.</div>
+<div class="when-example-en" data-t-en="Simple, even if it happens today too." data-t-es="Simple, aunque también ocurra hoy." data-t-fr="Simple, même si cela arrive aussi aujourd'hui.">Simple, even if it happens today too.</div>
+</div>
+</div>
+<div class="when-card">
+<div class="when-icon">⏳</div>
+<div>
+<div class="when-rule" data-t-en="Right now" data-t-es="Ahora mismo" data-t-fr="En ce moment">Right now</div>
+<div class="when-example-native">I am taking the bus because my car is in the shop.</div>
+<div class="when-example-en" data-t-en="Temporary, so continuous." data-t-es="Temporal, por eso continuo." data-t-fr="Temporaire, donc continu.">Temporary, so continuous.</div>
+</div>
+</div>
+<div class="when-card">
+<div class="when-icon">🧠</div>
+<div>
+<div class="when-rule" data-t-en="Stative" data-t-es="Estativo" data-t-fr="Statif">Stative</div>
+<div class="when-example-native">I know the answer. *I am knowing the answer.</div>
+<div class="when-example-en" data-t-en="Know / want / need stay simple." data-t-es="Know / want / need se quedan en simple." data-t-fr="Know / want / need restent au simple.">Know / want / need stay simple.</div>
+</div>
+</div>
+<div class="when-card l1-es">
+<div class="when-icon">🇪🇸</div>
+<div>
+<div class="when-rule" data-t-en="From Spanish" data-t-es="Desde el español" data-t-fr="Depuis l'espagnol">From Spanish</div>
+<div class="when-example-native">*I am working here every day. → I work here every day.</div>
+<div class="when-example-en" data-t-en="Estoy trabajando does not map to -ing for habits." data-t-es="«Estoy trabajando» no equivale a -ing para hábitos." data-t-fr="« Je suis en train de » ne donne pas -ing pour une habitude.">Estoy trabajando does not map to -ing for habits.</div>
+</div>
+</div>
+<div class="when-card l1-fr">
+<div class="when-icon">🇫🇷</div>
+<div>
+<div class="when-rule" data-t-en="From French" data-t-es="Desde el francés" data-t-fr="Depuis le français">From French</div>
+<div class="when-example-native">*I am working here every day. → I work here every day.</div>
+<div class="when-example-en" data-t-en="Je suis en train de is not for habits." data-t-es="«Je suis en train de» no es para hábitos." data-t-fr="« Je suis en train de » n'est pas pour les habitudes.">Je suis en train de is not for habits.</div>
+</div>
+</div>
+</div>
 </section>
-
+<hr class="sec-divider"/>
 <section class="tense-section" id="do-support">
-  <div class="section-chapter"><span data-t-en="Questions &amp; negation" data-t-es="Preguntas y negación" data-t-fr="Questions et négation">Questions &amp; negation</span> · A1</div>
-  <div class="tense-header-row">
-    <h2 class="tense-title">Do-support</h2>
-    <span class="level-pill a1-pill">A1</span>
-  </div>
-  <p class="tense-nickname" data-t-en-html="English needs <em>do/does/did</em> for most questions and negatives in the simple tenses." data-t-es-html="El inglés necesita <em>do/does/did</em> para la mayoría de preguntas y negaciones en los tiempos simples." data-t-fr-html="L'anglais a besoin de <em>do/does/did</em> pour la plupart des questions et négations aux temps simples.">English needs do/does/did for most questions and negatives in the simple tenses.</p>
-  <div class="rule-box">
-    <div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
-    <p data-t-en-html="Questions: <em>Do you speak English?</em> / <em>Does she work here?</em> / <em>Did they arrive?</em> Negatives: <em>I don’t know</em>, <em>She doesn’t live here</em>. Do not calque Spanish/French inversion alone (*Speak you English?*)." data-t-es-html="Preguntas: <em>Do you speak English?</em> / <em>Does she work here?</em> / <em>Did they arrive?</em> Negaciones: <em>I don’t know</em>, <em>She doesn’t live here</em>. No calques la inversión simple del español/francés (*Speak you English?*)." data-t-fr-html="Questions : <em>Do you speak English?</em> / <em>Does she work here?</em> / <em>Did they arrive?</em> Négations : <em>I don’t know</em>, <em>She doesn’t live here</em>. Ne calquez pas la simple inversion du français/espagnol (*Speak you English?*).">Questions: Do you speak English? / Does she work here? / Did they arrive? Negatives: I don’t know, She doesn’t live here. Do not calque Spanish/French inversion alone (*Speak you English?*).</p>
-  </div>
+<div class="section-chapter" data-t-en="Questions and negation · A1" data-t-es="Preguntas y negación · A1" data-t-fr="Questions et négation · A1">Questions and negation · A1</div>
+<div class="tense-header-row">
+<h2 class="tense-title">Do-support</h2>
+<span class="level-pill a1-pill">A1</span>
+</div>
+<p class="tense-nickname" data-t-en="English needs do / does / did for most questions and negatives in the simple tenses." data-t-es="El inglés necesita do / does / did para la mayoría de preguntas y negaciones en los tiempos simples." data-t-fr="L'anglais a besoin de do / does / did pour la plupart des questions et négations aux temps simples.">English needs do / does / did for most questions and negatives in the simple tenses.</p>
+<div class="rule-box">
+<div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
+<p data-t-en-html="Questions: <em>Do you speak English? Does she work here? Did they arrive?</em> Negatives: <em>I don't know. She doesn't live here. We didn't sign.</em> Do not invert the main verb alone (*Speak you English?). Be, modals, and auxiliaries invert themselves: <em>Is she ready? Can you wait? Have they left?</em>" data-t-es-html="Preguntas: <em>Do you speak English? Does she work here? Did they arrive?</em> Negaciones: <em>I don't know. She doesn't live here. We didn't sign.</em> No inviertas solo el verbo principal (*Speak you English?). Be, los modales y los auxiliares se invierten solos: <em>Is she ready? Can you wait? Have they left?</em>" data-t-fr-html="Questions : <em>Do you speak English? Does she work here? Did they arrive?</em> Négations : <em>I don't know. She doesn't live here. We didn't sign.</em> N'inversez pas le verbe principal seul (*Speak you English?). Be, les modaux et les auxiliaires s'inversent seuls : <em>Is she ready? Can you wait? Have they left?</em>">Questions: <em>Do you speak English? Does she work here? Did they arrive?</em> Negatives: <em>I don't know. She doesn't live here. We didn't sign.</em> Do not invert the main verb alone (*Speak you English?). Be, modals, and auxiliaries invert themselves: <em>Is she ready? Can you wait? Have they left?</em></p>
+</div>
+<div class="irreg-table-wrap">
+<table class="irreg-table" style="border-radius:8px;overflow:hidden">
+<tr><th>Type</th><th>Form</th><th>Example</th></tr>
+<tr><td>Yes/no</td><td>Do / Does / Did + subject + verb</td><td>Did the witness stay?</td></tr>
+<tr><td>Wh-</td><td>Wh- + do/does/did + subject + verb</td><td>Where does she live?</td></tr>
+<tr><td>Be</td><td>Invert be</td><td>Are you the interpreter?</td></tr>
+<tr><td>Modal</td><td>Invert the modal</td><td>Can he sign today?</td></tr>
+<tr><td>Negative</td><td>don't / doesn't / didn't + verb</td><td>He didn't see it.</td></tr>
+</table>
+</div>
+<div class="when-grid">
+<div class="when-card">
+<div class="when-icon">❓</div>
+<div>
+<div class="when-rule" data-t-en="Yes / no" data-t-es="Sí / no" data-t-fr="Oui / non">Yes / no</div>
+<div class="when-example-native">Do you need a break?</div>
+<div class="when-example-en" data-t-en="Do + subject + verb." data-t-es="Do + sujeto + verbo." data-t-fr="Do + sujet + verbe.">Do + subject + verb.</div>
+</div>
+</div>
+<div class="when-card">
+<div class="when-icon">🔤</div>
+<div>
+<div class="when-rule" data-t-en="Wh- question" data-t-es="Pregunta con Wh-" data-t-fr="Question en Wh-">Wh- question</div>
+<div class="when-example-native">What did the doctor say?</div>
+<div class="when-example-en" data-t-en="The main verb stays in base form." data-t-es="El verbo principal queda en forma base." data-t-fr="Le verbe principal reste à la base.">The main verb stays in base form.</div>
+</div>
+</div>
+<div class="when-card l1-es">
+<div class="when-icon">🇪🇸</div>
+<div>
+<div class="when-rule" data-t-en="From Spanish" data-t-es="Desde el español" data-t-fr="Depuis l'espagnol">From Spanish</div>
+<div class="when-example-native">*Spoke you with her? → Did you speak with her?</div>
+<div class="when-example-en" data-t-en="No calques Spanish inversion." data-t-es="No calques la inversión del español." data-t-fr="Ne calquez pas l'inversion de l'espagnol.">No calques Spanish inversion.</div>
+</div>
+</div>
+<div class="when-card l1-fr">
+<div class="when-icon">🇫🇷</div>
+<div>
+<div class="when-rule" data-t-en="From French" data-t-es="Desde el francés" data-t-fr="Depuis le français">From French</div>
+<div class="when-example-native">*Spoke you with her? → Did you speak with her?</div>
+<div class="when-example-en" data-t-en="No calques French inversion." data-t-es="No calques la inversión del francés." data-t-fr="Ne calquez pas l'inversion du français.">No calques French inversion.</div>
+</div>
+</div>
+</div>
 </section>
-
+<hr class="sec-divider"/>
+<section class="tense-section" id="pronouns">
+<div class="section-chapter" data-t-en="Pronouns · A1" data-t-es="Pronombres · A1" data-t-fr="Pronoms · A1">Pronouns · A1</div>
+<div class="tense-header-row">
+<h2 class="tense-title">Pronouns and possessives</h2>
+<span class="level-pill a1-pill">A1</span>
+</div>
+<p class="tense-nickname" data-t-en="Subject, object, possessive adjective, possessive pronoun, reflexive." data-t-es="Sujeto, objeto, adjetivo posesivo, pronombre posesivo, reflexivo." data-t-fr="Sujet, objet, adjectif possessif, pronom possessif, réfléchi.">Subject, object, possessive adjective, possessive pronoun, reflexive.</p>
+<div class="rule-box">
+<div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
+<p data-t-en-html="Subject does the action (<em>She called</em>). Object receives it (<em>I called her</em>). Possessive adjectives sit before a noun (<em>her file</em>). Possessive pronouns stand alone (<em>The file is hers</em>). Reflexives end in <em>-self / -selves</em> when the subject and object are the same (<em>He introduced himself</em>)." data-t-es-html="El sujeto hace la acción (<em>She called</em>). El objeto la recibe (<em>I called her</em>). Los adjetivos posesivos van ante el nombre (<em>her file</em>). Los pronombres posesivos van solos (<em>The file is hers</em>). Los reflexivos terminan en <em>-self / -selves</em> cuando sujeto y objeto son el mismo (<em>He introduced himself</em>)." data-t-fr-html="Le sujet fait l'action (<em>She called</em>). L'objet la reçoit (<em>I called her</em>). Les adjectifs possessifs précèdent le nom (<em>her file</em>). Les pronoms possessifs sont seuls (<em>The file is hers</em>). Les réfléchis finissent en <em>-self / -selves</em> quand sujet et objet sont les mêmes (<em>He introduced himself</em>).">Subject does the action (<em>She called</em>). Object receives it (<em>I called her</em>). Possessive adjectives sit before a noun (<em>her file</em>). Possessive pronouns stand alone (<em>The file is hers</em>). Reflexives end in <em>-self / -selves</em> when the subject and object are the same (<em>He introduced himself</em>).</p>
+</div>
+<div class="irreg-table-wrap">
+<table class="irreg-table" style="border-radius:8px;overflow:hidden">
+<tr><th>Subject</th><th>Object</th><th>Possessive adj.</th><th>Possessive pron.</th><th>Reflexive</th></tr>
+<tr><td>I</td><td>me</td><td>my</td><td>mine</td><td>myself</td></tr>
+<tr><td>you</td><td>you</td><td>your</td><td>yours</td><td>yourself / yourselves</td></tr>
+<tr><td>he</td><td>him</td><td>his</td><td>his</td><td>himself</td></tr>
+<tr><td>she</td><td>her</td><td>her</td><td>hers</td><td>herself</td></tr>
+<tr><td>it</td><td>it</td><td>its</td><td>—</td><td>itself</td></tr>
+<tr><td>we</td><td>us</td><td>our</td><td>ours</td><td>ourselves</td></tr>
+<tr><td>they</td><td>them</td><td>their</td><td>theirs</td><td>themselves</td></tr>
+</table>
+</div>
+<div class="tip">
+<div class="tip-label" data-t-en="its vs it's" data-t-es="its vs it's" data-t-fr="its vs it's">its vs it's</div>
+<div data-t-en-html="<em>it's</em> = it is / it has. <em>its</em> = possessive. <em>The clinic updated its hours. It's closed on Sunday.</em>" data-t-es-html="<em>it's</em> = it is / it has. <em>its</em> = posesivo. <em>The clinic updated its hours. It's closed on Sunday.</em>" data-t-fr-html="<em>it's</em> = it is / it has. <em>its</em> = possessif. <em>The clinic updated its hours. It's closed on Sunday.</em>"><em>it's</em> = it is / it has. <em>its</em> = possessive. <em>The clinic updated its hours. It's closed on Sunday.</em></div>
+</div>
+<div class="when-grid">
+<div class="when-card">
+<div class="when-icon">👉</div>
+<div>
+<div class="when-rule" data-t-en="Object after the verb" data-t-es="Objeto después del verbo" data-t-fr="Objet après le verbe">Object after the verb</div>
+<div class="when-example-native">Please call me. I saw them.</div>
+<div class="when-example-en" data-t-en="Not I / they after the verb." data-t-es="No I / they después del verbo." data-t-fr="Pas I / they après le verbe.">Not I / they after the verb.</div>
+</div>
+</div>
+<div class="when-card">
+<div class="when-icon">📎</div>
+<div>
+<div class="when-rule" data-t-en="Before a noun" data-t-es="Antes de un nombre" data-t-fr="Devant un nom">Before a noun</div>
+<div class="when-example-native">This is her statement.</div>
+<div class="when-example-en" data-t-en="her + noun." data-t-es="her + nombre." data-t-fr="her + nom.">her + noun.</div>
+</div>
+</div>
+<div class="when-card">
+<div class="when-icon">🧍</div>
+<div>
+<div class="when-rule" data-t-en="Alone" data-t-es="Solo" data-t-fr="Seul">Alone</div>
+<div class="when-example-native">The statement is hers.</div>
+<div class="when-example-en" data-t-en="hers, not her's." data-t-es="hers, no her's." data-t-fr="hers, pas her's.">hers, not her's.</div>
+</div>
+</div>
+</div>
+</section>
+<hr class="sec-divider"/>
+<section class="tense-section" id="plurals">
+<div class="section-chapter" data-t-en="Nouns · A1" data-t-es="Sustantivos · A1" data-t-fr="Noms · A1">Nouns · A1</div>
+<div class="tense-header-row">
+<h2 class="tense-title">Plurals and demonstratives</h2>
+<span class="level-pill a1-pill">A1</span>
+</div>
+<p class="tense-nickname" data-t-en="Regular -s, a short irregular list, and this / that / these / those." data-t-es="Plural regular en -s, una lista corta de irregulares, y this / that / these / those." data-t-fr="Pluriel régulier en -s, une courte liste d'irréguliers, et this / that / these / those.">Regular -s, a short irregular list, and this / that / these / those.</p>
+<div class="rule-box">
+<div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
+<p data-t-en-html="Most nouns add <strong>-s</strong> (<em>forms, patients</em>). Add <strong>-es</strong> after s/sh/ch/x/z (<em>boxes, watches</em>). Change <em>y → ies</em> after a consonant (<em>cities</em>). Irregulars you must memorize: <em>man/men, woman/women, child/children, person/people, foot/feet, tooth/teeth</em>. <em>This/that</em> are singular. <em>These/those</em> are plural. Adjectives do not take a plural: <em>two new files</em>, not *news files." data-t-es-html="La mayoría de nombres añaden <strong>-s</strong> (<em>forms, patients</em>). Añade <strong>-es</strong> tras s/sh/ch/x/z (<em>boxes, watches</em>). Cambia <em>y → ies</em> tras consonante (<em>cities</em>). Irregulares que hay que memorizar: <em>man/men, woman/women, child/children, person/people, foot/feet, tooth/teeth</em>. <em>This/that</em> son singular. <em>These/those</em> son plural. Los adjetivos no se pluralizan: <em>two new files</em>, no *news files." data-t-fr-html="La plupart des noms prennent <strong>-s</strong> (<em>forms, patients</em>). Ajoutez <strong>-es</strong> après s/sh/ch/x/z (<em>boxes, watches</em>). Changez <em>y → ies</em> après une consonne (<em>cities</em>). Irréguliers à mémoriser : <em>man/men, woman/women, child/children, person/people, foot/feet, tooth/teeth</em>. <em>This/that</em> sont singuliers. <em>These/those</em> sont pluriels. Les adjectifs ne se mettent pas au pluriel : <em>two new files</em>, pas *news files.">Most nouns add <strong>-s</strong> (<em>forms, patients</em>). Add <strong>-es</strong> after s/sh/ch/x/z (<em>boxes, watches</em>). Change <em>y → ies</em> after a consonant (<em>cities</em>). Irregulars you must memorize: <em>man/men, woman/women, child/children, person/people, foot/feet, tooth/teeth</em>. <em>This/that</em> are singular. <em>These/those</em> are plural. Adjectives do not take a plural: <em>two new files</em>, not *news files.</p>
+</div>
+<div class="irreg-table-wrap">
+<table class="irreg-table" style="border-radius:8px;overflow:hidden">
+<tr><th>Near</th><th>Far</th></tr>
+<tr><td>this form</td><td>that form</td></tr>
+<tr><td>these forms</td><td>those forms</td></tr>
+</table>
+</div>
+<div class="tip">
+<div class="tip-label" data-t-en="Adjective order" data-t-es="Orden del adjetivo" data-t-fr="Ordre de l'adjectif">Adjective order</div>
+<div data-t-en-html="English adjectives go <strong>before</strong> the noun: <em>a medical interpreter</em>, not *an interpreter medical." data-t-es-html="En inglés el adjetivo va <strong>antes</strong> del nombre: <em>a medical interpreter</em>, no *an interpreter medical." data-t-fr-html="En anglais l'adjectif va <strong>avant</strong> le nom : <em>a medical interpreter</em>, pas *an interpreter medical.">English adjectives go <strong>before</strong> the noun: <em>a medical interpreter</em>, not *an interpreter medical.</div>
+</div>
+</section>
+<hr class="sec-divider"/>
 <section class="tense-section" id="past">
-  <div class="section-chapter"><span data-t-en="Past" data-t-es="Pasado" data-t-fr="Passé">Past</span> · A2</div>
-  <div class="tense-header-row">
-    <h2 class="tense-title">Past simple vs present perfect</h2>
-    <span class="level-pill a2-pill">A2</span>
-  </div>
-  <p class="tense-nickname" data-t-en="Finished time vs experience / unfinished time." data-t-es="Tiempo terminado frente a experiencia / tiempo inconcluso." data-t-fr="Temps terminé par rapport à expérience / temps non terminé.">Finished time vs experience / unfinished time.</p>
-  <div class="rule-box">
-    <div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
-    <p data-t-en-html="<strong>Past simple</strong> with finished time: <em>yesterday, last week, in 2019, ago</em> → <em>I went yesterday.</em> <strong>Present perfect</strong> for experience or result with present relevance: <em>I have been to London</em>, <em>She has already signed.</em> Spanish pretérito/perfecto and French passé composé map imperfectly — time markers decide." data-t-es-html="<strong>Past simple</strong> con tiempo terminado: <em>yesterday, last week, in 2019, ago</em> → <em>I went yesterday.</em> <strong>Present perfect</strong> para experiencia o resultado con relevancia en el presente: <em>I have been to London</em>, <em>She has already signed.</em> El pretérito/perfecto español y el passé composé francés no corresponden exactamente — los marcadores de tiempo son los que deciden." data-t-fr-html="<strong>Past simple</strong> avec un temps terminé : <em>yesterday, last week, in 2019, ago</em> → <em>I went yesterday.</em> <strong>Present perfect</strong> pour une expérience ou un résultat pertinent au présent : <em>I have been to London</em>, <em>She has already signed.</em> Le passé composé français et le pretérito/perfecto espagnol ne correspondent pas exactement — ce sont les marqueurs temporels qui décident.">Past simple with finished time: yesterday, last week, in 2019, ago → I went yesterday. Present perfect for experience or result with present relevance: I have been to London, She has already signed. Spanish pretérito/perfecto and French passé composé map imperfectly — time markers decide.</p>
-  </div>
-  <div class="when-grid">
-    <div class="when-card">
-      <div class="when-icon">⏱️</div>
-      <div>
-        <div class="when-rule" data-t-en="Finished time → past simple" data-t-es="Tiempo terminado → past simple" data-t-fr="Temps terminé → past simple">Finished time → past simple</div>
-        <div class="when-example-en">I saw the doctor yesterday.</div>
-      </div>
-    </div>
-    <div class="when-card">
-      <div class="when-icon">🔗</div>
-      <div>
-        <div class="when-rule" data-t-en="Present link → present perfect" data-t-es="Vínculo con el presente → present perfect" data-t-fr="Lien avec le présent → present perfect">Present link → present perfect</div>
-        <div class="when-example-en">I have already seen the doctor.</div>
-      </div>
-    </div>
-  </div>
+<div class="section-chapter" data-t-en="Past · A2" data-t-es="Pasado · A2" data-t-fr="Passé · A2">Past · A2</div>
+<div class="tense-header-row">
+<h2 class="tense-title">Past simple vs present perfect</h2>
+<span class="level-pill a2-pill">A2</span>
+</div>
+<p class="tense-nickname" data-t-en="Finished time vs experience or unfinished time." data-t-es="Tiempo terminado frente a experiencia o tiempo inconcluso." data-t-fr="Temps terminé par rapport à expérience ou temps non terminé.">Finished time vs experience or unfinished time.</p>
+<div class="rule-box">
+<div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
+<p data-t-en-html="<strong>Past simple</strong> with finished time: <em>yesterday, last week, in 2019, ago</em> → <em>I went yesterday.</em> Regular verbs add <em>-ed</em>. <strong>Present perfect</strong> (have/has + past participle) for experience or a result that still matters: <em>I have been to London. She has already signed.</em> Time markers decide. Do not map another language's past tenses one to one." data-t-es-html="<strong>Past simple</strong> con tiempo terminado: <em>yesterday, last week, in 2019, ago</em> → <em>I went yesterday.</em> Los regulares añaden <em>-ed</em>. <strong>Present perfect</strong> (have/has + participio) para experiencia o un resultado que aún importa: <em>I have been to London. She has already signed.</em> Los marcadores de tiempo deciden. No traduzcas los pasados uno a uno." data-t-fr-html="<strong>Past simple</strong> avec un temps terminé : <em>yesterday, last week, in 2019, ago</em> → <em>I went yesterday.</em> Les réguliers prennent <em>-ed</em>. <strong>Present perfect</strong> (have/has + participe) pour une expérience ou un résultat encore pertinent : <em>I have been to London. She has already signed.</em> Ce sont les marqueurs temporels qui décident. Ne calquez pas les passés un pour un."><strong>Past simple</strong> with finished time: <em>yesterday, last week, in 2019, ago</em> → <em>I went yesterday.</em> Regular verbs add <em>-ed</em>. <strong>Present perfect</strong> (have/has + past participle) for experience or a result that still matters: <em>I have been to London. She has already signed.</em> Time markers decide. Do not map another language's past tenses one to one.</p>
+</div>
+<div class="irreg-table-wrap">
+<table class="irreg-table" style="border-radius:8px;overflow:hidden">
+<tr><th>Base</th><th>Past simple</th><th>Past participle</th></tr>
+<tr><td>go</td><td>went</td><td>gone</td></tr>
+<tr><td>see</td><td>saw</td><td>seen</td></tr>
+<tr><td>take</td><td>took</td><td>taken</td></tr>
+<tr><td>give</td><td>gave</td><td>given</td></tr>
+<tr><td>write</td><td>wrote</td><td>written</td></tr>
+<tr><td>speak</td><td>spoke</td><td>spoken</td></tr>
+<tr><td>come</td><td>came</td><td>come</td></tr>
+<tr><td>have</td><td>had</td><td>had</td></tr>
+<tr><td>be</td><td>was / were</td><td>been</td></tr>
+<tr><td>do</td><td>did</td><td>done</td></tr>
+<tr><td>say</td><td>said</td><td>said</td></tr>
+<tr><td>tell</td><td>told</td><td>told</td></tr>
+</table>
+</div>
+<div class="trigger-box">
+<div class="trigger-box-title" data-t-en="Finished time → past simple" data-t-es="Tiempo terminado → past simple" data-t-fr="Temps terminé → past simple">Finished time → past simple</div>
+<div class="trigger-list"><span class="trigger">yesterday</span><span class="trigger">last week</span><span class="trigger">in 2019</span><span class="trigger">ago</span><span class="trigger">this morning (if the morning is over)</span></div>
+</div>
+<div class="trigger-box">
+<div class="trigger-box-title" data-t-en="Present link → present perfect" data-t-es="Vínculo con el presente → present perfect" data-t-fr="Lien avec le présent → present perfect">Present link → present perfect</div>
+<div class="trigger-list"><span class="trigger">already</span><span class="trigger">yet</span><span class="trigger">just</span><span class="trigger">ever</span><span class="trigger">never</span><span class="trigger">so far</span><span class="trigger">since</span><span class="trigger">for</span></div>
+</div>
+<div class="when-grid">
+<div class="when-card">
+<div class="when-icon">⏱️</div>
+<div>
+<div class="when-rule" data-t-en="Finished time" data-t-es="Tiempo terminado" data-t-fr="Temps terminé">Finished time</div>
+<div class="when-example-native">I saw the doctor yesterday.</div>
+<div class="when-example-en" data-t-en="Past simple." data-t-es="Past simple." data-t-fr="Past simple.">Past simple.</div>
+</div>
+</div>
+<div class="when-card">
+<div class="when-icon">🔗</div>
+<div>
+<div class="when-rule" data-t-en="Still relevant" data-t-es="Aún relevante" data-t-fr="Encore pertinent">Still relevant</div>
+<div class="when-example-native">I have already seen the doctor.</div>
+<div class="when-example-en" data-t-en="Present perfect." data-t-es="Present perfect." data-t-fr="Present perfect.">Present perfect.</div>
+</div>
+</div>
+<div class="when-card">
+<div class="when-icon">📚</div>
+<div>
+<div class="when-rule" data-t-en="Life experience" data-t-es="Experiencia de vida" data-t-fr="Expérience de vie">Life experience</div>
+<div class="when-example-native">Have you ever interpreted in court?</div>
+<div class="when-example-en" data-t-en="No finished time marker." data-t-es="Sin marcador de tiempo terminado." data-t-fr="Sans marqueur de temps terminé.">No finished time marker.</div>
+</div>
+</div>
+<div class="when-card l1-es">
+<div class="when-icon">🇪🇸</div>
+<div>
+<div class="when-rule" data-t-en="From Spanish" data-t-es="Desde el español" data-t-fr="Depuis l'espagnol">From Spanish</div>
+<div class="when-example-native">Hoy he firmado. → I signed this morning. / I have signed this morning.</div>
+<div class="when-example-en" data-t-en="If the morning is over, English often uses past simple." data-t-es="Si la mañana ya terminó, el inglés suele usar past simple." data-t-fr="Si la matinée est finie, l'anglais utilise souvent le past simple.">If the morning is over, English often uses past simple.</div>
+</div>
+</div>
+<div class="when-card l1-fr">
+<div class="when-icon">🇫🇷</div>
+<div>
+<div class="when-rule" data-t-en="From French" data-t-es="Desde el francés" data-t-fr="Depuis le français">From French</div>
+<div class="when-example-native">J’ai signé ce matin. → I signed this morning.</div>
+<div class="when-example-en" data-t-en="Passé composé is not always present perfect." data-t-es="El passé composé no siempre es present perfect." data-t-fr="Le passé composé n'est pas toujours le present perfect.">Passé composé is not always present perfect.</div>
+</div>
+</div>
+</div>
 </section>
-
+<hr class="sec-divider"/>
 <section class="tense-section" id="countable">
-  <div class="section-chapter"><span data-t-en="Nouns" data-t-es="Sustantivos" data-t-fr="Noms">Nouns</span> · A2</div>
-  <div class="tense-header-row">
-    <h2 class="tense-title">Countable vs uncountable</h2>
-    <span class="level-pill a2-pill">A2</span>
-  </div>
-  <p class="tense-nickname" data-t-en="much/many, a little/a few, information, advice, news." data-t-es="much/many, a little/a few, information, advice, news." data-t-fr="much/many, a little/a few, information, advice, news.">much/many, a little/a few, information, advice, news.</p>
-  <div class="rule-box">
-    <div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
-    <p data-t-en-html="<em>information, advice, news, furniture, homework</em> are uncountable in English — <em>some advice</em>, not *an advice*; <em>the news is</em>, not *are*. False friends with ES <em>información</em> / FR <em>information</em> (countable in those languages)." data-t-es-html="<em>information, advice, news, furniture, homework</em> son incontables en inglés — <em>some advice</em>, no *an advice*; <em>the news is</em>, no *are*. Son falsos amigos con el español <em>información</em> (contable en español)." data-t-fr-html="<em>information, advice, news, furniture, homework</em> sont indénombrables en anglais — <em>some advice</em>, pas *an advice* ; <em>the news is</em>, pas *are*. Faux amis avec le français <em>information</em> (dénombrable en français).">information, advice, news, furniture, homework are uncountable in English — some advice, not *an advice*; the news is, not *are*. False friends with ES información / FR information (countable in those languages).</p>
-  </div>
+<div class="section-chapter" data-t-en="Nouns · A2" data-t-es="Sustantivos · A2" data-t-fr="Noms · A2">Nouns · A2</div>
+<div class="tense-header-row">
+<h2 class="tense-title">Countable vs uncountable</h2>
+<span class="level-pill a2-pill">A2</span>
+</div>
+<p class="tense-nickname" data-t-en="much / many, a little / a few, information, advice, news." data-t-es="much / many, a little / a few, information, advice, news." data-t-fr="much / many, a little / a few, information, advice, news.">much / many, a little / a few, information, advice, news.</p>
+<div class="rule-box">
+<div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
+<p data-t-en-html="Countable nouns have a plural and take <em>a/an, many, a few, these</em>. Uncountable nouns have no plural and take <em>some, much, a little, this</em>. High-frequency uncountables: <em>information, advice, news, furniture, homework, work, research, evidence, equipment, luggage, traffic, weather</em>. Say <em>some advice</em>, not *an advice. <em>The news is</em>, not *are." data-t-es-html="Los contables tienen plural y llevan <em>a/an, many, a few, these</em>. Los incontables no tienen plural y llevan <em>some, much, a little, this</em>. Incontables frecuentes: <em>information, advice, news, furniture, homework, work, research, evidence, equipment, luggage, traffic, weather</em>. Di <em>some advice</em>, no *an advice. <em>The news is</em>, no *are." data-t-fr-html="Les dénombrables ont un pluriel et prennent <em>a/an, many, a few, these</em>. Les indénombrables n'ont pas de pluriel et prennent <em>some, much, a little, this</em>. Indénombrables fréquents : <em>information, advice, news, furniture, homework, work, research, evidence, equipment, luggage, traffic, weather</em>. Dites <em>some advice</em>, pas *an advice. <em>The news is</em>, pas *are.">Countable nouns have a plural and take <em>a/an, many, a few, these</em>. Uncountable nouns have no plural and take <em>some, much, a little, this</em>. High-frequency uncountables: <em>information, advice, news, furniture, homework, work, research, evidence, equipment, luggage, traffic, weather</em>. Say <em>some advice</em>, not *an advice. <em>The news is</em>, not *are.</p>
+</div>
+<div class="irreg-table-wrap">
+<table class="irreg-table" style="border-radius:8px;overflow:hidden">
+<tr><th>Countable</th><th>Uncountable</th><th>How to count the uncountable</th></tr>
+<tr><td>a form / two forms</td><td>information</td><td>a piece of information</td></tr>
+<tr><td>a tip / two tips</td><td>advice</td><td>a piece of advice</td></tr>
+<tr><td>a story</td><td>news</td><td>a news story / a piece of news</td></tr>
+<tr><td>a job</td><td>work</td><td>a job / a piece of work</td></tr>
+<tr><td>a bag</td><td>luggage</td><td>a suitcase / a piece of luggage</td></tr>
+</table>
+</div>
+<div class="when-grid">
+<div class="when-card">
+<div class="when-icon">🔢</div>
+<div>
+<div class="when-rule" data-t-en="Many / a few" data-t-es="Many / a few" data-t-fr="Many / a few">Many / a few</div>
+<div class="when-example-native">many patients, a few questions</div>
+<div class="when-example-en" data-t-en="Countable only." data-t-es="Solo contables." data-t-fr="Dénombrables seulement.">Countable only.</div>
+</div>
+</div>
+<div class="when-card">
+<div class="when-icon">💧</div>
+<div>
+<div class="when-rule" data-t-en="Much / a little" data-t-es="Much / a little" data-t-fr="Much / a little">Much / a little</div>
+<div class="when-example-native">much evidence, a little time</div>
+<div class="when-example-en" data-t-en="Uncountable only." data-t-es="Solo incontables." data-t-fr="Indénombrables seulement.">Uncountable only.</div>
+</div>
+</div>
+<div class="when-card l1-es">
+<div class="when-icon">🇪🇸</div>
+<div>
+<div class="when-rule" data-t-en="From Spanish" data-t-es="Desde el español" data-t-fr="Depuis l'espagnol">From Spanish</div>
+<div class="when-example-native">*an information → some information / a piece of information</div>
+<div class="when-example-en" data-t-en="Información is countable in Spanish." data-t-es="Información es contable en español." data-t-fr="Información est dénombrable en espagnol.">Información is countable in Spanish.</div>
+</div>
+</div>
+<div class="when-card l1-fr">
+<div class="when-icon">🇫🇷</div>
+<div>
+<div class="when-rule" data-t-en="From French" data-t-es="Desde el francés" data-t-fr="Depuis le français">From French</div>
+<div class="when-example-native">*an information → some information / a piece of information</div>
+<div class="when-example-en" data-t-en="Information is countable in French." data-t-es="Information es contable en francés." data-t-fr="Information est dénombrable en français.">Information is countable in French.</div>
+</div>
+</div>
+</div>
 </section>
-
+<hr class="sec-divider"/>
 <section class="tense-section" id="prepositions">
-  <div class="section-chapter"><span data-t-en="Prepositions" data-t-es="Preposiciones" data-t-fr="Prépositions">Prepositions</span> · A2</div>
-  <div class="tense-header-row">
-    <h2 class="tense-title">Preposition traps from Spanish &amp; French</h2>
-    <span class="level-pill a2-pill">A2</span>
-  </div>
-  <div class="rule-box">
-    <div class="rule-box-title" data-t-en="High-frequency fixes" data-t-es="Correcciones de alta frecuencia" data-t-fr="Corrections fréquentes">High-frequency fixes</div>
-    <p data-t-en-html="<em>depend on</em> (not *of*). <em>married to</em> (not *with*). <em>listen to</em> (not bare *listen*). <em>discuss</em> (no *about*). <em>arrive at/in</em> (not *to* for cities: <em>arrive in Madrid</em>). FR: <em>interested in</em> (not *by* from <em>intéressé par</em>)." data-t-es-html="<em>depend on</em> (no *of*). <em>married to</em> (no *with*). <em>listen to</em> (no *listen* solo). <em>discuss</em> (sin *about*). <em>arrive at/in</em> (no *to* con ciudades: <em>arrive in Madrid</em>). FR: <em>interested in</em> (no *by*, calco de <em>intéressé par</em>)." data-t-fr-html="<em>depend on</em> (pas *of*). <em>married to</em> (pas *with*). <em>listen to</em> (pas *listen* seul). <em>discuss</em> (pas *about*). <em>arrive at/in</em> (pas *to* pour les villes : <em>arrive in Madrid</em>). Calque du français : <em>interested in</em> (pas *by*, calque de <em>intéressé par</em>).">depend on (not *of*). married to (not *with*). listen to (not bare *listen*). discuss (no *about*). arrive at/in (not *to* for cities: arrive in Madrid). FR: interested in (not *by* from intéressé par).</p>
-  </div>
+<div class="section-chapter" data-t-en="Prepositions · A2" data-t-es="Preposiciones · A2" data-t-fr="Prépositions · A2">Prepositions · A2</div>
+<div class="tense-header-row">
+<h2 class="tense-title">Preposition traps</h2>
+<span class="level-pill a2-pill">A2</span>
+</div>
+<p class="tense-nickname" data-t-en="Time, place, and the verb + preposition pairs that do not calque." data-t-es="Tiempo, lugar y los pares verbo + preposición que no se calcan." data-t-fr="Temps, lieu, et les paires verbe + préposition qui ne se calquent pas.">Time, place, and the verb + preposition pairs that do not calque.</p>
+<div class="rule-box">
+<div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
+<p data-t-en-html="<em>in</em> = months, years, cities, countries, rooms. <em>on</em> = days, dates, surfaces. <em>at</em> = clock times, points, events. High-frequency verb pairs: <em>depend on, married to, listen to, wait for, look at, arrive in (city) / at (building), interested in, discuss X</em> (no *about), <em>enter</em> (no *in)." data-t-es-html="<em>in</em> = meses, años, ciudades, países, habitaciones. <em>on</em> = días, fechas, superficies. <em>at</em> = horas, puntos, eventos. Pares frecuentes: <em>depend on, married to, listen to, wait for, look at, arrive in (ciudad) / at (edificio), interested in, discuss X</em> (sin *about), <em>enter</em> (sin *in)." data-t-fr-html="<em>in</em> = mois, années, villes, pays, pièces. <em>on</em> = jours, dates, surfaces. <em>at</em> = heures, points, événements. Paires fréquentes : <em>depend on, married to, listen to, wait for, look at, arrive in (ville) / at (bâtiment), interested in, discuss X</em> (pas *about), <em>enter</em> (pas *in)."><em>in</em> = months, years, cities, countries, rooms. <em>on</em> = days, dates, surfaces. <em>at</em> = clock times, points, events. High-frequency verb pairs: <em>depend on, married to, listen to, wait for, look at, arrive in (city) / at (building), interested in, discuss X</em> (no *about), <em>enter</em> (no *in).</p>
+</div>
+<div class="irreg-table-wrap">
+<table class="irreg-table" style="border-radius:8px;overflow:hidden">
+<tr><th>English</th><th>Not</th><th>Example</th></tr>
+<tr><td>depend on</td><td>*depend of</td><td>It depends on the judge.</td></tr>
+<tr><td>married to</td><td>*married with</td><td>She is married to a nurse.</td></tr>
+<tr><td>listen to</td><td>*listen (bare)</td><td>Please listen to the witness.</td></tr>
+<tr><td>wait for</td><td>*wait (bare) someone</td><td>We are waiting for the doctor.</td></tr>
+<tr><td>arrive in Madrid / at the clinic</td><td>*arrive to Madrid</td><td>They arrived in Madrid at noon.</td></tr>
+<tr><td>interested in</td><td>*interested by</td><td>He is interested in the case.</td></tr>
+<tr><td>discuss the plan</td><td>*discuss about</td><td>We discussed the plan.</td></tr>
+<tr><td>good at</td><td>*good in a skill</td><td>She is good at consecutive.</td></tr>
+</table>
+</div>
 </section>
-
+<hr class="sec-divider"/>
+<section class="tense-section" id="future">
+<div class="section-chapter" data-t-en="Future · A2" data-t-es="Futuro · A2" data-t-fr="Futur · A2">Future · A2</div>
+<div class="tense-header-row">
+<h2 class="tense-title">Will, going to, present continuous</h2>
+<span class="level-pill a2-pill">A2</span>
+</div>
+<p class="tense-nickname" data-t-en="A decision now, a plan already made, or a fixed arrangement." data-t-es="Una decisión ahora, un plan ya hecho o un arreglo fijo." data-t-fr="Une décision maintenant, un plan déjà fait, ou un arrangement fixe.">A decision now, a plan already made, or a fixed arrangement.</p>
+<div class="rule-box">
+<div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
+<p data-t-en-html="<strong>will</strong> = a decision at the moment of speaking, a promise, or a prediction: <em>I'll call her now.</em> <strong>be going to</strong> = a plan or evidence you can see: <em>I'm going to file this afternoon. Look at those clouds. It's going to rain.</em> <strong>Present continuous</strong> = a fixed arrangement, often with a time: <em>I'm meeting the attorney at 3.</em> Present simple for timetables: <em>The hearing starts at 9.</em>" data-t-es-html="<strong>will</strong> = una decisión en el momento de hablar, una promesa o una predicción: <em>I'll call her now.</em> <strong>be going to</strong> = un plan o evidencia visible: <em>I'm going to file this afternoon. Look at those clouds. It's going to rain.</em> <strong>Presente continuo</strong> = un arreglo fijo, a menudo con hora: <em>I'm meeting the attorney at 3.</em> Presente simple para horarios: <em>The hearing starts at 9.</em>" data-t-fr-html="<strong>will</strong> = une décision au moment de parler, une promesse ou une prédiction : <em>I'll call her now.</em> <strong>be going to</strong> = un plan ou une preuve visible : <em>I'm going to file this afternoon. Look at those clouds. It's going to rain.</em> <strong>Présent continu</strong> = un arrangement fixe, souvent avec une heure : <em>I'm meeting the attorney at 3.</em> Présent simple pour les horaires : <em>The hearing starts at 9.</em>"><strong>will</strong> = a decision at the moment of speaking, a promise, or a prediction: <em>I'll call her now.</em> <strong>be going to</strong> = a plan or evidence you can see: <em>I'm going to file this afternoon. Look at those clouds. It's going to rain.</em> <strong>Present continuous</strong> = a fixed arrangement, often with a time: <em>I'm meeting the attorney at 3.</em> Present simple for timetables: <em>The hearing starts at 9.</em></p>
+</div>
+<div class="when-grid">
+<div class="when-card">
+<div class="when-icon">⚡</div>
+<div>
+<div class="when-rule" data-t-en="Decision now" data-t-es="Decisión ahora" data-t-fr="Décision maintenant">Decision now</div>
+<div class="when-example-native">It's cold. I'll close the window.</div>
+<div class="when-example-en" data-t-en="will" data-t-es="will" data-t-fr="will">will</div>
+</div>
+</div>
+<div class="when-card">
+<div class="when-icon">📋</div>
+<div>
+<div class="when-rule" data-t-en="Already planned" data-t-es="Ya planeado" data-t-fr="Déjà prévu">Already planned</div>
+<div class="when-example-native">I'm going to review the file tonight.</div>
+<div class="when-example-en" data-t-en="going to" data-t-es="going to" data-t-fr="going to">going to</div>
+</div>
+</div>
+<div class="when-card">
+<div class="when-icon">📅</div>
+<div>
+<div class="when-rule" data-t-en="On the calendar" data-t-es="En el calendario" data-t-fr="Sur le calendrier">On the calendar</div>
+<div class="when-example-native">We're seeing the specialist on Monday.</div>
+<div class="when-example-en" data-t-en="Present continuous." data-t-es="Presente continuo." data-t-fr="Présent continu.">Present continuous.</div>
+</div>
+</div>
+<div class="when-card">
+<div class="when-icon">🚆</div>
+<div>
+<div class="when-rule" data-t-en="Timetable" data-t-es="Horario" data-t-fr="Horaire">Timetable</div>
+<div class="when-example-native">The train leaves at 6:40.</div>
+<div class="when-example-en" data-t-en="Present simple." data-t-es="Presente simple." data-t-fr="Présent simple.">Present simple.</div>
+</div>
+</div>
+</div>
+</section>
+<hr class="sec-divider"/>
+<section class="tense-section" id="comparatives">
+<div class="section-chapter" data-t-en="Comparison · A2" data-t-es="Comparación · A2" data-t-fr="Comparaison · A2">Comparison · A2</div>
+<div class="tense-header-row">
+<h2 class="tense-title">Comparatives and superlatives</h2>
+<span class="level-pill a2-pill">A2</span>
+</div>
+<p class="tense-nickname" data-t-en="taller than, more careful than, the most careful." data-t-es="taller than, more careful than, the most careful." data-t-fr="taller than, more careful than, the most careful.">taller than, more careful than, the most careful.</p>
+<div class="rule-box">
+<div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
+<p data-t-en-html="One syllable: <em>tall → taller → the tallest</em>. Two syllables ending in -y: <em>easy → easier → the easiest</em>. Longer adjectives: <em>more / the most careful</em>. Irregulars: <em>good/better/best, bad/worse/worst, far/farther|further/farthest|furthest</em>. Use <strong>than</strong> after a comparative, not *that. Use <strong>as … as</strong> for equality: <em>as clear as the original</em>." data-t-es-html="Una sílaba: <em>tall → taller → the tallest</em>. Dos sílabas en -y: <em>easy → easier → the easiest</em>. Adjetivos más largos: <em>more / the most careful</em>. Irregulares: <em>good/better/best, bad/worse/worst, far/farther|further/farthest|furthest</em>. Usa <strong>than</strong> después del comparativo, no *that. Usa <strong>as … as</strong> para igualdad: <em>as clear as the original</em>." data-t-fr-html="Une syllabe : <em>tall → taller → the tallest</em>. Deux syllabes en -y : <em>easy → easier → the easiest</em>. Adjectifs plus longs : <em>more / the most careful</em>. Irréguliers : <em>good/better/best, bad/worse/worst, far/farther|further/farthest|furthest</em>. Utilisez <strong>than</strong> après le comparatif, pas *that. Utilisez <strong>as … as</strong> pour l'égalité : <em>as clear as the original</em>.">One syllable: <em>tall → taller → the tallest</em>. Two syllables ending in -y: <em>easy → easier → the easiest</em>. Longer adjectives: <em>more / the most careful</em>. Irregulars: <em>good/better/best, bad/worse/worst, far/farther|further/farthest|furthest</em>. Use <strong>than</strong> after a comparative, not *that. Use <strong>as … as</strong> for equality: <em>as clear as the original</em>.</p>
+</div>
+<div class="irreg-table-wrap">
+<table class="irreg-table" style="border-radius:8px;overflow:hidden">
+<tr><th>Adjective</th><th>Comparative</th><th>Superlative</th></tr>
+<tr><td>clear</td><td>clearer than</td><td>the clearest</td></tr>
+<tr><td>easy</td><td>easier than</td><td>the easiest</td></tr>
+<tr><td>careful</td><td>more careful than</td><td>the most careful</td></tr>
+<tr><td>good</td><td>better than</td><td>the best</td></tr>
+<tr><td>bad</td><td>worse than</td><td>the worst</td></tr>
+</table>
+</div>
+</section>
+<hr class="sec-divider"/>
 <section class="tense-section" id="conditionals">
-  <div class="section-chapter"><span data-t-en="Conditionals" data-t-es="Condicionales" data-t-fr="Conditionnels">Conditionals</span> · B1</div>
-  <div class="tense-header-row">
-    <h2 class="tense-title">Real and unreal conditionals</h2>
-    <span class="level-pill b1-pill">B1</span>
-  </div>
-  <div class="rule-box">
-    <div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
-    <p data-t-en-html="<strong>Real:</strong> If + present, will… <em>If she calls, I will answer.</em> <strong>Unreal present:</strong> If + past, would… <em>If I had time, I would help.</em> Never put <em>would</em> in the if-clause (*If I would have…*). Do not copy Spanish/French conditional into the si/if clause." data-t-es-html="<strong>Real:</strong> If + presente, will… <em>If she calls, I will answer.</em> <strong>Irreal presente:</strong> If + pasado, would… <em>If I had time, I would help.</em> Nunca pongas <em>would</em> en la cláusula con if (*If I would have…*). No copies el condicional español en la cláusula con si/if." data-t-fr-html="<strong>Réel :</strong> If + présent, will… <em>If she calls, I will answer.</em> <strong>Irréel présent :</strong> If + passé, would… <em>If I had time, I would help.</em> Ne mettez jamais <em>would</em> dans la proposition en if (*If I would have…*). Ne copiez pas le conditionnel français dans la proposition en si/if.">Real: If + present, will… If she calls, I will answer. Unreal present: If + past, would… If I had time, I would help. Never put would in the if-clause (*If I would have…*). Do not copy Spanish/French conditional into the si/if clause.</p>
-  </div>
+<div class="section-chapter" data-t-en="Conditionals · B1" data-t-es="Condicionales · B1" data-t-fr="Conditionnels · B1">Conditionals · B1</div>
+<div class="tense-header-row">
+<h2 class="tense-title">Zero, first, second, third</h2>
+<span class="level-pill b1-pill">B1</span>
+</div>
+<p class="tense-nickname" data-t-en="Real, unreal present, and unreal past. Never put would in the if-clause." data-t-es="Real, irreal de presente e irreal de pasado. Nunca pongas would en la cláusula con if." data-t-fr="Réel, irréel présent et irréel passé. Ne mettez jamais would dans la proposition en if.">Real, unreal present, and unreal past. Never put would in the if-clause.</p>
+<div class="rule-box">
+<div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
+<p data-t-en-html="<strong>Zero</strong> (always true): If + present, present. <em>If you heat ice, it melts.</em> <strong>First</strong> (real future): If + present, will. <em>If she calls, I will answer.</em> <strong>Second</strong> (unreal now): If + past, would. <em>If I had time, I would help.</em> <strong>Third</strong> (unreal past): If + past perfect, would have. <em>If I had known, I would have called.</em> Never *If I would have…" data-t-es-html="<strong>Cero</strong> (siempre verdad): If + presente, presente. <em>If you heat ice, it melts.</em> <strong>Primero</strong> (futuro real): If + presente, will. <em>If she calls, I will answer.</em> <strong>Segundo</strong> (irreal ahora): If + pasado, would. <em>If I had time, I would help.</em> <strong>Tercero</strong> (irreal pasado): If + past perfect, would have. <em>If I had known, I would have called.</em> Nunca *If I would have…" data-t-fr-html="<strong>Zéro</strong> (toujours vrai) : If + présent, présent. <em>If you heat ice, it melts.</em> <strong>Premier</strong> (futur réel) : If + présent, will. <em>If she calls, I will answer.</em> <strong>Deuxième</strong> (irréel maintenant) : If + passé, would. <em>If I had time, I would help.</em> <strong>Troisième</strong> (irréel passé) : If + past perfect, would have. <em>If I had known, I would have called.</em> Jamais *If I would have…"><strong>Zero</strong> (always true): If + present, present. <em>If you heat ice, it melts.</em> <strong>First</strong> (real future): If + present, will. <em>If she calls, I will answer.</em> <strong>Second</strong> (unreal now): If + past, would. <em>If I had time, I would help.</em> <strong>Third</strong> (unreal past): If + past perfect, would have. <em>If I had known, I would have called.</em> Never *If I would have…</p>
+</div>
+<div class="irreg-table-wrap">
+<table class="irreg-table" style="border-radius:8px;overflow:hidden">
+<tr><th>Type</th><th>If-clause</th><th>Result</th></tr>
+<tr><td>0</td><td>If you press this</td><td>the light turns on</td></tr>
+<tr><td>1</td><td>If she arrives late</td><td>we will start without her</td></tr>
+<tr><td>2</td><td>If I were you</td><td>I would ask for counsel</td></tr>
+<tr><td>3</td><td>If they had objected</td><td>the judge would have paused</td></tr>
+</table>
+</div>
+<div class="tip">
+<div class="tip-label" data-t-en="Were in the second conditional" data-t-es="Were en el segundo condicional" data-t-fr="Were au deuxième conditionnel">Were in the second conditional</div>
+<div data-t-en-html="Formal English uses <em>if I were / if he were</em> (not was) for unreal present." data-t-es-html="El inglés formal usa <em>if I were / if he were</em> (no was) para el irreal de presente." data-t-fr-html="L'anglais formel utilise <em>if I were / if he were</em> (pas was) pour l'irréel présent.">Formal English uses <em>if I were / if he were</em> (not was) for unreal present.</div>
+</div>
 </section>
-
+<hr class="sec-divider"/>
 <section class="tense-section" id="modals">
-  <div class="section-chapter"><span data-t-en="Modals" data-t-es="Modales" data-t-fr="Modaux">Modals</span> · B1</div>
-  <div class="tense-header-row">
-    <h2 class="tense-title">Modals for interpreters</h2>
-    <span class="level-pill b1-pill">B1</span>
-  </div>
-  <div class="rule-box">
-    <div class="rule-box-title" data-t-en="Precision matters" data-t-es="La precisión importa" data-t-fr="La précision compte">Precision matters</div>
-    <p data-t-en-html="<em>must</em> / <em>have to</em> = obligation. <em>should</em> = advice. <em>may/might</em> = possibility. <em>can</em> = ability / permission. In clinical/legal English, prefer the precise modal over soft paraphrase." data-t-es-html="<em>must</em> / <em>have to</em> = obligación. <em>should</em> = consejo. <em>may/might</em> = posibilidad. <em>can</em> = capacidad / permiso. En el inglés clínico/legal, prefiere el modal preciso a una paráfrasis suave." data-t-fr-html="<em>must</em> / <em>have to</em> = obligation. <em>should</em> = conseil. <em>may/might</em> = possibilité. <em>can</em> = capacité / permission. En anglais clinique/juridique, préférez le modal précis à une paraphrase adoucie.">must / have to = obligation. should = advice. may/might = possibility. can = ability / permission. In clinical/legal English, prefer the precise modal over soft paraphrase.</p>
-  </div>
+<div class="section-chapter" data-t-en="Modals · B1" data-t-es="Modales · B1" data-t-fr="Modaux · B1">Modals · B1</div>
+<div class="tense-header-row">
+<h2 class="tense-title">Modals for interpreters</h2>
+<span class="level-pill b1-pill">B1</span>
+</div>
+<p class="tense-nickname" data-t-en="Obligation, advice, possibility, ability. Precision matters in clinical and legal English." data-t-es="Obligación, consejo, posibilidad, capacidad. La precisión importa en el inglés clínico y legal." data-t-fr="Obligation, conseil, possibilité, capacité. La précision compte en anglais clinique et juridique.">Obligation, advice, possibility, ability. Precision matters in clinical and legal English.</p>
+<div class="rule-box">
+<div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
+<p data-t-en-html="Modals do not take <em>-s</em>, <em>to</em>, or <em>do</em>: <em>She can wait.</em> not *She cans / *She can to wait. The meaning sits on the modal. In clinical and legal English, keep the speaker's force. Do not soften <em>must</em> into <em>should</em> unless the speaker did." data-t-es-html="Los modales no llevan <em>-s</em>, <em>to</em> ni <em>do</em>: <em>She can wait.</em> no *She cans / *She can to wait. El significado está en el modal. En inglés clínico y legal, conserva la fuerza del hablante. No suavices <em>must</em> en <em>should</em> salvo que el hablante lo haya hecho." data-t-fr-html="Les modaux ne prennent ni <em>-s</em>, ni <em>to</em>, ni <em>do</em> : <em>She can wait.</em> pas *She cans / *She can to wait. Le sens porte sur le modal. En anglais clinique et juridique, gardez la force du locuteur. N'adoucissez pas <em>must</em> en <em>should</em> sauf si le locuteur l'a fait.">Modals do not take <em>-s</em>, <em>to</em>, or <em>do</em>: <em>She can wait.</em> not *She cans / *She can to wait. The meaning sits on the modal. In clinical and legal English, keep the speaker's force. Do not soften <em>must</em> into <em>should</em> unless the speaker did.</p>
+</div>
+<div class="irreg-table-wrap">
+<table class="irreg-table" style="border-radius:8px;overflow:hidden">
+<tr><th>Modal</th><th>Meaning</th><th>Example</th></tr>
+<tr><td>can / could</td><td>ability, permission, request</td><td>Can you spell that?</td></tr>
+<tr><td>may / might</td><td>possibility, formal permission</td><td>It may indicate infection.</td></tr>
+<tr><td>must / have to</td><td>obligation, strong deduction</td><td>You must remain silent.</td></tr>
+<tr><td>should / ought to</td><td>advice</td><td>You should follow up in a week.</td></tr>
+<tr><td>would</td><td>hypothetical, polite request</td><td>Would you state your name?</td></tr>
+<tr><td>mustn't</td><td>prohibition</td><td>You mustn't discuss the case.</td></tr>
+<tr><td>don't have to</td><td>no obligation (not prohibition)</td><td>You don't have to answer that.</td></tr>
+</table>
+</div>
+<div class="tip">
+<div class="tip-label" data-t-en="mustn't vs don't have to" data-t-es="mustn't vs don't have to" data-t-fr="mustn't vs don't have to">mustn't vs don't have to</div>
+<div data-t-en-html="<em>mustn't</em> = not allowed. <em>don't have to</em> = not required. These are opposites." data-t-es-html="<em>mustn't</em> = no está permitido. <em>don't have to</em> = no es obligatorio. Son opuestos." data-t-fr-html="<em>mustn't</em> = interdit. <em>don't have to</em> = pas obligatoire. Ce sont des contraires."><em>mustn't</em> = not allowed. <em>don't have to</em> = not required. These are opposites.</div>
+</div>
 </section>
-
+<hr class="sec-divider"/>
 <section class="tense-section" id="gerund-inf">
-  <div class="section-chapter"><span data-t-en="Verb patterns" data-t-es="Patrones verbales" data-t-fr="Structures verbales">Verb patterns</span> · B1</div>
-  <div class="tense-header-row">
-    <h2 class="tense-title">Gerund vs infinitive</h2>
-    <span class="level-pill b1-pill">B1</span>
-  </div>
-  <div class="rule-box">
-    <div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
-    <p data-t-en-html="<em>enjoy / finish / avoid / suggest + -ing</em>. <em>decide / hope / plan / refuse + to</em>. Some change meaning: <em>stop smoking</em> vs <em>stop to smoke</em>. Memorize high-frequency verbs; don’t guess from Spanish/French infinitive patterns." data-t-es-html="<em>enjoy / finish / avoid / suggest + -ing</em>. <em>decide / hope / plan / refuse + to</em>. Algunos cambian de significado: <em>stop smoking</em> vs <em>stop to smoke</em>. Memoriza los verbos de alta frecuencia; no adivines a partir del infinitivo español." data-t-fr-html="<em>enjoy / finish / avoid / suggest + -ing</em>. <em>decide / hope / plan / refuse + to</em>. Certains changent de sens : <em>stop smoking</em> vs <em>stop to smoke</em>. Mémorisez les verbes fréquents ; ne devinez pas à partir de l'infinitif français.">enjoy / finish / avoid / suggest + -ing. decide / hope / plan / refuse + to. Some change meaning: stop smoking vs stop to smoke. Memorize high-frequency verbs; don’t guess from Spanish/French infinitive patterns.</p>
-  </div>
+<div class="section-chapter" data-t-en="Verb patterns · B1" data-t-es="Patrones verbales · B1" data-t-fr="Structures verbales · B1">Verb patterns · B1</div>
+<div class="tense-header-row">
+<h2 class="tense-title">Gerund vs infinitive</h2>
+<span class="level-pill b1-pill">B1</span>
+</div>
+<p class="tense-nickname" data-t-en="enjoy doing vs decide to do. A few verbs change meaning." data-t-es="enjoy doing vs decide to do. Algunos verbos cambian de significado." data-t-fr="enjoy doing vs decide to do. Certains verbes changent de sens.">enjoy doing vs decide to do. A few verbs change meaning.</p>
+<div class="rule-box">
+<div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
+<p data-t-en-html="Memorize the high-frequency lists. Do not guess from another language's infinitive. After a preposition, English uses <em>-ing</em>: <em>before leaving, after signing, without knowing</em>." data-t-es-html="Memoriza las listas de alta frecuencia. No adivines a partir del infinitivo de otra lengua. Tras una preposición, el inglés usa <em>-ing</em>: <em>before leaving, after signing, without knowing</em>." data-t-fr-html="Mémorisez les listes fréquentes. Ne devinez pas à partir de l'infinitif d'une autre langue. Après une préposition, l'anglais utilise <em>-ing</em> : <em>before leaving, after signing, without knowing</em>.">Memorize the high-frequency lists. Do not guess from another language's infinitive. After a preposition, English uses <em>-ing</em>: <em>before leaving, after signing, without knowing</em>.</p>
+</div>
+<div class="conj-grid">
+<div class="conj-block">
+<div class="conj-block-header">+ -ing</div>
+<table class="conj-table">
+<tr><td>enjoy, finish, avoid</td><td>enjoy working</td></tr>
+<tr><td>suggest, mind, keep</td><td>suggest waiting</td></tr>
+<tr><td>consider, risk, miss</td><td>consider appealing</td></tr>
+<tr><td>look forward to</td><td>look forward to seeing you</td></tr>
+</table>
+</div>
+<div class="conj-block">
+<div class="conj-block-header">+ to</div>
+<table class="conj-table">
+<tr><td>decide, hope, plan</td><td>decide to file</td></tr>
+<tr><td>refuse, agree, promise</td><td>refuse to sign</td></tr>
+<tr><td>need, want, expect</td><td>need to wait</td></tr>
+<tr><td>would like</td><td>would like to speak</td></tr>
+</table>
+</div>
+</div>
+<div class="irreg-table-wrap">
+<table class="irreg-table" style="border-radius:8px;overflow:hidden">
+<tr><th>Verb</th><th>+ -ing</th><th>+ to</th></tr>
+<tr><td>stop</td><td>stop smoking (quit the habit)</td><td>stop to smoke (pause in order to)</td></tr>
+<tr><td>remember</td><td>remember locking the door (memory of the past)</td><td>remember to lock the door (don't forget)</td></tr>
+<tr><td>try</td><td>try using a glossary (experiment)</td><td>try to stay calm (make an effort)</td></tr>
+<tr><td>forget</td><td>forget meeting her (no memory)</td><td>forget to call (didn't do it)</td></tr>
+</table>
+</div>
 </section>
-
+<hr class="sec-divider"/>
+<section class="tense-section" id="relatives">
+<div class="section-chapter" data-t-en="Clauses · B1" data-t-es="Oraciones · B1" data-t-fr="Propositions · B1">Clauses · B1</div>
+<div class="tense-header-row">
+<h2 class="tense-title">Relative clauses</h2>
+<span class="level-pill b1-pill">B1</span>
+</div>
+<p class="tense-nickname" data-t-en="who, which, that, whose, where. Defining vs extra information." data-t-es="who, which, that, whose, where. Definitorias frente a información extra." data-t-fr="who, which, that, whose, where. Définissantes contre information en plus.">who, which, that, whose, where. Defining vs extra information.</p>
+<div class="rule-box">
+<div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
+<p data-t-en-html="<strong>who</strong> = people. <strong>which</strong> = things. <strong>that</strong> = people or things in defining clauses. <strong>whose</strong> = possession. <strong>where</strong> = place. A defining clause identifies which one and has no commas: <em>The witness who spoke first was brief.</em> A non-defining clause adds extra information and needs commas: <em>The witness, who spoke first, was brief.</em> You cannot use <em>that</em> after a comma." data-t-es-html="<strong>who</strong> = personas. <strong>which</strong> = cosas. <strong>that</strong> = personas o cosas en cláusulas definitorias. <strong>whose</strong> = posesión. <strong>where</strong> = lugar. Una cláusula definitoria identifica cuál y no lleva comas: <em>The witness who spoke first was brief.</em> Una no definitoria añade información extra y lleva comas: <em>The witness, who spoke first, was brief.</em> No puedes usar <em>that</em> después de una coma." data-t-fr-html="<strong>who</strong> = personnes. <strong>which</strong> = choses. <strong>that</strong> = personnes ou choses dans les relatives définissantes. <strong>whose</strong> = possession. <strong>where</strong> = lieu. Une relative définissante identifie laquelle et n'a pas de virgules : <em>The witness who spoke first was brief.</em> Une non définissante ajoute une information et prend des virgules : <em>The witness, who spoke first, was brief.</em> On ne peut pas utiliser <em>that</em> après une virgule."><strong>who</strong> = people. <strong>which</strong> = things. <strong>that</strong> = people or things in defining clauses. <strong>whose</strong> = possession. <strong>where</strong> = place. A defining clause identifies which one and has no commas: <em>The witness who spoke first was brief.</em> A non-defining clause adds extra information and needs commas: <em>The witness, who spoke first, was brief.</em> You cannot use <em>that</em> after a comma.</p>
+</div>
+<div class="when-grid">
+<div class="when-card">
+<div class="when-icon">👤</div>
+<div>
+<div class="when-rule" data-t-en="Person" data-t-es="Persona" data-t-fr="Personne">Person</div>
+<div class="when-example-native">the attorney who filed the motion</div>
+<div class="when-example-en" data-t-en="who / that" data-t-es="who / that" data-t-fr="who / that">who / that</div>
+</div>
+</div>
+<div class="when-card">
+<div class="when-icon">📄</div>
+<div>
+<div class="when-rule" data-t-en="Thing" data-t-es="Cosa" data-t-fr="Chose">Thing</div>
+<div class="when-example-native">the form which / that you signed</div>
+<div class="when-example-en" data-t-en="which / that" data-t-es="which / that" data-t-fr="which / that">which / that</div>
+</div>
+</div>
+<div class="when-card">
+<div class="when-icon">🏠</div>
+<div>
+<div class="when-rule" data-t-en="Place" data-t-es="Lugar" data-t-fr="Lieu">Place</div>
+<div class="when-example-native">the clinic where she works</div>
+<div class="when-example-en" data-t-en="where" data-t-es="where" data-t-fr="where">where</div>
+</div>
+</div>
+<div class="when-card">
+<div class="when-icon">🔑</div>
+<div>
+<div class="when-rule" data-t-en="Possession" data-t-es="Posesión" data-t-fr="Possession">Possession</div>
+<div class="when-example-native">the patient whose chart is missing</div>
+<div class="when-example-en" data-t-en="whose, not who's" data-t-es="whose, no who's" data-t-fr="whose, pas who's">whose, not who's</div>
+</div>
+</div>
+</div>
+</section>
+<hr class="sec-divider"/>
+<section class="tense-section" id="reported">
+<div class="section-chapter" data-t-en="Speech · B1" data-t-es="Discurso · B1" data-t-fr="Discours · B1">Speech · B1</div>
+<div class="tense-header-row">
+<h2 class="tense-title">Reported speech</h2>
+<span class="level-pill b1-pill">B1</span>
+</div>
+<p class="tense-nickname" data-t-en="She said she needed time. Tense usually steps back." data-t-es="She said she needed time. El tiempo suele retroceder un paso." data-t-fr="She said she needed time. Le temps recule en général d'un cran.">She said she needed time. Tense usually steps back.</p>
+<div class="rule-box">
+<div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
+<p data-t-en-html="<em>say</em> does not take a person object: <em>She said (that) she was ready.</em> <em>tell</em> needs a person: <em>She told me she was ready.</em> When the reporting verb is past, tenses usually backshift: present → past, will → would, can → could, past simple / present perfect → past perfect. Time words often shift too: <em>today → that day, tomorrow → the next day, here → there</em>. Questions become statements: <em>He asked if I was ready.</em> not *He asked was I ready." data-t-es-html="<em>say</em> no lleva objeto de persona: <em>She said (that) she was ready.</em> <em>tell</em> necesita persona: <em>She told me she was ready.</em> Si el verbo introductor está en pasado, los tiempos suelen retroceder: presente → pasado, will → would, can → could, past simple / present perfect → past perfect. Las palabras de tiempo también cambian: <em>today → that day, tomorrow → the next day, here → there</em>. Las preguntas se vuelven enunciados: <em>He asked if I was ready.</em> no *He asked was I ready." data-t-fr-html="<em>say</em> ne prend pas d'objet personne : <em>She said (that) she was ready.</em> <em>tell</em> a besoin d'une personne : <em>She told me she was ready.</em> Si le verbe introducteur est au passé, les temps reculent souvent : présent → passé, will → would, can → could, past simple / present perfect → past perfect. Les mots de temps changent aussi : <em>today → that day, tomorrow → the next day, here → there</em>. Les questions deviennent des énoncés : <em>He asked if I was ready.</em> pas *He asked was I ready."><em>say</em> does not take a person object: <em>She said (that) she was ready.</em> <em>tell</em> needs a person: <em>She told me she was ready.</em> When the reporting verb is past, tenses usually backshift: present → past, will → would, can → could, past simple / present perfect → past perfect. Time words often shift too: <em>today → that day, tomorrow → the next day, here → there</em>. Questions become statements: <em>He asked if I was ready.</em> not *He asked was I ready.</p>
+</div>
+<div class="irreg-table-wrap">
+<table class="irreg-table" style="border-radius:8px;overflow:hidden">
+<tr><th>Direct</th><th>Reported</th></tr>
+<tr><td>"I am tired."</td><td>She said she was tired.</td></tr>
+<tr><td>"I will sign."</td><td>He said he would sign.</td></tr>
+<tr><td>"I have finished."</td><td>They said they had finished.</td></tr>
+<tr><td>"Can you wait?"</td><td>She asked if I could wait.</td></tr>
+<tr><td>"Where do you live?"</td><td>He asked where I lived.</td></tr>
+</table>
+</div>
+</section>
+<hr class="sec-divider"/>
+<section class="tense-section" id="used-to">
+<div class="section-chapter" data-t-en="Past habits · B1" data-t-es="Hábitos pasados · B1" data-t-fr="Habitudes passées · B1">Past habits · B1</div>
+<div class="tense-header-row">
+<h2 class="tense-title">Used to / would</h2>
+<span class="level-pill b1-pill">B1</span>
+</div>
+<p class="tense-nickname" data-t-en="Past habits and states that are no longer true." data-t-es="Hábitos y estados pasados que ya no son verdad." data-t-fr="Habitudes et états passés qui ne sont plus vrais.">Past habits and states that are no longer true.</p>
+<div class="rule-box">
+<div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
+<p data-t-en-html="<strong>used to</strong> covers past habits and past states: <em>I used to live in Lyon. I used to take the bus.</em> <strong>would</strong> covers past habits only, not states: <em>Every summer we would visit my aunt.</em> not *I would live in Lyon. Negative and question: <em>didn't use to / Did you use to…?</em> (no -d)." data-t-es-html="<strong>used to</strong> cubre hábitos y estados pasados: <em>I used to live in Lyon. I used to take the bus.</em> <strong>would</strong> solo cubre hábitos pasados, no estados: <em>Every summer we would visit my aunt.</em> no *I would live in Lyon. Negación y pregunta: <em>didn't use to / Did you use to…?</em> (sin -d)." data-t-fr-html="<strong>used to</strong> couvre habitudes et états passés : <em>I used to live in Lyon. I used to take the bus.</em> <strong>would</strong> ne couvre que les habitudes passées, pas les états : <em>Every summer we would visit my aunt.</em> pas *I would live in Lyon. Négation et question : <em>didn't use to / Did you use to…?</em> (sans -d)."><strong>used to</strong> covers past habits and past states: <em>I used to live in Lyon. I used to take the bus.</em> <strong>would</strong> covers past habits only, not states: <em>Every summer we would visit my aunt.</em> not *I would live in Lyon. Negative and question: <em>didn't use to / Did you use to…?</em> (no -d).</p>
+</div>
+</section>
+<hr class="sec-divider"/>
 <section class="tense-section" id="passive">
-  <div class="section-chapter"><span data-t-en="Voice" data-t-es="Voz" data-t-fr="Voix">Voice</span> · B2</div>
-  <div class="tense-header-row">
-    <h2 class="tense-title">Passive for formality</h2>
-    <span class="level-pill b2-pill">B2</span>
-  </div>
-  <div class="rule-box">
-    <div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
-    <p data-t-en-html="be + past participle: <em>The patient was informed.</em> Useful in clinical/legal English when the agent is unknown or less important. Keep tense on <em>be</em>." data-t-es-html="be + participio: <em>The patient was informed.</em> Útil en inglés clínico/legal cuando el agente es desconocido o menos importante. El tiempo verbal va en <em>be</em>." data-t-fr-html="be + participe passé : <em>The patient was informed.</em> Utile en anglais clinique/juridique quand l'agent est inconnu ou peu important. Le temps se porte sur <em>be</em>.">be + past participle: The patient was informed. Useful in clinical/legal English when the agent is unknown or less important. Keep tense on be.</p>
-  </div>
+<div class="section-chapter" data-t-en="Voice · B2" data-t-es="Voz · B2" data-t-fr="Voix · B2">Voice · B2</div>
+<div class="tense-header-row">
+<h2 class="tense-title">Passive voice</h2>
+<span class="level-pill b2-pill">B2</span>
+</div>
+<p class="tense-nickname" data-t-en="be + past participle. The tense sits on be." data-t-es="be + participio. El tiempo verbal va en be." data-t-fr="be + participe passé. Le temps se porte sur be.">be + past participle. The tense sits on be.</p>
+<div class="rule-box">
+<div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
+<p data-t-en-html="Use the passive when the agent is unknown, obvious, or less important than the action: <em>The patient was informed. The motion was denied.</em> Add <em>by</em> only if the agent matters: <em>The order was signed by the judge.</em> Keep the tense on <em>be</em>. In clinical and legal English the passive is common. Do not use it to hide a speaker who is taking responsibility." data-t-es-html="Usa la pasiva cuando el agente es desconocido, obvio o menos importante que la acción: <em>The patient was informed. The motion was denied.</em> Añade <em>by</em> solo si el agente importa: <em>The order was signed by the judge.</em> El tiempo va en <em>be</em>. En inglés clínico y legal la pasiva es frecuente. No la uses para ocultar a un hablante que asume responsabilidad." data-t-fr-html="Utilisez le passif quand l'agent est inconnu, évident ou moins important que l'action : <em>The patient was informed. The motion was denied.</em> Ajoutez <em>by</em> seulement si l'agent compte : <em>The order was signed by the judge.</em> Le temps se porte sur <em>be</em>. En anglais clinique et juridique le passif est fréquent. Ne l'utilisez pas pour cacher un locuteur qui assume une responsabilité.">Use the passive when the agent is unknown, obvious, or less important than the action: <em>The patient was informed. The motion was denied.</em> Add <em>by</em> only if the agent matters: <em>The order was signed by the judge.</em> Keep the tense on <em>be</em>. In clinical and legal English the passive is common. Do not use it to hide a speaker who is taking responsibility.</p>
+</div>
+<div class="irreg-table-wrap">
+<table class="irreg-table" style="border-radius:8px;overflow:hidden">
+<tr><th>Tense</th><th>Passive</th></tr>
+<tr><td>Present simple</td><td>The form is signed.</td></tr>
+<tr><td>Present continuous</td><td>The form is being signed.</td></tr>
+<tr><td>Past simple</td><td>The form was signed.</td></tr>
+<tr><td>Present perfect</td><td>The form has been signed.</td></tr>
+<tr><td>Past perfect</td><td>The form had been signed.</td></tr>
+<tr><td>will</td><td>The form will be signed.</td></tr>
+<tr><td>Modal</td><td>The form must be signed.</td></tr>
+</table>
+</div>
 </section>
-
+<hr class="sec-divider"/>
 <section class="tense-section" id="phrasal">
-  <div class="section-chapter"><span data-t-en="Vocabulary" data-t-es="Vocabulario" data-t-fr="Vocabulaire">Vocabulary</span> · B2</div>
-  <div class="tense-header-row">
-    <h2 class="tense-title">Phrasal verbs vs Latinate verbs</h2>
-    <span class="level-pill b2-pill">B2</span>
-  </div>
-  <div class="rule-box">
-    <div class="rule-box-title" data-t-en="Register tip" data-t-es="Consejo de registro" data-t-fr="Conseil de registre">Register tip</div>
-    <p data-t-en-html="Everyday: <em>find out, put off, bring up</em>. Professional interpreting often prefers Latinate: <em>discover, postpone, mention</em>. Match the speaker’s register; don’t “upgrade” casual speech into legalese unless the setting requires it." data-t-es-html="Cotidiano: <em>find out, put off, bring up</em>. La interpretación profesional suele preferir formas latinas: <em>discover, postpone, mention</em>. Igual el registro del hablante; no “eleves” el habla casual a lenguaje jurídico salvo que el contexto lo exija." data-t-fr-html="Courant : <em>find out, put off, bring up</em>. L'interprétation professionnelle préfère souvent les formes latines : <em>discover, postpone, mention</em>. Adaptez-vous au registre du locuteur ; ne « surélevez » pas un discours familier en jargon juridique sauf si le contexte l'exige.">Everyday: find out, put off, bring up. Professional interpreting often prefers Latinate: discover, postpone, mention. Match the speaker’s register; don’t “upgrade” casual speech into legalese unless the setting requires it.</p>
-  </div>
+<div class="section-chapter" data-t-en="Vocabulary · B2" data-t-es="Vocabulario · B2" data-t-fr="Vocabulaire · B2">Vocabulary · B2</div>
+<div class="tense-header-row">
+<h2 class="tense-title">Phrasal verbs vs Latinate verbs</h2>
+<span class="level-pill b2-pill">B2</span>
+</div>
+<p class="tense-nickname" data-t-en="Everyday speech vs professional interpreting." data-t-es="Habla cotidiana frente a interpretación profesional." data-t-fr="Langue quotidienne contre interprétation professionnelle.">Everyday speech vs professional interpreting.</p>
+<div class="rule-box">
+<div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
+<p data-t-en-html="Phrasal verbs are common in speech. Professional interpreting often prefers a Latinate verb of the same force. Match the speaker. Do not upgrade casual speech into legalese unless the setting requires it. Separable phrasals take a pronoun in the middle: <em>fill it out</em>, not *fill out it." data-t-es-html="Los verbos frasales son frecuentes en el habla. La interpretación profesional suele preferir un verbo latino de la misma fuerza. Iguala al hablante. No eleves el habla casual a lenguaje jurídico salvo que el contexto lo exija. Los separables llevan el pronombre en medio: <em>fill it out</em>, no *fill out it." data-t-fr-html="Les verbes à particule sont fréquents à l'oral. L'interprétation professionnelle préfère souvent un verbe latin de même force. Adaptez-vous au locuteur. Ne surélevez pas un discours familier en jargon juridique sauf si le contexte l'exige. Les séparables prennent le pronom au milieu : <em>fill it out</em>, pas *fill out it.">Phrasal verbs are common in speech. Professional interpreting often prefers a Latinate verb of the same force. Match the speaker. Do not upgrade casual speech into legalese unless the setting requires it. Separable phrasals take a pronoun in the middle: <em>fill it out</em>, not *fill out it.</p>
+</div>
+<div class="irreg-table-wrap">
+<table class="irreg-table" style="border-radius:8px;overflow:hidden">
+<tr><th>Phrasal</th><th>Latinate</th><th>Example</th></tr>
+<tr><td>find out</td><td>discover / determine</td><td>We need to find out the cause.</td></tr>
+<tr><td>put off</td><td>postpone</td><td>They put off the hearing.</td></tr>
+<tr><td>bring up</td><td>mention / raise</td><td>Don't bring that up yet.</td></tr>
+<tr><td>fill out</td><td>complete</td><td>Please fill out this form.</td></tr>
+<tr><td>go over</td><td>review</td><td>Let's go over the timeline.</td></tr>
+<tr><td>turn down</td><td>refuse / deny</td><td>The board turned down the request.</td></tr>
+<tr><td>look into</td><td>investigate</td><td>They will look into the complaint.</td></tr>
+<tr><td>set up</td><td>arrange / establish</td><td>We set up a follow-up visit.</td></tr>
+<tr><td>come up with</td><td>propose</td><td>She came up with a plan.</td></tr>
+<tr><td>carry out</td><td>perform / execute</td><td>They carried out the search.</td></tr>
+</table>
+</div>
 </section>
-
+<hr class="sec-divider"/>
 <section class="tense-section" id="false-friends">
-  <div class="section-chapter"><span data-t-en="False friends" data-t-es="Falsos amigos" data-t-fr="Faux amis">False friends</span> · B2</div>
-  <div class="tense-header-row">
-    <h2 class="tense-title">False cognates (Spanish &amp; French)</h2>
-    <span class="level-pill b2-pill">B2</span>
-  </div>
-  <div class="irreg-table-wrap">
-    <table class="irreg-table" style="border-radius:8px;overflow:hidden">
-      <tr>
-        <th>English</th>
-        <th data-t-en="≠ Spanish" data-t-es="≠ español" data-t-fr="≠ espagnol">≠ Spanish</th>
-        <th data-t-en="≠ French" data-t-es="≠ francés" data-t-fr="≠ français">≠ French</th>
-        <th data-t-en="Means" data-t-es="Significa" data-t-fr="Signifie">Means</th>
-      </tr>
-      <tr><td>actually</td><td>actualmente</td><td>actuellement</td><td data-t-en="in fact / really" data-t-es="de hecho / en realidad" data-t-fr="en fait / vraiment">in fact / really</td></tr>
-      <tr><td>embarrassed</td><td>embarazada</td><td>—</td><td data-t-en="ashamed / awkward (ES: pregnant)" data-t-es="avergonzado (ES «embarazada» = pregnant)" data-t-fr="gêné (ES « embarazada » = enceinte)">ashamed / awkward (ES: pregnant)</td></tr>
-      <tr><td>library</td><td>librería</td><td>librairie</td><td data-t-en="lending library (ES/FR = bookstore)" data-t-es="biblioteca (ES/FR = librería/bookstore)" data-t-fr="bibliothèque (ES/FR = librairie = bookstore)">lending library (ES/FR = bookstore)</td></tr>
-      <tr><td>sensible</td><td>sensible</td><td>sensible</td><td data-t-en="reasonable (ES/FR = sensitive)" data-t-es="razonable (ES/FR «sensible» = sensitive)" data-t-fr="raisonnable (ES/FR « sensible » = sensitive)">reasonable (ES/FR = sensitive)</td></tr>
-      <tr><td>assist</td><td>asistir</td><td>assister</td><td data-t-en="help (ES/FR often = attend)" data-t-es="ayudar (ES/FR a menudo = asistir/attend)" data-t-fr="aider (ES/FR souvent = assister à/attend)">help (ES/FR often = attend)</td></tr>
-      <tr><td>realize</td><td>realizar</td><td>réaliser</td><td data-t-en="become aware (ES/FR often = carry out)" data-t-es="darse cuenta (ES/FR a menudo = llevar a cabo)" data-t-fr="se rendre compte (ES/FR souvent = accomplir)">become aware (ES/FR often = carry out)</td></tr>
-      <tr><td>exit</td><td>éxito</td><td>—</td><td data-t-en="way out (ES éxito = success)" data-t-es="salida (ES «éxito» = success)" data-t-fr="sortie (ES « éxito » = succès)">way out (ES éxito = success)</td></tr>
-      <tr><td>deception</td><td>—</td><td>déception</td><td data-t-en="trickery (FR = disappointment)" data-t-es="engaño (FR «déception» = decepción/disappointment)" data-t-fr="tromperie (FR « déception » = disappointment)">trickery (FR = disappointment)</td></tr>
-    </table>
-  </div>
+<div class="section-chapter" data-t-en="False friends · B2" data-t-es="Falsos amigos · B2" data-t-fr="Faux amis · B2">False friends · B2</div>
+<div class="tense-header-row">
+<h2 class="tense-title">False cognates</h2>
+<span class="level-pill b2-pill">B2</span>
+</div>
+<p class="tense-nickname" data-t-en="Words that look shared and are not." data-t-es="Palabras que parecen compartidas y no lo son." data-t-fr="Des mots qui ont l'air partagés et ne le sont pas.">Words that look shared and are not.</p>
+<div class="rule-box">
+<div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
+<p data-t-en-html="If a word looks like one in your first language, check the English meaning before you use it. The tables below follow the app language." data-t-es-html="Si una palabra se parece a una de tu lengua, comprueba el significado en inglés antes de usarla. Las tablas siguen el idioma de la app." data-t-fr-html="Si un mot ressemble à un mot de votre langue, vérifiez le sens anglais avant de l'utiliser. Les tableaux suivent la langue de l'application.">If a word looks like one in your first language, check the English meaning before you use it. The tables below follow the app language.</p>
+</div>
+<div class="irreg-table-wrap l1-es">
+<table class="irreg-table" style="border-radius:8px;overflow:hidden">
+<tr><th>English</th><th>≠ Spanish</th><th data-t-en="Means" data-t-es="Significa" data-t-fr="Signifie">Means</th></tr>
+<tr><td>actually</td><td>actualmente</td><td data-t-en="in fact / really" data-t-es="de hecho / en realidad" data-t-fr="en fait / vraiment">in fact / really</td></tr>
+<tr><td>embarrassed</td><td>embarazada</td><td data-t-en="ashamed / awkward (embarazada = pregnant)" data-t-es="avergonzado («embarazada» = pregnant)" data-t-fr="gêné (« embarazada » = enceinte)">ashamed / awkward (embarazada = pregnant)</td></tr>
+<tr><td>library</td><td>librería</td><td data-t-en="lending library (librería = bookstore)" data-t-es="biblioteca («librería» = bookstore)" data-t-fr="bibliothèque (« librería » = bookstore)">lending library (librería = bookstore)</td></tr>
+<tr><td>sensible</td><td>sensible</td><td data-t-en="reasonable (sensible = sensitive)" data-t-es="razonable («sensible» = sensitive)" data-t-fr="raisonnable (« sensible » = sensitive)">reasonable (sensible = sensitive)</td></tr>
+<tr><td>assist</td><td>asistir</td><td data-t-en="help (asistir often = attend)" data-t-es="ayudar («asistir» a menudo = attend)" data-t-fr="aider (« asistir » souvent = attend)">help (asistir often = attend)</td></tr>
+<tr><td>realize</td><td>realizar</td><td data-t-en="become aware (realizar often = carry out)" data-t-es="darse cuenta («realizar» a menudo = llevar a cabo)" data-t-fr="se rendre compte (« realizar » souvent = accomplir)">become aware (realizar often = carry out)</td></tr>
+<tr><td>exit</td><td>éxito</td><td data-t-en="way out (éxito = success)" data-t-es="salida («éxito» = success)" data-t-fr="sortie (« éxito » = succès)">way out (éxito = success)</td></tr>
+<tr><td>constipated</td><td>constipado</td><td data-t-en="bowels (constipado often = a cold)" data-t-es="estreñido («constipado» a menudo = a cold)" data-t-fr="constipé (« constipado » souvent = un rhume)">bowels (constipado often = a cold)</td></tr>
+<tr><td>fabric</td><td>fábrica</td><td data-t-en="cloth (fábrica = factory)" data-t-es="tela («fábrica» = factory)" data-t-fr="tissu (« fábrica » = factory)">cloth (fábrica = factory)</td></tr>
+<tr><td>parents</td><td>parientes</td><td data-t-en="mother and father (parientes = relatives)" data-t-es="padre y madre («parientes» = relatives)" data-t-fr="père et mère (« parientes » = parents au sens large)">mother and father (parientes = relatives)</td></tr>
+</table>
+</div>
+<div class="irreg-table-wrap l1-fr">
+<table class="irreg-table" style="border-radius:8px;overflow:hidden">
+<tr><th>English</th><th>≠ French</th><th data-t-en="Means" data-t-es="Significa" data-t-fr="Signifie">Means</th></tr>
+<tr><td>actually</td><td>actuellement</td><td data-t-en="in fact / really" data-t-es="de hecho / en realidad" data-t-fr="en fait / vraiment">in fact / really</td></tr>
+<tr><td>library</td><td>librairie</td><td data-t-en="lending library (librairie = bookstore)" data-t-es="biblioteca («librairie» = bookstore)" data-t-fr="bibliothèque (« librairie » = bookstore)">lending library (librairie = bookstore)</td></tr>
+<tr><td>sensible</td><td>sensible</td><td data-t-en="reasonable (sensible = sensitive)" data-t-es="razonable («sensible» = sensitive)" data-t-fr="raisonnable (« sensible » = sensitive)">reasonable (sensible = sensitive)</td></tr>
+<tr><td>assist</td><td>assister</td><td data-t-en="help (assister à often = attend)" data-t-es="ayudar («assister à» a menudo = attend)" data-t-fr="aider (« assister à » souvent = attend)">help (assister à often = attend)</td></tr>
+<tr><td>realize</td><td>réaliser</td><td data-t-en="become aware (réaliser often = carry out)" data-t-es="darse cuenta («réaliser» a menudo = llevar a cabo)" data-t-fr="se rendre compte (« réaliser » souvent = accomplir)">become aware (réaliser often = carry out)</td></tr>
+<tr><td>deception</td><td>déception</td><td data-t-en="trickery (déception = disappointment)" data-t-es="engaño («déception» = decepción)" data-t-fr="tromperie (« déception » = disappointment)">trickery (déception = disappointment)</td></tr>
+<tr><td>eventually</td><td>éventuellement</td><td data-t-en="in the end (éventuellement = possibly)" data-t-es="al final («éventuellement» = possibly)" data-t-fr="à la fin (« éventuellement » = possibly)">in the end (éventuellement = possibly)</td></tr>
+<tr><tdissue</td><td>issue</td><td data-t-en="problem / edition (FR issue = exit / outcome)" data-t-es="problema / número (FR «issue» = salida / resultado)" data-t-fr="problème / numéro (FR « issue » = sortie / résultat)">problem / edition (FR issue = exit / outcome)</td></tr>
+<tr><td>caution</td><td>caution</td><td data-t-en="warning (FR caution = deposit / bail)" data-t-es="advertencia (FR «caution» = fianza)" data-t-fr="avertissement (FR « caution » = dépôt / bail)">warning (FR caution = deposit / bail)</td></tr>
+</table>
+</div>
 </section>
-
+<hr class="sec-divider"/>
+<section class="tense-section" id="past-perfect">
+<div class="section-chapter" data-t-en="Past · B2" data-t-es="Pasado · B2" data-t-fr="Passé · B2">Past · B2</div>
+<div class="tense-header-row">
+<h2 class="tense-title">Past perfect</h2>
+<span class="level-pill b2-pill">B2</span>
+</div>
+<p class="tense-nickname" data-t-en="had + past participle. The earlier of two past events." data-t-es="had + participio. El más temprano de dos eventos pasados." data-t-fr="had + participe passé. Le plus ancien de deux événements passés.">had + past participle. The earlier of two past events.</p>
+<div class="rule-box">
+<div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
+<p data-t-en-html="Use past perfect when you are already in the past and you need to name an even earlier action: <em>When I arrived, the hearing had already started.</em> Do not use it for a single finished past event with a time marker. That is past simple: <em>The hearing started at 9.</em>" data-t-es-html="Usa el past perfect cuando ya estás en el pasado y necesitas nombrar una acción aún anterior: <em>When I arrived, the hearing had already started.</em> No lo uses para un solo evento pasado con marcador de tiempo. Eso es past simple: <em>The hearing started at 9.</em>" data-t-fr-html="Utilisez le past perfect quand vous êtes déjà dans le passé et devez nommer une action encore plus ancienne : <em>When I arrived, the hearing had already started.</em> Ne l'utilisez pas pour un seul événement passé avec un marqueur de temps. C'est le past simple : <em>The hearing started at 9.</em>">Use past perfect when you are already in the past and you need to name an even earlier action: <em>When I arrived, the hearing had already started.</em> Do not use it for a single finished past event with a time marker. That is past simple: <em>The hearing started at 9.</em></p>
+</div>
+<div class="when-grid">
+<div class="when-card">
+<div class="when-icon">1️⃣</div>
+<div>
+<div class="when-rule" data-t-en="Earlier past" data-t-es="Pasado anterior" data-t-fr="Passé antérieur">Earlier past</div>
+<div class="when-example-native">She had left before the interpreter arrived.</div>
+<div class="when-example-en" data-t-en="had + participle" data-t-es="had + participio" data-t-fr="had + participe">had + participle</div>
+</div>
+</div>
+<div class="when-card">
+<div class="when-icon">2️⃣</div>
+<div>
+<div class="when-rule" data-t-en="Later past" data-t-es="Pasado posterior" data-t-fr="Passé postérieur">Later past</div>
+<div class="when-example-native">The interpreter arrived at 10.</div>
+<div class="when-example-en" data-t-en="Past simple for the later event." data-t-es="Past simple para el evento posterior." data-t-fr="Past simple pour l'événement plus tardif.">Past simple for the later event.</div>
+</div>
+</div>
+<div class="when-card">
+<div class="when-icon">🔁</div>
+<div>
+<div class="when-rule" data-t-en="Reported speech" data-t-es="Estilo indirecto" data-t-fr="Discours rapporté">Reported speech</div>
+<div class="when-example-native">"I finished." → She said she had finished.</div>
+<div class="when-example-en" data-t-en="Backshift to past perfect." data-t-es="Retroceso a past perfect." data-t-fr="Recul vers le past perfect.">Backshift to past perfect.</div>
+</div>
+</div>
+</div>
+</section>
+<hr class="sec-divider"/>
+<section class="tense-section" id="wish">
+<div class="section-chapter" data-t-en="Unreal · B2" data-t-es="Irreal · B2" data-t-fr="Irréel · B2">Unreal · B2</div>
+<div class="tense-header-row">
+<h2 class="tense-title">Wish / if only</h2>
+<span class="level-pill b2-pill">B2</span>
+</div>
+<p class="tense-nickname" data-t-en="Regret now, regret then, and annoyance." data-t-es="Arrepentimiento ahora, arrepentimiento entonces e irritación." data-t-fr="Regret maintenant, regret alors, et agacement.">Regret now, regret then, and annoyance.</p>
+<div class="rule-box">
+<div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
+<p data-t-en-html="<strong>wish + past</strong> = a different present: <em>I wish I knew the answer.</em> <strong>wish + past perfect</strong> = a different past: <em>I wish I had asked.</em> <strong>wish + would</strong> = annoyance about someone else's habit: <em>I wish he would stop interrupting.</em> <em>If only</em> is the same grammar with more force." data-t-es-html="<strong>wish + pasado</strong> = un presente distinto: <em>I wish I knew the answer.</em> <strong>wish + past perfect</strong> = un pasado distinto: <em>I wish I had asked.</em> <strong>wish + would</strong> = molestia por el hábito de otra persona: <em>I wish he would stop interrupting.</em> <em>If only</em> es la misma gramática con más fuerza." data-t-fr-html="<strong>wish + passé</strong> = un présent différent : <em>I wish I knew the answer.</em> <strong>wish + past perfect</strong> = un passé différent : <em>I wish I had asked.</em> <strong>wish + would</strong> = agacement devant l'habitude d'autrui : <em>I wish he would stop interrupting.</em> <em>If only</em> est la même grammaire, plus forte."><strong>wish + past</strong> = a different present: <em>I wish I knew the answer.</em> <strong>wish + past perfect</strong> = a different past: <em>I wish I had asked.</em> <strong>wish + would</strong> = annoyance about someone else's habit: <em>I wish he would stop interrupting.</em> <em>If only</em> is the same grammar with more force.</p>
+</div>
+<div class="irreg-table-wrap">
+<table class="irreg-table" style="border-radius:8px;overflow:hidden">
+<tr><th>Meaning</th><th>Form</th><th>Example</th></tr>
+<tr><td>Different present</td><td>wish + past</td><td>I wish I were there.</td></tr>
+<tr><td>Different past</td><td>wish + had + participle</td><td>I wish I had objected.</td></tr>
+<tr><td>Annoyance</td><td>wish + would</td><td>I wish they would wait.</td></tr>
+</table>
+</div>
+</section>
+<hr class="sec-divider"/>
 <section class="tense-section" id="register">
-  <div class="section-chapter"><span data-t-en="Register" data-t-es="Registro" data-t-fr="Registre">Register</span> · C1</div>
-  <div class="tense-header-row">
-    <h2 class="tense-title">Professional register</h2>
-    <span class="level-pill c1-pill">C1</span>
-  </div>
-  <div class="rule-box">
-    <div class="rule-box-title" data-t-en="Interpreter English" data-t-es="Inglés para intérpretes" data-t-fr="Anglais pour interprètes">Interpreter English</div>
-    <p data-t-en-html="Prefer clear Latinate verbs in clinical/legal settings, hedge carefully (<em>appears to, may indicate</em>), and keep speaker intent. Avoid calques: <em>depend on</em>, <em>discuss X</em>, <em>interested in</em>. Consistency of formality across the turn matters more than “sounding fancy.”" data-t-es-html="Prefiere verbos latinos claros en contextos clínicos/legales, matiza con cuidado (<em>appears to, may indicate</em>) y conserva la intención del hablante. Evita calcos: <em>depend on</em>, <em>discuss X</em>, <em>interested in</em>. La consistencia de la formalidad en todo el turno importa más que «sonar elegante»." data-t-fr-html="Préférez des verbes latins clairs dans les contextes cliniques/juridiques, atténuez avec soin (<em>appears to, may indicate</em>) et préservez l'intention du locuteur. Évitez les calques : <em>depend on</em>, <em>discuss X</em>, <em>interested in</em>. La cohérence de la formalité tout au long du tour compte plus qu'un style « élégant ».">Prefer clear Latinate verbs in clinical/legal settings, hedge carefully (appears to, may indicate), and keep speaker intent. Avoid calques: depend on, discuss X, interested in. Consistency of formality across the turn matters more than “sounding fancy.”</p>
-  </div>
+<div class="section-chapter" data-t-en="Register · C1" data-t-es="Registro · C1" data-t-fr="Registre · C1">Register · C1</div>
+<div class="tense-header-row">
+<h2 class="tense-title">Professional register</h2>
+<span class="level-pill c1-pill">C1</span>
+</div>
+<p class="tense-nickname" data-t-en="Match the speaker. Do not flatten every turn into one tone." data-t-es="Iguala al hablante. No aplanes cada turno en un solo tono." data-t-fr="Adaptez-vous au locuteur. N'aplatissez pas chaque tour en un seul ton.">Match the speaker. Do not flatten every turn into one tone.</p>
+<div class="rule-box">
+<div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
+<p data-t-en-html="Prefer clear Latinate verbs in clinical and legal settings, hedge when the speaker hedges (<em>appears to, may indicate</em>), and keep speaker intent. Avoid calques: <em>depend on, discuss X, interested in</em>. Consistency of formality across the turn matters more than sounding fancy." data-t-es-html="Prefiere verbos latinos claros en contextos clínicos y legales, matiza cuando el hablante matiza (<em>appears to, may indicate</em>) y conserva la intención. Evita calcos: <em>depend on, discuss X, interested in</em>. La consistencia de la formalidad en todo el turno importa más que sonar elegante." data-t-fr-html="Préférez des verbes latins clairs dans les contextes cliniques et juridiques, atténuez quand le locuteur atténue (<em>appears to, may indicate</em>) et préservez l'intention. Évitez les calques : <em>depend on, discuss X, interested in</em>. La cohérence de la formalité tout au long du tour compte plus qu'un style élégant.">Prefer clear Latinate verbs in clinical and legal settings, hedge when the speaker hedges (<em>appears to, may indicate</em>), and keep speaker intent. Avoid calques: <em>depend on, discuss X, interested in</em>. Consistency of formality across the turn matters more than sounding fancy.</p>
+</div>
+<div class="irreg-table-wrap">
+<table class="irreg-table" style="border-radius:8px;overflow:hidden">
+<tr><th>Casual</th><th>Professional</th></tr>
+<tr><td>get</td><td>receive / obtain</td></tr>
+<tr><td>ask for</td><td>request</td></tr>
+<tr><td>tell</td><td>inform / notify / instruct</td></tr>
+<tr><td>start</td><td>begin / commence (legal)</td></tr>
+<tr><td>end</td><td>conclude / terminate</td></tr>
+<tr><td>help</td><td>assist / aid</td></tr>
+<tr><td>need</td><td>require</td></tr>
+<tr><td>about</td><td>regarding / concerning</td></tr>
+<tr><td>so</td><td>therefore / accordingly</td></tr>
+<tr><td>but</td><td>however / nevertheless</td></tr>
+</table>
+</div>
+<div class="tip">
+<div class="tip-label" data-t-en="Do not upgrade" data-t-es="No eleves" data-t-fr="Ne surélevez pas">Do not upgrade</div>
+<div data-t-en-html="If the speaker says <em>I just wanna know what's going on</em>, keep that force. Do not turn it into <em>I hereby request clarification of the current status</em> unless the setting demands it." data-t-es-html="Si el hablante dice <em>I just wanna know what's going on</em>, conserva esa fuerza. No lo conviertas en <em>I hereby request clarification of the current status</em> salvo que el contexto lo exija." data-t-fr-html="Si le locuteur dit <em>I just wanna know what's going on</em>, gardez cette force. Ne le transformez pas en <em>I hereby request clarification of the current status</em> sauf si le contexte l'exige.">If the speaker says <em>I just wanna know what's going on</em>, keep that force. Do not turn it into <em>I hereby request clarification of the current status</em> unless the setting demands it.</div>
+</div>
 </section>
-
+<hr class="sec-divider"/>
+<section class="tense-section" id="clefts">
+<div class="section-chapter" data-t-en="Emphasis · C1" data-t-es="Énfasis · C1" data-t-fr="Emphase · C1">Emphasis · C1</div>
+<div class="tense-header-row">
+<h2 class="tense-title">Clefts and nominalization</h2>
+<span class="level-pill c1-pill">C1</span>
+</div>
+<p class="tense-nickname" data-t-en="It was X who… What I need is… Turning verbs into nouns for formal tone." data-t-es="It was X who… What I need is… Convertir verbos en nombres para un tono formal." data-t-fr="It was X who… What I need is… Transformer les verbes en noms pour un ton formel.">It was X who… What I need is… Turning verbs into nouns for formal tone.</p>
+<div class="rule-box">
+<div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
+<p data-t-en-html="A cleft highlights one piece of information. <em>It was the nurse who called.</em> (not the doctor). <em>What the patient needs is rest.</em> Nominalization turns a verb into a noun and is common in reports: <em>They decided → their decision. She refused → her refusal. We observed → our observation.</em> Use it for formality. Do not stack so many nouns that the sentence dies." data-t-es-html="Un cleft destaca una pieza de información. <em>It was the nurse who called.</em> (no el médico). <em>What the patient needs is rest.</em> La nominalización convierte un verbo en nombre y es frecuente en informes: <em>They decided → their decision. She refused → her refusal. We observed → our observation.</em> Úsala para formalidad. No apiles tantos nombres que la oración se ahogue." data-t-fr-html="Un cleft met en avant une information. <em>It was the nurse who called.</em> (pas le médecin). <em>What the patient needs is rest.</em> La nominalisation transforme un verbe en nom et est fréquente dans les rapports : <em>They decided → their decision. She refused → her refusal. We observed → our observation.</em> Utilisez-la pour la formalité. N'empilez pas tant de noms que la phrase meurt.">A cleft highlights one piece of information. <em>It was the nurse who called.</em> (not the doctor). <em>What the patient needs is rest.</em> Nominalization turns a verb into a noun and is common in reports: <em>They decided → their decision. She refused → her refusal. We observed → our observation.</em> Use it for formality. Do not stack so many nouns that the sentence dies.</p>
+</div>
+<div class="when-grid">
+<div class="when-card">
+<div class="when-icon">🎯</div>
+<div>
+<div class="when-rule" data-t-en="It-cleft" data-t-es="It-cleft" data-t-fr="It-cleft">It-cleft</div>
+<div class="when-example-native">It was the second witness who changed the timeline.</div>
+<div class="when-example-en" data-t-en="Highlights the second witness." data-t-es="Destaca al segundo testigo." data-t-fr="Met en avant le deuxième témoin.">Highlights the second witness.</div>
+</div>
+</div>
+<div class="when-card">
+<div class="when-icon">💬</div>
+<div>
+<div class="when-rule" data-t-en="Wh-cleft" data-t-es="Wh-cleft" data-t-fr="Wh-cleft">Wh-cleft</div>
+<div class="when-example-native">What I need is a complete address.</div>
+<div class="when-example-en" data-t-en="Highlights the needed thing." data-t-es="Destaca lo que se necesita." data-t-fr="Met en avant ce qui est nécessaire.">Highlights the needed thing.</div>
+</div>
+</div>
+<div class="when-card">
+<div class="when-icon">📑</div>
+<div>
+<div class="when-rule" data-t-en="Nominalization" data-t-es="Nominalización" data-t-fr="Nominalisation">Nominalization</div>
+<div class="when-example-native">The refusal to sign delayed the discharge.</div>
+<div class="when-example-en" data-t-en="From she refused to sign." data-t-es="De she refused to sign." data-t-fr="De she refused to sign.">From she refused to sign.</div>
+</div>
+</div>
+</div>
+</section>
+<hr class="sec-divider"/>
+<section class="tense-section" id="inversion">
+<div class="section-chapter" data-t-en="Emphasis · C1" data-t-es="Énfasis · C1" data-t-fr="Emphase · C1">Emphasis · C1</div>
+<div class="tense-header-row">
+<h2 class="tense-title">Inversion and emphasis</h2>
+<span class="level-pill c1-pill">C1</span>
+</div>
+<p class="tense-nickname" data-t-en="Never have I… Should you need… Formal and written more than spoken." data-t-es="Never have I… Should you need… Más formal y escrito que oral." data-t-fr="Never have I… Should you need… Plus formel et écrit qu'oral.">Never have I… Should you need… Formal and written more than spoken.</p>
+<div class="rule-box">
+<div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
+<p data-t-en-html="After a negative or restrictive adverb at the start, invert the auxiliary: <em>Never have I seen that. Rarely does the court allow it. Not only did she object, she also asked for a recess. Only then did he sign.</em> Conditional inversion drops <em>if</em>: <em>Should you need help, call. Had I known, I would have waited. Were he here, he would object.</em> Keep this for formal English. Do not invert in casual speech." data-t-es-html="Tras un adverbio negativo o restrictivo al inicio, invierte el auxiliar: <em>Never have I seen that. Rarely does the court allow it. Not only did she object, she also asked for a recess. Only then did he sign.</em> La inversión condicional suelta <em>if</em>: <em>Should you need help, call. Had I known, I would have waited. Were he here, he would object.</em> Reserva esto para el inglés formal. No inviertas en el habla casual." data-t-fr-html="Après un adverbe négatif ou restrictif en tête, inversez l'auxiliaire : <em>Never have I seen that. Rarely does the court allow it. Not only did she object, she also asked for a recess. Only then did he sign.</em> L'inversion conditionnelle laisse tomber <em>if</em> : <em>Should you need help, call. Had I known, I would have waited. Were he here, he would object.</em> Réservez cela à l'anglais formel. N'inversez pas à l'oral familier.">After a negative or restrictive adverb at the start, invert the auxiliary: <em>Never have I seen that. Rarely does the court allow it. Not only did she object, she also asked for a recess. Only then did he sign.</em> Conditional inversion drops <em>if</em>: <em>Should you need help, call. Had I known, I would have waited. Were he here, he would object.</em> Keep this for formal English. Do not invert in casual speech.</p>
+</div>
+</section>
+<hr class="sec-divider"/>
 <section class="tense-section" id="hedging">
-  <div class="section-chapter"><span data-t-en="Discourse" data-t-es="Discurso" data-t-fr="Discours">Discourse</span> · C2</div>
-  <div class="tense-header-row">
-    <h2 class="tense-title">Hedging and cohesion</h2>
-    <span class="level-pill c2-pill">C2</span>
-  </div>
-  <div class="rule-box">
-    <div class="rule-box-title" data-t-en="Near-native control" data-t-es="Control casi nativo" data-t-fr="Maîtrise quasi native">Near-native control</div>
-    <p data-t-en-html="Link ideas with <em>however, therefore, in contrast, as a result</em>. Soften claims when the speaker softens them. Preserve register shifts between emotional speech and formal testimony — do not flatten them into one tone." data-t-es-html="Enlaza ideas con <em>however, therefore, in contrast, as a result</em>. Suaviza las afirmaciones cuando el hablante las suaviza. Conserva los cambios de registro entre el habla emotiva y el testimonio formal — no los aplanes en un solo tono." data-t-fr-html="Reliez les idées avec <em>however, therefore, in contrast, as a result</em>. Atténuez les affirmations quand le locuteur les atténue. Préservez les changements de registre entre un discours émotionnel et un témoignage formel — ne les aplatissez pas en un seul ton.">Link ideas with however, therefore, in contrast, as a result. Soften claims when the speaker softens them. Preserve register shifts between emotional speech and formal testimony — do not flatten them into one tone.</p>
-  </div>
+<div class="section-chapter" data-t-en="Discourse · C2" data-t-es="Discurso · C2" data-t-fr="Discours · C2">Discourse · C2</div>
+<div class="tense-header-row">
+<h2 class="tense-title">Hedging and cohesion</h2>
+<span class="level-pill c2-pill">C2</span>
+</div>
+<p class="tense-nickname" data-t-en="Soften claims when the speaker softens them. Link ideas without flattening tone." data-t-es="Suaviza las afirmaciones cuando el hablante las suaviza. Enlaza ideas sin aplanar el tono." data-t-fr="Atténuez les affirmations quand le locuteur les atténue. Reliez les idées sans aplatir le ton.">Soften claims when the speaker softens them. Link ideas without flattening tone.</p>
+<div class="rule-box">
+<div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
+<p data-t-en-html="Link ideas with <em>however, therefore, in contrast, as a result, nevertheless, meanwhile</em>. Soften with <em>appears to, may indicate, it is possible that, to the best of my knowledge, as far as I can tell</em>. Preserve register shifts between emotional speech and formal testimony. Do not flatten them into one tone." data-t-es-html="Enlaza ideas con <em>however, therefore, in contrast, as a result, nevertheless, meanwhile</em>. Suaviza con <em>appears to, may indicate, it is possible that, to the best of my knowledge, as far as I can tell</em>. Conserva los cambios de registro entre el habla emotiva y el testimonio formal. No los aplanes en un solo tono." data-t-fr-html="Reliez les idées avec <em>however, therefore, in contrast, as a result, nevertheless, meanwhile</em>. Atténuez avec <em>appears to, may indicate, it is possible that, to the best of my knowledge, as far as I can tell</em>. Préservez les changements de registre entre un discours émotionnel et un témoignage formel. Ne les aplatissez pas en un seul ton.">Link ideas with <em>however, therefore, in contrast, as a result, nevertheless, meanwhile</em>. Soften with <em>appears to, may indicate, it is possible that, to the best of my knowledge, as far as I can tell</em>. Preserve register shifts between emotional speech and formal testimony. Do not flatten them into one tone.</p>
+</div>
+<div class="irreg-table-wrap">
+<table class="irreg-table" style="border-radius:8px;overflow:hidden">
+<tr><th>Force</th><th>Phrases</th></tr>
+<tr><td>Strong</td><td>must, will, it is clear that, in fact</td></tr>
+<tr><td>Mid</td><td>should, tends to, typically, generally</td></tr>
+<tr><td>Soft</td><td>may, might, appears to, it seems, possibly</td></tr>
+<tr><td>Contrast</td><td>however, nevertheless, in contrast, on the other hand</td></tr>
+<tr><td>Result</td><td>therefore, as a result, accordingly, thus</td></tr>
+<tr><td>Add</td><td>furthermore, in addition, moreover</td></tr>
+</table>
+</div>
+</section>
+<hr class="sec-divider"/>
+<section class="tense-section" id="discourse">
+<div class="section-chapter" data-t-en="Discourse · C2" data-t-es="Discurso · C2" data-t-fr="Discours · C2">Discourse · C2</div>
+<div class="tense-header-row">
+<h2 class="tense-title">Discourse and implication</h2>
+<span class="level-pill c2-pill">C2</span>
+</div>
+<p class="tense-nickname" data-t-en="What is said, what is implied, and how English understates." data-t-es="Lo que se dice, lo que se implica y cómo el inglés atenúa." data-t-fr="Ce qui est dit, ce qui est impliqué, et comment l'anglais atténue.">What is said, what is implied, and how English understates.</p>
+<div class="rule-box">
+<div class="rule-box-title" data-t-en="The Core Rule" data-t-es="La regla básica" data-t-fr="La règle de base">The Core Rule</div>
+<p data-t-en-html="English often understates. <em>That's not ideal</em> can mean it is a serious problem. <em>I was a bit concerned</em> can mean alarm. <em>We might want to reconsider</em> can be a refusal. When you interpret, keep the understatement if the speaker used it. Do not upgrade it into a louder English that the speaker did not choose. Also keep discourse markers that organize the turn: <em>look, I mean, the thing is, at the end of the day, to be honest</em>." data-t-es-html="El inglés a menudo atenúa. <em>That's not ideal</em> puede significar un problema grave. <em>I was a bit concerned</em> puede ser alarma. <em>We might want to reconsider</em> puede ser una negativa. Al interpretar, conserva la atenuación si el hablante la usó. No la conviertas en un inglés más fuerte que el hablante no eligió. Conserva también los marcadores que organizan el turno: <em>look, I mean, the thing is, at the end of the day, to be honest</em>." data-t-fr-html="L'anglais atténue souvent. <em>That's not ideal</em> peut signifier un vrai problème. <em>I was a bit concerned</em> peut être de l'alarme. <em>We might want to reconsider</em> peut être un refus. En interprétant, gardez l'atténuation si le locuteur l'a utilisée. Ne la transformez pas en un anglais plus fort que le locuteur n'a pas choisi. Gardez aussi les marqueurs qui organisent le tour : <em>look, I mean, the thing is, at the end of the day, to be honest</em>.">English often understates. <em>That's not ideal</em> can mean it is a serious problem. <em>I was a bit concerned</em> can mean alarm. <em>We might want to reconsider</em> can be a refusal. When you interpret, keep the understatement if the speaker used it. Do not upgrade it into a louder English that the speaker did not choose. Also keep discourse markers that organize the turn: <em>look, I mean, the thing is, at the end of the day, to be honest</em>.</p>
+</div>
+<div class="when-grid">
+<div class="when-card">
+<div class="when-icon">🔉</div>
+<div>
+<div class="when-rule" data-t-en="Understatement" data-t-es="Atenuación" data-t-fr="Litote">Understatement</div>
+<div class="when-example-native">That's not ideal. I'm a bit concerned.</div>
+<div class="when-example-en" data-t-en="Often stronger than it sounds." data-t-es="A menudo más fuerte de lo que suena." data-t-fr="Souvent plus fort que ça n'en a l'air.">Often stronger than it sounds.</div>
+</div>
+</div>
+<div class="when-card">
+<div class="when-icon">🪞</div>
+<div>
+<div class="when-rule" data-t-en="Implication" data-t-es="Implicación" data-t-fr="Implicite">Implication</div>
+<div class="when-example-native">If I were you, I would get a second opinion.</div>
+<div class="when-example-en" data-t-en="Advice without a command." data-t-es="Consejo sin orden." data-t-fr="Conseil sans ordre.">Advice without a command.</div>
+</div>
+</div>
+<div class="when-card">
+<div class="when-icon">🧵</div>
+<div>
+<div class="when-rule" data-t-en="Markers" data-t-es="Marcadores" data-t-fr="Marqueurs">Markers</div>
+<div class="when-example-native">Look, the thing is, we don't have the file.</div>
+<div class="when-example-en" data-t-en="Organizes the turn. Keep them." data-t-es="Organizan el turno. Consérvalos." data-t-fr="Organisent le tour. Gardez-les.">Organizes the turn. Keep them.</div>
+</div>
+</div>
+<div class="when-card">
+<div class="when-icon">⚖️</div>
+<div>
+<div class="when-rule" data-t-en="Interpreter note" data-t-es="Nota para intérpretes" data-t-fr="Note pour interprètes">Interpreter note</div>
+<div class="when-example-native">Do not make a soft speaker sound certain.</div>
+<div class="when-example-en" data-t-en="Force belongs to the speaker." data-t-es="La fuerza es del hablante." data-t-fr="La force appartient au locuteur.">Force belongs to the speaker.</div>
+</div>
+</div>
+</div>
 </section>
 
 </div>
@@ -296,9 +1186,9 @@ GuideUI.init({
   langs: ['en', 'es', 'fr'],
   storageKey: 'parlance_guide_read_en',
   titles: {
-    en: 'English A1→C2 Guide — for Spanish & French speakers',
-    es: 'Guía de inglés A1→C2 — para hispanohablantes y francófonos',
-    fr: 'Guide d’anglais A1→C2 — pour hispanophones et francophones',
+    en: 'English A1→C2 Guide',
+    es: 'Guía de inglés A1→C2',
+    fr: "Guide d'anglais A1→C2",
   },
 });
 

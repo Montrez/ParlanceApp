@@ -41,7 +41,7 @@ LANG_CONFIG = {
 }
 
 ANDROID_DESTS = (
-    ROOT / "android" / "app" / "src" / "main" / "assets" / "models",
+    ROOT / "android" / "app" / "src" / "debug" / "assets" / "models",
     ROOT / "android" / "parlance_models" / "src" / "main" / "assets",
 )
 

@@ -46,6 +46,7 @@ public class ParlanceBridge {
         this.webView = webView;
         this.auth = new ParlanceAuth(activity);
         this.slm = new ParlanceSLMEngine(activity);
+        this.slm.setAvailabilityListener(this::publishCoachConfig);
     }
 
     // MARK: - Synchronous state for hydration
@@ -68,12 +69,14 @@ public class ParlanceBridge {
             config.put("platform", "android");
             config.put("capabilities", capabilities);
             config.put("onDeviceAvailable", false);
-            config.put("groqAvailable", true);
+            config.put("groqAvailable", false);
+            config.put("coachOnly", true);
             JSONArray coachLangs = new JSONArray();
             for (String lang : slm.availableLanguages()) {
                 coachLangs.put(lang);
             }
             config.put("parlanceCoachAvailable", coachLangs.length() > 0);
+            config.put("parlanceCoachInstalling", slm.isInstalling());
             config.put("parlanceCoachLanguages", coachLangs);
             config.put("isPlusActive", false);
             config.put("plusPurchaseAvailable", false);
@@ -238,6 +241,19 @@ public class ParlanceBridge {
         String errorArg = error == null ? "null" : quote(error);
         evaluateJs("window.__parlanceAuthResult && window.__parlanceAuthResult("
                 + quote(requestId) + ", " + errorArg + ")");
+    }
+
+    void publishCoachConfig() {
+        JSONArray coachLangs = new JSONArray();
+        for (String lang : slm.availableLanguages()) {
+            coachLangs.put(lang);
+        }
+        evaluateJs("window.__parlanceUpdateConfig && window.__parlanceUpdateConfig({"
+                + "coachOnly:true,"
+                + "parlanceCoachAvailable:" + (coachLangs.length() > 0) + ","
+                + "parlanceCoachInstalling:" + slm.isInstalling() + ","
+                + "parlanceCoachLanguages:" + coachLangs
+                + "})");
     }
 
     /** Mirrors {@code AuthManager.injectAuth} so the web UI re-reads the session. */

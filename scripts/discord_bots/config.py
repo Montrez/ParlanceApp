@@ -18,6 +18,7 @@ CHANNELS = {
     "bugs": CHANNEL_NAMES["bugs"],
     "feedback": CHANNEL_NAMES["feedback"],
     "announcements": CHANNEL_NAMES["announcements"],
+    "whats-new": CHANNEL_NAMES["whats-new"],
 }
 
 # Roles that can use Herald slash commands (plus server admins)
