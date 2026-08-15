@@ -6,7 +6,7 @@
 
 <p align="center">
   A language writing journal for aspiring interpreters.<br>
-  Practice writing in Spanish and French with real-time AI grammar feedback.
+  Practice writing in English, Spanish, and French with on-device Coach feedback.
 </p>
 
 <p align="center">
@@ -22,12 +22,13 @@
 
 ## What's in the app
 
-- **Journal**: write sentences in your target language and get structured AI feedback (corrections, register, CEFR level, higher-level rephrasings) as you go.
+- **Journal**: write sentences in English, Spanish, or French and get structured Coach feedback (corrections, register, CEFR level, higher-level rephrasings) as you go.
 - **Grammar Guide**: verb tenses and grammar rules, A1–C2, per practice language.
 - **Regional Guide**: regional vocabulary, pronouns, and dialect traps, with a "your region vs. theirs" picker.
-- **Parlance Coach**: on-device Spanish/French grammar coaching (Qwen 0.5B fine-tunes running fully offline via MLX), or plug in a cloud provider.
-- **Call Packs**: 30 free AI analyses a month, with an optional $0.99 top-up for 100 more.
-- Dark mode and interface language (EN/ES/FR) that apply consistently across the journal, guides, and regional content.
+- **Medical and Legal Guides**: domain interpreting references. On the phones these two require Parlance Plus.
+- **Parlance Coach**: on-device grammar coaching for English, Spanish, and French. Qwen 0.5B runs fully offline (MLX on iPhone, GGUF on Android). Phones are Coach-only. The web app can still use a cloud provider.
+- **Parlance Plus**: unlocks medical and legal guides on the phones, plus unlimited cloud coaching on the web.
+- Dark mode and interface language (EN/ES/FR) that apply across the journal, guides, and regional content.
 
 ---
 
@@ -47,7 +48,7 @@ open Parlance.xcodeproj
 
 ### Web
 
-Visit the [GitHub Pages site](https://montrez.github.io/ParlanceApp/) — no install needed. You can run AI in-browser with WebLLM or connect a cloud provider.
+Visit the [GitHub Pages site](https://montrez.github.io/ParlanceApp/) — no install needed. The web app can run AI in-browser with WebLLM or connect a cloud provider. The iPhone and Android apps use Parlance Coach on the device.
 
 ### Android
 
@@ -65,8 +66,9 @@ so a feature added to one is expected on the other.
 version number only lands on one side.
 
 Capabilities that genuinely differ are reported by the bridge rather than sniffed
-in JavaScript. Android currently reports `inAppPurchase: false` (no Play Billing
-yet) and `nativeSettings: false` (it uses the web settings modal).
+in JavaScript. Both phones report `inAppPurchase: true` (StoreKit on iOS, Play
+Billing on Android) and `coachOnly: true`. Android still uses the web settings
+modal (`nativeSettings: false`).
 
 **Google Sign-In requires registered SHA-1 fingerprints.** Credential Manager will
 not issue an ID token for an app whose signing certificate is unknown to Firebase,
@@ -113,39 +115,25 @@ Bump the build **once per upload**, whether it goes to TestFlight, Play, or both
 The marketing version only changes when the release is worth a new number to a
 user; a rejected submission can be resubmitted under the same one.
 
+Ship both stores from this Mac with `fastlane both` (see [fastlane/README.md](fastlane/README.md)). Do not upload from Xcode Cloud; it cannot see the Coach weights.
+
 ---
 
-## Parlance Coach (Spanish & French fine-tuned models)
+## Parlance Coach
 
-On-device grammar coaching on **iOS** using Qwen 0.5B fine-tunes (~294 MB MLX 4-bit per language, bundled at archive). See [training/ARCHIVE_SPANISH.md](training/ARCHIVE_SPANISH.md).
+On-device grammar coaching on **iPhone and Android**. Spanish and French use the fine-tuned Qwen 0.5B weights. English uses the same multilingual 0.5B with English prompts and the English rules pack. See [training/ARCHIVE_SPANISH.md](training/ARCHIVE_SPANISH.md).
 
-1. `./training/prepare_ios_coach_model.sh`
-2. Archive in Xcode (physical device recommended)
-3. In the app: **⚙ AI** → **Parlance Coach**, journal language **Spanish** or **French**
+1. iOS: `./training/prepare_ios_coach_model.sh`, then archive locally
+2. Android: GGUF exports live in the `parlance_models` Play asset pack, not the base module
+3. In the app: set **Write** to English, Spanish, or French and tap **Feedback**
 
 Optional Mac dev server: `python3 training/parlance_slm_server.py`.
 
-## Adding an API Key
+## Cloud AI (web only)
 
-The default provider is **Groq** (free, fast, runs Qwen 3 32B). Get a key at [console.groq.com/keys](https://console.groq.com/keys).
+The phones do not take an API key. On GitHub Pages you can still use a cloud provider. The default there is **Groq** (free, fast). Get a key at [console.groq.com/keys](https://console.groq.com/keys) and set it in **AI Settings**.
 
-**On iOS:** Create `Parlance/Secrets.plist` with your key:
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
-  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>GROQ_API_KEY</key>
-    <string>YOUR_KEY</string>
-</dict>
-</plist>
-```
-
-**On any platform:** You can also set your API key directly in the app via the **AI Settings** button.
-
-Supported providers: Groq, OpenAI, Anthropic, Google Gemini, DeepSeek, Kimi, OpenRouter, Apple Intelligence (on-device, iOS 26+).
+Supported on the web: Groq, OpenAI, Anthropic, Google Gemini, DeepSeek, Kimi, OpenRouter, and in-browser WebLLM.
 
 ---
 
@@ -198,7 +186,7 @@ Feedback infers the sentence’s CEFR level (A1–C2) when the model is confiden
 
 Active work is tracked as GitHub issues, grouped into epics:
 
-- [English learning path](https://github.com/Montrez/ParlanceApp/issues/9) for Spanish/French native speakers
+- [English learning path](https://github.com/Montrez/ParlanceApp/issues/9) — journal and Coach already cover English; dedicated English weights are still open
 - [Language architecture](https://github.com/Montrez/ParlanceApp/issues/12) — making it easier to add new languages and sections
 - [Central design system](https://github.com/Montrez/ParlanceApp/issues/16) — one source of truth for colors across web, native, and the app icon
 - [App layout & UX polish](https://github.com/Montrez/ParlanceApp/issues/20)
@@ -208,4 +196,4 @@ See the [full issue list](https://github.com/Montrez/ParlanceApp/issues) for eve
 
 ---
 
-*Built with SwiftUI + WKWebView + RAG + Groq*
+*Built with a shared web frontend, SwiftUI + WKWebView on iPhone, Capacitor on Android, and on-device Parlance Coach*
