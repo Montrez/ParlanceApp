@@ -328,6 +328,7 @@
   function tipIsGeneric(tip) {
     if (!tip || tip.trim().length < 15) return true;
     const low = tip.toLowerCase();
+    if (/grammar rule not identified/i.test(tip)) return true;
     if (_GENERIC_TIP_PHRASES.some((p) => low.includes(p))) return true;
     // Tips under 60 chars with no target-language example (no «» or "e.g.") are too thin
     if (tip.trim().length < 60 && !/[«»]/.test(tip) && !/e\.g\./i.test(tip)) return true;
@@ -365,6 +366,10 @@
       return isInformal
         ? 'Add «¿» at the start of every question. E.g. «**¿**Cómo estás, amigo?» (informal) or «**¿**Cómo está usted?» (formal).'
         : 'Add «¿» at the start of every question. E.g. «**¿**Cómo está usted hoy, señor?» — especially in formal interpreter settings.';
+    if (/stem-chang|boot.?verb|e→ie|o→ue/.test(rule))
+      return 'Stem-changing verbs change the vowel in most present forms: querer → **quiero**, poder → **puedo**. Nosotros often stays regular (queremos).';
+    if (/object pronoun|clitic/.test(rule))
+      return 'lo/la are direct objects; le is indirect. E.g. «**la** veo» (I see it/her) vs «**le** hablo» (I speak to him/her).';
     if (/leísmo|direct object|acusativo/.test(rule))
       return 'Use lo/la for direct objects, not le. E.g. «**lo** echo de menos» (him) or «**la** echo de menos» (her).';
     if (/por.*para|para.*por/.test(rule))
@@ -394,7 +399,7 @@
         return `With «y» chains, add sequencing: e.g. «${left} y después ${right}.» or use subordination: «${left} antes de ir a ${right}.»`;
       }
     }
-    if (grammarRule && grammarRule.length > 12)
+    if (grammarRule && grammarRule.length > 12 && !isMissingGrammarRule(grammarRule))
       return `${grammarRule.charAt(0).toUpperCase() + grammarRule.slice(1)}. Apply this consistently when interpreting for precision.`;
     return isInformal
       ? 'In professional interpreting, shift to usted. E.g. «¿**Cómo está usted** hoy?»'
@@ -528,12 +533,215 @@
     return ['es', 'fr', 'en'].includes(language) ? language : 'es';
   }
 
+  function isMissingGrammarRule(rule) {
+    const t = String(rule || '').trim();
+    if (!t || t.length < 4) return true;
+    return /grammar rule not identified/i.test(t);
+  }
+
+  /** Dead-end 0.5B / Android fallback copy — treat as missing, not as a real note. */
+  function isPlaceholderExplanation(text) {
+    const t = String(text || '').trim();
+    if (!t) return true;
+    if (t.length < 24) return true;
+    const low = t.toLowerCase();
+    if (low.includes('could not finish a full note')) return true;
+    if (low.includes('wording looks usable')) return true;
+    if (low.includes('use the reference topics')) return true;
+    if (low.includes('no clear errors detected')) return true;
+    if (low.includes('no confirmed grammar error')) return true;
+    if (low === 'no grammar error stands out.') return true;
+    return false;
+  }
+
+  function isGenericDefaultGrammarRule(rule, lang) {
+    const t = String(rule || '').trim().toLowerCase();
+    if (!t) return true;
+    const fallback = String(defaultGrammarRule(lang) || '').trim().toLowerCase();
+    if (fallback && t === fallback) return true;
+    if (t === 'spanish grammar' || t === 'french grammar' || t === 'english grammar') return true;
+    if (t.startsWith('sentence structure')) return true;
+    if (t.includes(' and register') && t.length < 48) return true;
+    if (/^main-clause syntax/i.test(t)) return true;
+    return false;
+  }
+
+  function stripPlaceholderCoachCopy(out, lang) {
+    if (isPlaceholderExplanation(out.explanation)) delete out.explanation;
+    if (isGenericDefaultGrammarRule(out.grammar_rule, lang)) delete out.grammar_rule;
+    if (out._coach_incomplete) {
+      delete out.explanation;
+      if (isGenericDefaultGrammarRule(out.grammar_rule, lang) || isMissingGrammarRule(out.grammar_rule)) {
+        delete out.grammar_rule;
+      }
+    }
+  }
+
+  /**
+   * Cite structures in a correct sentence — lean port of
+   * training/parlance_slm_validate.py _dynamic_excellent_grammar and the
+   * Swift validator's dynamicExcellentGrammar. Used when the 0.5B coach
+   * returns empty or placeholder copy (common on Android).
+   */
+  function dynamicExcellentGrammar(sentence, lang) {
+    const text = String(sentence || '').trim();
+    const norm = normalizeTextForCompare(text);
+    const wc = text.split(/\s+/).filter(Boolean).length;
+    const rules = [];
+    const cites = [];
+
+    if (lang === 'fr') {
+      if (/\b(je veux|tu veux|il veut|elle veut)\b/.test(norm) || /\bveux\b/.test(norm)) {
+        rules.push('Present tense «vouloir» + infinitive complement');
+        cites.push('«vouloir» + infinitive');
+      }
+      if (/\b(je vais|tu vas|il va|elle va|nous allons|on va)\b/.test(norm)) {
+        rules.push('Near future «aller» + infinitive, or «aller» + destination');
+        cites.push('«aller» (vais/vas/va)');
+      }
+      if (/\b(bonjour|bonsoir|salut)\b/.test(norm)) {
+        rules.push('Greeting and formal/informal address');
+        cites.push('greeting');
+      }
+      if (/\b(suis|es|est|sommes|etes|sont)\b/.test(norm)) {
+        rules.push('Present tense «être» + complement');
+        cites.push('«être» + complement');
+      }
+      if (hasSubordinator(text)) {
+        rules.push('Subordination (clause linked with «que», «parce que», «si», etc.)');
+        cites.push('subordinate clause');
+      }
+    } else if (lang === 'en') {
+      if (/\bwant(s)? to\b/.test(norm)) {
+        rules.push('Want to + infinitive');
+        cites.push('"want to" + infinitive');
+      }
+      if (/\b(am|is|are) going to\b/.test(norm) || /\bgoing to\b/.test(norm)) {
+        rules.push('Going to + infinitive (near future)');
+        cites.push('"going to" + infinitive');
+      }
+      if (hasSubordinator(text) || /\b(because|if|although|when)\b/.test(norm)) {
+        rules.push('Subordination (because, if, when, although)');
+        cites.push('subordinate clause');
+      }
+    } else {
+      if (/\bquiero\b/.test(norm) || /\b(quieres|quiere|queremos|quieren)\b/.test(norm)) {
+        rules.push('Present tense «querer» + infinitive complement');
+        cites.push('«quiero» + infinitive');
+      }
+      if (/\b(tengo|tenemos|tiene|tienen)\s+que\b/.test(norm)) {
+        rules.push('«Tener que» + infinitive (obligation)');
+        cites.push('«tener que» + infinitive');
+      }
+      if (/\b(fui|fue|hice|hizo|comi|comí|trabaje|trabajé)\b/i.test(norm)) {
+        rules.push('Preterite (pretérito indefinido) for completed past actions');
+        cites.push('preterite verb form(s)');
+      }
+      if (/\b(hubiera|tuviera|fuera|pudiera|quisiera|hiciera|vengas|haga)\b/i.test(norm)) {
+        rules.push('Subjunctive mood in subordinate or conditional clauses');
+        cites.push('subjunctive form(s)');
+      }
+      if (/\b(estoy|esta|estamos|estan)\b/.test(norm)) {
+        rules.push('Present tense «estar» + complement (state or location)');
+        cites.push('«estar» + complement');
+      }
+      if (/\b(soy|eres|es|somos)\b/.test(norm) && !/\bcomo\s+es\b/.test(norm)) {
+        rules.push('Present tense «ser» + noun/adjective (identity or classification)');
+        cites.push('«ser» + complement');
+      }
+      if (/\bgust/.test(norm)) {
+        rules.push('«Gustar» + indirect object + noun (impersonal-like construction)');
+        cites.push('«gustar» construction');
+      }
+      if (/\b(voy|vas|va|vamos|van)\b/.test(norm)) {
+        rules.push('Present tense «ir» + destination or «ir a» + infinitive');
+        cites.push('«ir» (voy/vas/va)');
+      }
+      if (/\bhola\b/.test(norm) || /\bbuenos\s+dias\b/.test(norm) || /\bbuenas\b/.test(norm)) {
+        rules.push('Greeting and vocative punctuation');
+        cites.push('greeting');
+      }
+      if (hasSubordinator(text)) {
+        rules.push('Subordination (clause linked with «que», «porque», «si», etc.)');
+        cites.push('subordinate clause');
+      }
+    }
+
+    const grammar = rules.length ? rules.slice(0, 3).join('; ') : '';
+    const citeText = cites.length ? cites.slice(0, 3).join(', ') : 'the structures you used';
+    const quoted = text ? `«${text}»` : 'This sentence';
+    const explanation = `${quoted} is grammatically sound. You used ${citeText} correctly. Next, tighten connectors or vocabulary if the line must sound more formal for interpreting.`;
+    const complexity = `${wc}-word sentence${hasSubordinator(text) ? ', with subordination' : ', main-clause structure'}.`;
+    return { grammar, explanation, complexity };
+  }
+
+  function fillExcellentCoachCopy(out, sentence, lang) {
+    if (!sentence) return;
+    const detected = dynamicExcellentGrammar(sentence, lang);
+    if (isMissingGrammarRule(out.grammar_rule) || isGenericDefaultGrammarRule(out.grammar_rule, lang)) {
+      if (detected.grammar) {
+        out.grammar_rule = detected.grammar;
+      } else {
+        out.grammar_rule = firstUsefulRagTopic(out._rag_topics) || defaultGrammarRule(lang);
+      }
+    }
+    if (isPlaceholderExplanation(out.explanation)) {
+      out.explanation = detected.explanation;
+    }
+    if (!String(out.complexity_note || '').trim()) {
+      out.complexity_note = detected.complexity;
+    }
+  }
+
+  function firstUsefulRagTopic(topics) {
+    if (!Array.isArray(topics)) return null;
+    for (const topic of topics) {
+      const label = String(topic || '').trim();
+      if (!label) continue;
+      if (/^level_/i.test(label)) continue;
+      if (label === 'medical' || label === 'legal') continue;
+      if (/^en_from_/i.test(label) || /^English ←/.test(label)) continue;
+      return label;
+    }
+    return null;
+  }
+
+  function defaultGrammarRule(lang) {
+    if (typeof ParlanceCoachRules !== 'undefined' && ParlanceCoachRules.loadRules) {
+      const def = ParlanceCoachRules.loadRules(lang)?.grammar_rule_default;
+      if (def) return def;
+    }
+    if (lang === 'fr') return 'French agreement, prepositions, mood, and clause structure';
+    if (lang === 'en') return 'English articles, prepositions, conditionals, and register';
+    return 'Spanish agreement, prepositions, and clause structure';
+  }
+
+  function fillMissingCoachCopy(out, lang, sentence) {
+    if (sentence) {
+      fillExcellentCoachCopy(out, sentence, lang);
+    }
+    if (isMissingGrammarRule(out.grammar_rule) || isGenericDefaultGrammarRule(out.grammar_rule, lang)) {
+      out.grammar_rule = firstUsefulRagTopic(out._rag_topics) || defaultGrammarRule(lang);
+    }
+    if (isPlaceholderExplanation(out.explanation)) {
+      if (sentence) {
+        out.explanation = dynamicExcellentGrammar(sentence, lang).explanation;
+      } else {
+        out.explanation = 'Review the grammar rule and tip for the structures in this sentence.';
+      }
+    }
+    if (/grammar rule not identified/i.test(out.tip || '')) {
+      delete out.tip;
+    }
+  }
+
   /** Sanitize provider JSON — strip bad CEFR, fill confident levels, drop verbatim alts. */
   function sanitizeFeedbackResult(sentence, result, language) {
     if (!result || typeof result !== 'object') return result;
     const out = { ...result };
     normalizeFeedbackFields(out);
     const lang = resolveLanguageCode(language);
+    stripPlaceholderCoachCopy(out, lang);
     if (sentence && (lang === 'es' || lang === 'fr' || lang === 'en')) {
       applyCoachRules(sentence, out, lang);
     }
@@ -563,12 +771,17 @@
     if (fragmentAltDetected && sentence) {
       out.tip = synthesizeTip(sentence, out.grammar_rule, lang, out.register);
     }
+    fillMissingCoachCopy(out, lang, sentence);
     return out;
   }
 
   const api = {
     sanitizeFeedbackResult,
     applyCoachRules,
+    isMissingGrammarRule,
+    isPlaceholderExplanation,
+    fillMissingCoachCopy,
+    dynamicExcellentGrammar,
     coerceFeedbackText,
     normalizeFeedbackFields,
     assessedLevelPlausible,

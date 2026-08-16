@@ -70,18 +70,18 @@ function extractComplexityNote(obj) {
 
 function altVersionLabels(assessedLevel) {
   if (!assessedLevel) {
-    return { nextLabel: 'Next Level', targetLabel: 'Higher Level' };
+    return { nextLabel: i18n.t('altNextLevel'), targetLabel: i18n.t('altHigherLevel') };
   }
-  const nextLabels = {
-    C2: 'Native Polish', C1: 'C2 Mastery', B2: 'C1 Professional',
-    B1: 'B2 Version', A2: 'B1 Version', A1: 'A2 Version',
+  const nextKeys = {
+    C2: 'altNativePolish', C1: 'altC2Mastery', B2: 'altC1Professional',
+    B1: 'altB2Version', A2: 'altB1Version', A1: 'altA2Version',
   };
-  const targetLabels = {
-    B2: 'C2 Mastery', B1: 'C1 Professional', A2: 'B2 Version', A1: 'B1 Version',
+  const targetKeys = {
+    B2: 'altC2Mastery', B1: 'altC1Professional', A2: 'altB2Version', A1: 'altB1Version',
   };
   return {
-    nextLabel: nextLabels[assessedLevel] || 'Next Level',
-    targetLabel: targetLabels[assessedLevel] || null,
+    nextLabel: i18n.t(nextKeys[assessedLevel] || 'altNextLevel'),
+    targetLabel: targetKeys[assessedLevel] ? i18n.t(targetKeys[assessedLevel]) : null,
   };
 }
 
@@ -1603,6 +1603,10 @@ function refreshDynamicI18nUI() {
   refreshPlusStatusPanel();
   updateLangSummary();
   updateEntryPager();
+  if (typeof state !== 'undefined' && state.activeSentenceId) showFeedback(state.activeSentenceId);
+  if (typeof state !== 'undefined' && state.viewingEntryIndex >= 0 && state.savedEntries[state.viewingEntryIndex]) {
+    fillEntryPage(state.savedEntries[state.viewingEntryIndex]);
+  }
   requestAnimationFrame(syncHeaderOffset);
 }
 
@@ -1624,7 +1628,15 @@ function updateLangSummary() {
   const uiSelect = document.getElementById('uiLangSelect');
   const writeSelect = document.getElementById('langSelect');
   if (!summary || !uiSelect || !writeSelect) return;
-  summary.textContent = `${uiSelect.value.toUpperCase()} · ${writeSelect.value.toUpperCase()}`;
+  const app = uiSelect.value.toUpperCase();
+  const write = writeSelect.value.toUpperCase();
+  summary.textContent = `${app} · ${write}`;
+  const btn = document.getElementById('langSummaryBtn');
+  if (btn && typeof i18n !== 'undefined' && i18n.t) {
+    const title = i18n.t('langSummaryTitle', { app, write });
+    btn.title = title;
+    btn.setAttribute('aria-label', title);
+  }
 }
 
 function toggleLangControls() {
@@ -2864,7 +2876,7 @@ function showErrorInPanel(msg) {
   card.className = 'error-panel-card';
   const settingsBtn = isCoachOnlyNative()
     ? ''
-    : `<button class="btn btn-primary error-panel-btn" onclick="openAISettings()">⚙ Open AI Settings</button>`;
+    : `<button class="btn btn-primary error-panel-btn" onclick="openAISettings()">⚙ ${escapeHTML(i18n.t('openAiSettings'))}</button>`;
   card.innerHTML = `
     <div class="error-panel-icon">⚠</div>
     <div class="error-panel-msg">${escapeHTML(msg)}</div>
@@ -2895,7 +2907,7 @@ function showFeedback(id) {
   }
 
   units.forEach((unit, i) => {
-    inner.appendChild(buildFeedbackCard(unit, `Sentence ${i + 1}`));
+    inner.appendChild(buildFeedbackCard(unit, i18n.t('feedbackSentenceN', { n: i + 1 })));
   });
   inner.scrollTop = 0;
 }
@@ -2906,7 +2918,7 @@ function buildFeedbackCard(unit, refLabel) {
     ? sanitizeFeedbackResult(unit.text, { ...rawFb }, unit.language || state.currentLanguage)
     : rawFb;
   const isExcellent = fb.status === 'Excellent';
-  const statusLabel = isExcellent ? 'Excellent' : 'Needs Work';
+  const statusLabel = isExcellent ? i18n.t('feedbackExcellent') : i18n.t('feedbackNeedsWork');
   const statusClass = isExcellent ? 'score-excellent' : 'score-needs-work';
   const assessedLevel = extractAssessedLevel(fb);
   const complexityNote = extractComplexityNote(fb);
@@ -2919,23 +2931,23 @@ function buildFeedbackCard(unit, refLabel) {
   if (complexityNote) {
     body += feedbackItem('label-complexity', i18n.t('complexityNoteLabel'), complexityNote);
   }
-  body += feedbackItem('label-rule',         'Grammar Rule',  fb.grammar_rule);
+  body += feedbackItem('label-rule',         i18n.t('grammarRuleLabel'),  fb.grammar_rule);
   if (fb.correction && !isExcellent) {
-    body += feedbackItem('label-correction', 'Corrected Sentence', fb.correction);
+    body += feedbackItem('label-correction', i18n.t('correctedSentenceLabel'), fb.correction);
   }
   body += feedbackItem(
     'label-explanation',
-    isExcellent ? 'Why This Works' : 'What Needs Work',
+    isExcellent ? i18n.t('whyThisWorksLabel') : i18n.t('whatNeedsWorkLabel'),
     fb.explanation
   );
   if (fb.correction && isExcellent) {
-    body += feedbackItem('label-correction', 'Corrected Sentence', fb.correction);
+    body += feedbackItem('label-correction', i18n.t('correctedSentenceLabel'), fb.correction);
   }
-  if (fb.register)         body += feedbackItem('label-register',   'Register',              fb.register);
-  if (fb.next_level_alt)   body += feedbackItem('label-next',       `${nextLabel} Version`,  fb.next_level_alt);
+  if (fb.register)         body += feedbackItem('label-register',   i18n.t('registerLabel'),              fb.register);
+  if (fb.next_level_alt)   body += feedbackItem('label-next',       nextLabel,  fb.next_level_alt);
   if (fb.target_level_alt && targetLabel)
-                           body += feedbackItem('label-target',     `${targetLabel} Version`, fb.target_level_alt);
-  if (fb.tip)              body += feedbackItem('label-tip',        'Tip',                   fb.tip);
+                           body += feedbackItem('label-target',     targetLabel, fb.target_level_alt);
+  if (fb.tip)              body += feedbackItem('label-tip',        i18n.t('tipLabel'),                   fb.tip);
   if (fb._coach_warning) {
     body += `<div class="feedback-coach-warning">${escapeHTML(fb._coach_warning)}</div>`;
   }
@@ -2943,7 +2955,7 @@ function buildFeedbackCard(unit, refLabel) {
     const chips = fb._rag_topics.map(t =>
       `<span class="feedback-rag-chip">${escapeHTML(t)}</span>`
     ).join('');
-    body += `<div class="feedback-rag-topics"><span class="feedback-rag-label">Reference</span>${chips}</div>`;
+    body += `<div class="feedback-rag-topics"><span class="feedback-rag-label">${escapeHTML(i18n.t('referenceLabel'))}</span>${chips}</div>`;
   }
 
   const sourceLabel = unit.analysisSource || 'AI';
@@ -3179,7 +3191,7 @@ function fillEntryPage(entry) {
     if (feedback) {
       const isExcellent = feedback.status === 'Excellent';
       const badgeClass = isExcellent ? 'excellent' : 'needs-work';
-      const badgeLabel = isExcellent ? 'Excellent' : 'Needs Work';
+      const badgeLabel = isExcellent ? i18n.t('feedbackExcellent') : i18n.t('feedbackNeedsWork');
       const assessed = extractAssessedLevel(feedback);
       feedbackHTML = `
         <div class="entry-sentence-actions">
@@ -3281,9 +3293,8 @@ function loadSentenceToEditor(text, language) {
     syncUiLanguageToWriteLanguage();
     updatePlaceholders();
     renderPrompts();
+    updateLangSummary();
   }
-
-  // Find an empty sentence slot or add a new one
   const empty = state.sentences.find(s => !s.text.trim());
   if (empty) {
     const ta = document.getElementById('ta-' + empty.id);
@@ -3304,6 +3315,7 @@ function loadEntryToEditor(entry) {
     syncUiLanguageToWriteLanguage();
     updatePlaceholders();
     renderPrompts();
+    updateLangSummary();
   }
 
   // Set title
