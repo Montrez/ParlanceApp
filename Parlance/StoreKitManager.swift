@@ -31,6 +31,9 @@ final class StoreKitManager: ObservableObject {
     /// False until the first catalog fetch finishes, so the paywall can wait
     /// instead of claiming the subscription is unavailable during launch.
     @Published private(set) var didAttemptProductLoad = false
+    /// Set when a feedback-pack transaction is finished so the web layer can
+    /// credit 15 analyses once per App Store transaction id.
+    @Published private(set) var lastPackCreditTransactionId: String?
 
     // MARK: - Internal
 
@@ -120,6 +123,7 @@ final class StoreKitManager: ObservableObject {
             case .success(let verification):
                 let transaction = try checkVerified(verification)
                 await transaction.finish()
+                creditPackIfNeeded(transaction)
                 await refreshPlusEntitlement()
                 return .success(transactionId: String(transaction.id))
 
@@ -197,12 +201,25 @@ final class StoreKitManager: ObservableObject {
                 do {
                     let transaction = try self.checkVerified(result)
                     await transaction.finish()
+                    self.creditPackIfNeeded(transaction)
                     await self.refreshPlusEntitlement()
                 } catch {
                     print("[StoreKit] Unverified transaction:", error)
                 }
             }
         }
+    }
+
+    private static let creditedPackTxKey = "parlance_credited_pack_tx"
+
+    private func creditPackIfNeeded(_ transaction: Transaction) {
+        guard transaction.productID == Self.feedbackPack15 else { return }
+        let id = String(transaction.id)
+        var credited = UserDefaults.standard.stringArray(forKey: Self.creditedPackTxKey) ?? []
+        if credited.contains(id) { return }
+        credited.append(id)
+        UserDefaults.standard.set(Array(credited.suffix(50)), forKey: Self.creditedPackTxKey)
+        lastPackCreditTransactionId = id
     }
 
     // MARK: - Verification

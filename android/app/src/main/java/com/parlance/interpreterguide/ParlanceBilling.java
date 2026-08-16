@@ -1,6 +1,7 @@
 package com.parlance.interpreterguide;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -16,7 +17,9 @@ import com.android.billingclient.api.ProductDetails;
 import com.android.billingclient.api.Purchase;
 import com.android.billingclient.api.PurchasesUpdatedListener;
 import com.android.billingclient.api.QueryProductDetailsParams;
+import com.android.billingclient.api.QueryProductDetailsResult;
 import com.android.billingclient.api.QueryPurchasesParams;
+import com.android.billingclient.api.UnfetchedProduct;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,6 +41,8 @@ public class ParlanceBilling implements PurchasesUpdatedListener {
 
     interface Listener {
         void onBillingChanged();
+
+        default void onPackCredited(String transactionId) {}
     }
 
     interface PurchaseCallback {
@@ -64,6 +69,7 @@ public class ParlanceBilling implements PurchasesUpdatedListener {
                 .setListener(this)
                 .enablePendingPurchases(
                         PendingPurchasesParams.newBuilder().enableOneTimeProducts().build())
+                .enableAutoServiceReconnection()
                 .build();
         connect();
     }
@@ -131,10 +137,10 @@ public class ParlanceBilling implements PurchasesUpdatedListener {
                     return;
                 }
                 queryProducts();
-                queryPurchases(() -> {
+                queryPurchases(() -> queryUnconsumedPacks(() -> {
                     ready = true;
                     notifyChanged();
-                });
+                }));
             }
 
             @Override
@@ -159,12 +165,16 @@ public class ParlanceBilling implements PurchasesUpdatedListener {
                 .build());
         client.queryProductDetailsAsync(
                 QueryProductDetailsParams.newBuilder().setProductList(list).build(),
-                (result, details) -> {
+                (BillingResult result, QueryProductDetailsResult queryResult) -> {
                     if (result.getResponseCode() != BillingClient.BillingResponseCode.OK) {
                         Log.w(TAG, type + " query failed: " + result.getDebugMessage());
                     } else {
                         products.removeIf(item -> productId.equals(item.getProductId()));
-                        products.addAll(details);
+                        products.addAll(queryResult.getProductDetailsList());
+                        for (UnfetchedProduct missing : queryResult.getUnfetchedProductList()) {
+                            Log.w(TAG, type + " unfetched " + missing.getProductId()
+                                    + ": " + missing.getStatusCode());
+                        }
                     }
                     if (BillingClient.ProductType.SUBS.equals(type)) {
                         plusPurchasable = findProduct(PLUS_MONTHLY) != null;
@@ -267,8 +277,9 @@ public class ParlanceBilling implements PurchasesUpdatedListener {
             if (purchase.getProducts().contains(PLUS_MONTHLY)) {
                 plusActive = true;
                 acknowledge(purchase);
-            } else if (purchase.getProducts().contains(FEEDBACK_PACK_15)
-                    || purchase.getProducts().contains(CALL_PACK_100)) {
+            } else if (purchase.getProducts().contains(FEEDBACK_PACK_15)) {
+                creditPack(purchase);
+            } else if (purchase.getProducts().contains(CALL_PACK_100)) {
                 consume(purchase);
             } else {
                 acknowledge(purchase);
@@ -282,6 +293,51 @@ public class ParlanceBilling implements PurchasesUpdatedListener {
         }
         notifyChanged();
         if (callback != null) callback.onResult(transactionId, null);
+    }
+
+    private void queryUnconsumedPacks(Runnable done) {
+        client.queryPurchasesAsync(
+                QueryPurchasesParams.newBuilder()
+                        .setProductType(BillingClient.ProductType.INAPP)
+                        .build(),
+                (result, purchases) -> {
+                    if (result.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+                        for (Purchase purchase : purchases) {
+                            if (purchase.getPurchaseState() != Purchase.PurchaseState.PURCHASED) {
+                                continue;
+                            }
+                            if (purchase.getProducts().contains(FEEDBACK_PACK_15)) {
+                                creditPack(purchase);
+                            }
+                        }
+                    }
+                    if (done != null) done.run();
+                    else notifyChanged();
+                });
+    }
+
+    private void creditPack(Purchase purchase) {
+        String id = purchase.getOrderId();
+        if (id == null || id.isEmpty()) id = purchase.getPurchaseToken();
+        SharedPreferences prefs = activity.getSharedPreferences("parlance_billing", 0);
+        String credited = prefs.getString("credited_pack_tx", "");
+        boolean already = false;
+        for (String item : credited.split(",")) {
+            if (item.equals(id)) {
+                already = true;
+                break;
+            }
+        }
+        if (!already) {
+            prefs.edit().putString("credited_pack_tx",
+                    credited.isEmpty() ? id : credited + "," + id).apply();
+            final String creditedId = id;
+            Listener next = listener;
+            if (next != null) {
+                activity.runOnUiThread(() -> next.onPackCredited(creditedId));
+            }
+        }
+        consume(purchase);
     }
 
     private void consume(Purchase purchase) {

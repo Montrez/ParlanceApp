@@ -45,7 +45,18 @@ public class ParlanceBridge {
         this.slm = new ParlanceSLMEngine(activity);
         this.slm.setAvailabilityListener(this::publishCoachConfig);
         this.billing = new ParlanceBilling(activity);
-        this.billing.setListener(this::publishBillingConfig);
+        this.billing.setListener(new ParlanceBilling.Listener() {
+            @Override
+            public void onBillingChanged() {
+                publishBillingConfig();
+            }
+
+            @Override
+            public void onPackCredited(String transactionId) {
+                evaluateJs("window.__parlanceCreditFeedbackPack && window.__parlanceCreditFeedbackPack("
+                        + quote(transactionId) + ")");
+            }
+        });
     }
 
     // MARK: - Synchronous state for hydration

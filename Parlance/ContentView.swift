@@ -57,6 +57,10 @@ struct ContentView: View {
             guard let price else { return }
             Self.pushConfigPatch(["feedbackPackPriceDisplay": price], webView: ParlanceWebView.activeWebView)
         }
+        .onChange(of: storeKit.lastPackCreditTransactionId) { _, txId in
+            guard let txId else { return }
+            Self.creditPaidFeedbackPack(txId, webView: ParlanceWebView.activeWebView)
+        }
     }
 
     private static func pushPlusStatus(_ active: Bool, webView: WKWebView?) {
@@ -66,6 +70,16 @@ struct ContentView: View {
     private static func pushPlusPrice(_ price: String?, webView: WKWebView?) {
         guard let price else { return }
         pushConfigPatch(["plusMonthlyPriceDisplay": price], webView: webView)
+    }
+
+    static func creditPaidFeedbackPack(_ transactionId: String, webView: WKWebView?) {
+        guard let webView else { return }
+        let escaped = transactionId
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+        webView.evaluateJavaScript(
+            "window.__parlanceCreditFeedbackPack && window.__parlanceCreditFeedbackPack(\"\(escaped)\")"
+        ) { _, _ in }
     }
 
     private static func pushConfigPatch(_ patch: [String: Any], webView: WKWebView?) {

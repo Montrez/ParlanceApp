@@ -2090,6 +2090,7 @@ const LS_FEEDBACK_USED = 'parlance_feedback_used';
 const LS_FEEDBACK_PACK = 'parlance_feedback_pack';
 const LS_FEEDBACK_DEBUG = 'parlance_feedback_debug';
 const LS_DEBUG_IGNORE_PLUS = 'parlance_debug_ignore_plus';
+const LS_CREDITED_PACK_TX = 'parlance_credited_pack_tx';
 
 function feedbackQuotaApplies() {
   return isNativeParlanceApp();
@@ -2149,6 +2150,40 @@ function grantFeedbackPack(n) {
   writeFeedbackInt(LS_FEEDBACK_PACK, feedbackPackRemaining() + add);
   refreshFeedbackMeter();
 }
+
+function alreadyCreditedPackTx(transactionId) {
+  if (!transactionId) return false;
+  try {
+    const credited = JSON.parse(localStorage.getItem(LS_CREDITED_PACK_TX) || '[]');
+    return Array.isArray(credited) && credited.includes(String(transactionId));
+  } catch (_) {
+    return false;
+  }
+}
+
+function rememberCreditedPackTx(transactionId) {
+  if (!transactionId) return;
+  try {
+    const credited = JSON.parse(localStorage.getItem(LS_CREDITED_PACK_TX) || '[]');
+    const next = Array.isArray(credited) ? credited : [];
+    next.push(String(transactionId));
+    localStorage.setItem(LS_CREDITED_PACK_TX, JSON.stringify(next.slice(-50)));
+  } catch (_) {}
+}
+
+/** Credits 15 after a real store purchase. Same transaction id never credits twice. */
+function creditPaidFeedbackPack(transactionId) {
+  if (alreadyCreditedPackTx(transactionId)) return false;
+  rememberCreditedPackTx(transactionId);
+  grantFeedbackPack(FEEDBACK_PACK_SIZE);
+  return true;
+}
+
+window.__parlanceCreditFeedbackPack = function (transactionId) {
+  if (!creditPaidFeedbackPack(transactionId)) return;
+  showToast(i18n.t('feedbackPackAdded'), 'success');
+  finishPaidUnlock();
+};
 
 function setFeedbackRemainingForDebug(remaining) {
   setDebugIgnorePlus(true);
@@ -2219,7 +2254,7 @@ function applyFeedbackPackButtonCopy() {
   const price = cfg.feedbackPackPriceDisplay || '$2.99';
   const label = i18n.t('plusPaywallPack', { price });
   const storeReady = cfg.feedbackPackPurchaseAvailable === true;
-  const canTap = storeReady || feedbackDebugToolsEnabled();
+  const canTap = storeReady;
   ['plusPaywallPackBtn', 'plusStatusPackBtn'].forEach((id) => {
     const btn = document.getElementById(id);
     if (!btn) return;
@@ -2248,10 +2283,6 @@ function triggerFeedbackPackPurchase() {
   }
   const cfg = window.__PARLANCE_CONFIG__ || {};
   if (cfg.feedbackPackPurchaseAvailable !== true) {
-    if (feedbackDebugToolsEnabled()) {
-      debugGrantFeedbackPack();
-      return;
-    }
     showToast(i18n.t('errPackPurchaseFailed', { err: i18n.t('plusPaywallUnavailable') }), 'error');
     return;
   }
@@ -2267,9 +2298,11 @@ function triggerFeedbackPackPurchase() {
       showToast(i18n.t('errPackPurchaseFailed', { err }), 'error');
       return;
     }
-    grantFeedbackPack(FEEDBACK_PACK_SIZE);
-    showToast(i18n.t('feedbackPackAdded'), 'success');
-    finishPaidUnlock();
+    const txId = data && data.transactionId;
+    if (creditPaidFeedbackPack(txId)) {
+      showToast(i18n.t('feedbackPackAdded'), 'success');
+      finishPaidUnlock();
+    }
   };
   postToNative({ action: 'purchaseFeedbackPack', requestId });
 }
