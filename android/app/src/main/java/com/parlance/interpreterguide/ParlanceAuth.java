@@ -26,13 +26,11 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.OAuthProvider;
 import com.google.firebase.auth.UserInfo;
-import com.google.firebase.functions.FirebaseFunctions;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -164,9 +162,7 @@ public class ParlanceAuth {
     // MARK: - Account deletion
 
     /**
-     * Deletes the account: reauthenticate, wipe server records, then remove the
-     * Firebase Auth user. Server data goes first because the callable needs a
-     * live ID token, which deleting the user destroys.
+     * Deletes the Firebase Auth user after a fresh reauthentication.
      */
     public void deleteAccount(AuthCallback callback) {
         FirebaseUser user = currentUser();
@@ -181,20 +177,14 @@ public class ParlanceAuth {
                 callback.onResult(reauthError);
                 return;
             }
-            deleteServerData(serverError -> {
-                if (serverError != null) {
-                    callback.onResult(serverError);
-                    return;
-                }
-                FirebaseUser fresh = currentUser();
-                if (fresh == null) {
-                    callback.onResult("You are not signed in.");
-                    return;
-                }
-                fresh.delete()
-                        .addOnSuccessListener(unused -> callback.onResult(null))
-                        .addOnFailureListener(error -> callback.onResult(describe(error)));
-            });
+            FirebaseUser fresh = currentUser();
+            if (fresh == null) {
+                callback.onResult("You are not signed in.");
+                return;
+            }
+            fresh.delete()
+                    .addOnSuccessListener(unused -> callback.onResult(null))
+                    .addOnFailureListener(error -> callback.onResult(describe(error)));
         });
     }
 
@@ -225,23 +215,6 @@ public class ParlanceAuth {
         }
 
         callback.onResult(null);
-    }
-
-    /**
-     * Wipes {@code users/{uid}} and its subcollections. Firestore rules block
-     * client writes to those paths, so it runs through the same Admin SDK
-     * callable the iOS app uses.
-     */
-    private void deleteServerData(AuthCallback callback) {
-        FirebaseFunctions.getInstance()
-                .getHttpsCallable("deleteAccountData")
-                .call(Collections.emptyMap())
-                .addOnSuccessListener(result -> callback.onResult(null))
-                .addOnFailureListener(error -> {
-                    Log.e(TAG, "deleteAccountData failed", error);
-                    callback.onResult(
-                            "Could not delete your Parlance data. Check your connection and try again.");
-                });
     }
 
     // MARK: - Google credential plumbing

@@ -292,7 +292,6 @@ function setProviderKey(id, k)    { localStorage.setItem(LS_KEY + id, k); }
 // ── FIREBASE AUTH & CLOUD PROXY ──────────────────────────────────
 let firebaseApp = null;
 let firebaseAuth = null;
-let analyzeTextCallable = null;
 let firebaseAuthUser = null;
 let firebaseInitPromise = null;
 
@@ -328,8 +327,7 @@ function firebaseDisplayName() {
 }
 
 function shouldUseFirebaseCloud(providerId) {
-  if (!isCloudProvider(providerId)) return false;
-  return isFirebaseSignedIn();
+  return false;
 }
 
 function canUseFirebaseWebAuth() {
@@ -340,7 +338,7 @@ function canUseFirebaseWebAuth() {
 
 async function ensureFirebaseReady() {
   if (!canUseFirebaseWebAuth()) return false;
-  if (firebaseApp && analyzeTextCallable) return true;
+  if (firebaseApp && firebaseAuth) return true;
   if (firebaseInitPromise) return firebaseInitPromise;
 
   firebaseInitPromise = (async () => {
@@ -351,7 +349,6 @@ async function ensureFirebaseReady() {
         firebaseApp = firebase.app();
       }
       firebaseAuth = firebase.auth();
-      analyzeTextCallable = firebase.functions().httpsCallable('analyzeText');
       firebaseAuth.onAuthStateChanged((user) => {
         firebaseAuthUser = user;
         reapplyDefaultProviderIfUnchosen();
@@ -502,14 +499,11 @@ async function deleteParlanceAccount() {
   showToast(i18n.t('deleteAccountDone'), 'success');
 }
 
-/** Server records first: the callable needs a live ID token, which deleting
- *  the auth user destroys. */
 async function deleteAccountViaWeb() {
   const ready = await ensureFirebaseReady();
   if (!ready || !firebaseAuth || !firebaseAuth.currentUser) {
     throw new Error(i18n.t('errFirebaseNotConfigured'));
   }
-  await firebase.functions().httpsCallable('deleteAccountData')({});
   await firebaseAuth.currentUser.delete();
 }
 
@@ -536,49 +530,9 @@ function updateFirebaseAuthUI() {
   const label = document.getElementById('authUserLabel');
   if (label && signedIn) label.textContent = firebaseDisplayName();
 
-  // Refresh usage counter when signed in
-  if (signedIn) refreshUsageDisplay();
 }
 
-/** Fetch usage from Cloud Function and update the counter badge in the auth section. */
-async function refreshUsageDisplay() {
-  try {
-    const ready = await ensureFirebaseReady();
-    if (!ready) return;
-    const fn = firebase.functions().httpsCallable('getUsage');
-    const result = await fn({});
-    const u = result.data;
-    if (!u) return;
-
-    const el = document.getElementById('authCloudNote');
-    const buyBtn = document.getElementById('buyCallPackBtn');
-
-    if (!el) return;
-
-    if (u.tier === 'plus') {
-      el.textContent = i18n.t('plusUnlimited');
-      el.style.display = '';
-      if (buyBtn) buyBtn.style.display = 'none';
-      return;
-    }
-
-    const used = u.monthlyUsed || 0;
-    const limit = u.monthlyLimit || 30;
-    const packs = u.packCallsRemaining || 0;
-    const remaining = Math.max(0, limit - used);
-
-    let msg = `${remaining} free cloud calls left this month`;
-    if (packs > 0) msg += ` · ${packs} pack calls remaining`;
-    el.textContent = msg;
-    el.style.display = '';
-
-    // Always-visible, direct entry point to the Call Pack IAP — don't make users
-    // (or App Review) wait until they hit the free monthly limit to find it.
-    if (buyBtn) buyBtn.style.display = nativeSupportsPurchases() ? '' : 'none';
-  } catch (_) {
-    // Non-critical — silently skip if function unavailable
-  }
-}
+function refreshUsageDisplay() {}
 
 function normalizeFirebaseAnalyzeResult(data, sentence, language = 'es') {
   if (!data) throw new Error(i18n.t('errCloudEmpty'));
@@ -635,24 +589,8 @@ function callNativeFirebaseAnalyze(sentence, language, providerId) {
   });
 }
 
-async function callFirebaseCloudAnalyze(sentence, language, providerId) {
-  if (isNativeParlanceApp() && window.__PARLANCE_AUTH__?.signedIn) {
-    return callNativeFirebaseAnalyze(sentence, language, providerId);
-  }
-  const ready = await ensureFirebaseReady();
-  if (!ready || !analyzeTextCallable) {
-    throw new Error(i18n.t('errFirebaseNotConfigured'));
-  }
-  const ragContext = typeof getRAGContext === 'function'
-    ? getRAGContext(language, null, sentence) : '';
-  const resp = await analyzeTextCallable({
-    sentence,
-    language,
-    ragContext,
-    provider: providerId,
-    model: getProviderModel(providerId),
-  });
-  return normalizeFirebaseAnalyzeResult(resp.data, sentence, language);
+async function callFirebaseCloudAnalyze() {
+  throw new Error(i18n.t('errFirebaseNotConfigured'));
 }
 
 // ── WEBLLM ENGINE ────────────────────────────────────────────────
@@ -994,7 +932,6 @@ function parlanceAuthSignedIn() {
 }
 
 function effectiveRequiresKey(providerId) {
-  if (isFirebaseSignedIn() && isCloudProvider(providerId)) return false;
   return AI_PROVIDERS[providerId]?.requiresKey ?? false;
 }
 
@@ -2354,7 +2291,7 @@ function updateModalForProvider(id) {
 
   const cloudNote = document.getElementById('authCloudNote');
   if (cloudNote) {
-    cloudNote.style.display = (isFirebaseSignedIn() && isCloudProvider(id)) ? '' : 'none';
+    cloudNote.style.display = 'none';
   }
 
   // API key section
@@ -2664,8 +2601,6 @@ function updateWaitingCard() {
     }
   } else if (isCloudProvider(id) && !navigator.onLine && coachCanCoverLanguage(state.currentLanguage)) {
     hint.innerHTML = i18n.t('waitingCoachFallback', { icon: AI_PROVIDERS.parlance.icon });
-  } else if (isFirebaseSignedIn() && isCloudProvider(id)) {
-    hint.innerHTML = i18n.t('waitingCloudReady', { icon: p.icon, name: p.name });
   } else if (isCloudProvider(id) && !getProviderKey(id) && coachCanCoverLanguage(state.currentLanguage)) {
     hint.innerHTML = i18n.t('waitingCoachFallback', { icon: AI_PROVIDERS.parlance.icon });
   } else if (getProviderKey(id)) {

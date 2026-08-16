@@ -1,9 +1,9 @@
 import Combine
-import FirebaseFunctions
 import Foundation
 import StoreKit
 
-/// Manages StoreKit 2 purchases for Parlance call packs.
+/// StoreKit 2 for Parlance Plus and the local feedback pack.
+/// Entitlement is the App Store receipt. There is no Cloud Functions grant.
 @MainActor
 final class StoreKitManager: ObservableObject {
 
@@ -119,26 +119,9 @@ final class StoreKitManager: ObservableObject {
             switch result {
             case .success(let verification):
                 let transaction = try checkVerified(verification)
-                let grantResult: PurchaseResult
-                if transaction.productID == Self.plusMonthly {
-                    grantResult = await grantPlusOnServer(
-                        transaction: transaction,
-                        signedTransactionInfo: verification.jwsRepresentation
-                    )
-                } else if transaction.productID == Self.feedbackPack15 {
-                    await transaction.finish()
-                    return .success(transactionId: String(transaction.id))
-                } else {
-                    grantResult = await grantPackOnServer(
-                        transaction: transaction,
-                        signedTransactionInfo: verification.jwsRepresentation
-                    )
-                }
-                if case .success = grantResult {
-                    await transaction.finish()
-                    await refreshPlusEntitlement()
-                }
-                return grantResult
+                await transaction.finish()
+                await refreshPlusEntitlement()
+                return .success(transactionId: String(transaction.id))
 
             case .userCancelled:
                 return .cancelled
@@ -213,83 +196,12 @@ final class StoreKitManager: ObservableObject {
                 guard let self else { return }
                 do {
                     let transaction = try self.checkVerified(result)
-                    let grantResult: PurchaseResult
-                    if transaction.productID == Self.plusMonthly {
-                        grantResult = await self.grantPlusOnServer(
-                            transaction: transaction,
-                            signedTransactionInfo: result.jwsRepresentation
-                        )
-                    } else if transaction.productID == Self.feedbackPack15 {
-                        await transaction.finish()
-                        continue
-                    } else {
-                        grantResult = await self.grantPackOnServer(
-                            transaction: transaction,
-                            signedTransactionInfo: result.jwsRepresentation
-                        )
-                    }
-                    if case .success = grantResult {
-                        await transaction.finish()
-                        await self.refreshPlusEntitlement()
-                    }
+                    await transaction.finish()
+                    await self.refreshPlusEntitlement()
                 } catch {
                     print("[StoreKit] Unverified transaction:", error)
                 }
             }
-        }
-    }
-
-    // MARK: - Server grant
-
-    private func grantPackOnServer(
-        transaction: Transaction,
-        signedTransactionInfo: String
-    ) async -> PurchaseResult {
-        let transactionId = String(transaction.id)
-        let callable = Functions.functions().httpsCallable("grantCallPack")
-        do {
-            let result = try await callable.call([
-                "signedTransactionInfo": signedTransactionInfo,
-                "transactionId": transactionId,
-                "productId": transaction.productID,
-            ])
-            if let data = result.data as? [String: Any] {
-                let remaining = data["remaining"] as? Int ?? 100
-                print("[StoreKit] Pack granted. Remaining calls: \(remaining)")
-            }
-            return .success(transactionId: transactionId)
-        } catch {
-            print("[StoreKit] grantCallPack cloud error:", error)
-            return .failed("Purchase completed, but crediting calls failed. Restart the app to retry, or contact support.")
-        }
-    }
-
-    /// Registers the subscription server-side so unlimited-usage checks in
-    /// Firebase Functions (`usage.js` "plus" tier) see the same entitlement
-    /// as the local StoreKit check.
-    private func grantPlusOnServer(
-        transaction: Transaction,
-        signedTransactionInfo: String
-    ) async -> PurchaseResult {
-        let transactionId = String(transaction.id)
-        let callable = Functions.functions().httpsCallable("grantPlusSubscription")
-        do {
-            let result = try await callable.call([
-                "signedTransactionInfo": signedTransactionInfo,
-                "transactionId": transactionId,
-                "productId": transaction.productID,
-            ])
-            if let data = result.data as? [String: Any] {
-                let tier = data["tier"] as? String ?? "plus"
-                print("[StoreKit] Plus granted. Tier: \(tier)")
-            }
-            return .success(transactionId: transactionId)
-        } catch {
-            print("[StoreKit] grantPlusSubscription cloud error:", error)
-            // Local entitlement (refreshPlusEntitlement) still unlocks bundled
-            // content even if the server sync fails — only the unlimited-AI-calls
-            // perk depends on the server tier, and that will retry on next launch.
-            return .success(transactionId: transactionId)
         }
     }
 

@@ -38,11 +38,9 @@
 		E7AI0015 /* CoachRulesEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7AI0016 /* CoachRulesEngine.swift */; };
 		E7DE26612FBFEED80066F0F5 /* i18n.js in Resources */ = {isa = PBXBuildFile; fileRef = E7DE26602FBFEED80066F0F5 /* i18n.js */; };
 		E7FB0011 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7FB0001 /* AuthManager.swift */; };
-		E7FB0012 /* FirebaseCloudAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7FB0002 /* FirebaseCloudAnalyzer.swift */; };
 		E7FB0013 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = E7FB0007 /* GoogleService-Info.plist */; };
 		E7FB0101 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = E7FB0201 /* FirebaseCore */; };
 		E7FB0102 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = E7FB0202 /* FirebaseAuth */; };
-		E7FB0103 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = E7FB0203 /* FirebaseFunctions */; };
 		E7FB0104 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = E7FB0204 /* GoogleSignIn */; };
 		E7PKG0101 /* MLXLLM in Frameworks */ = {isa = PBXBuildFile; productRef = E7PKG0201 /* MLXLLM */; };
 		E7PKG0102 /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = E7PKG0202 /* MLXLMCommon */; };
@@ -108,7 +106,6 @@
 		E7AI0016 /* CoachRulesEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachRulesEngine.swift; sourceTree = "<group>"; };
 		E7DE26602FBFEED80066F0F5 /* i18n.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = i18n.js; sourceTree = "<group>"; };
 		E7FB0001 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
-		E7FB0002 /* FirebaseCloudAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseCloudAnalyzer.swift; sourceTree = "<group>"; };
 		E7FB0003 /* Parlance.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Parlance.entitlements; sourceTree = "<group>"; };
 		E7FB0004 /* GoogleService-Info.plist.example */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist.example"; sourceTree = "<group>"; };
 		E7FB0007 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
@@ -146,7 +143,6 @@
 			files = (
 				E7FB0101 /* FirebaseCore in Frameworks */,
 				E7FB0102 /* FirebaseAuth in Frameworks */,
-				E7FB0103 /* FirebaseFunctions in Frameworks */,
 				E74F04F32FFB2E950075581B /* StoreKit.framework in Frameworks */,
 				E7FB0104 /* GoogleSignIn in Frameworks */,
 				E7PKG0101 /* MLXLLM in Frameworks */,
@@ -172,7 +168,6 @@
 			children = (
 				A2000001 /* ParlanceApp.swift */,
 				E7FB0001 /* AuthManager.swift */,
-				E7FB0002 /* FirebaseCloudAnalyzer.swift */,
 				E7FB0003 /* Parlance.entitlements */,
 				E7FB0004 /* GoogleService-Info.plist.example */,
 				E7FB0007 /* GoogleService-Info.plist */,
@@ -285,7 +280,6 @@
 			packageProductDependencies = (
 				E7FB0201 /* FirebaseCore */,
 				E7FB0202 /* FirebaseAuth */,
-				E7FB0203 /* FirebaseFunctions */,
 				E7FB0204 /* GoogleSignIn */,
 				E7PKG0201 /* MLXLLM */,
 				E7PKG0202 /* MLXLMCommon */,
@@ -405,7 +399,6 @@
 				E7SLM0012 /* ParlanceSLMModelLocator.swift in Sources */,
 				E7SLM0013 /* ParlanceSLMFeedbackValidator.swift in Sources */,
 				E7FB0011 /* AuthManager.swift in Sources */,
-				E7FB0012 /* FirebaseCloudAnalyzer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -648,11 +641,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E7FB0005 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAuth;
-		};
-		E7FB0203 /* FirebaseFunctions */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = E7FB0005 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseFunctions;
 		};
 		E7FB0204 /* GoogleSignIn */ = {
 			isa = XCSwiftPackageProductDependency;

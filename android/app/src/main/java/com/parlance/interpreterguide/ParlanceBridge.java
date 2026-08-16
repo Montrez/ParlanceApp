@@ -8,14 +8,10 @@ import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 
-import com.google.firebase.functions.FirebaseFunctions;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * JavaScript bridge for the Parlance web layer, mirroring the iOS
@@ -217,32 +213,9 @@ public class ParlanceBridge {
         }, "parlance-slm").start();
     }
 
-    /**
-     * Routes cloud analysis through the callable so it carries the natively
-     * signed-in user. The web SDK has no session on Android — sign-in happens
-     * in Java — so calling it from JavaScript would be unauthenticated.
-     */
     private void analyzeFirebase(String requestId, JSONObject body) {
-        Map<String, Object> data = new HashMap<>();
-        data.put("sentence", body.optString("sentence", ""));
-        data.put("language", body.optString("language", "es"));
-        data.put("ragContext", body.optString("ragContext", ""));
-        data.put("provider", body.optString("provider", ""));
-        data.put("model", body.optString("model", ""));
-
-        FirebaseFunctions.getInstance()
-                .getHttpsCallable("analyzeText")
-                .call(data)
-                .addOnSuccessListener(result -> {
-                    Object payload = result.getData();
-                    Object wrapped = JSONObject.wrap(payload);
-                    String json = wrapped == null ? "{}" : wrapped.toString();
-                    evaluateJs("window.__parlanceFirebaseResult && window.__parlanceFirebaseResult("
-                            + quote(requestId) + ", " + json + ", null)");
-                })
-                .addOnFailureListener(error -> evaluateJs(
-                        "window.__parlanceFirebaseResult && window.__parlanceFirebaseResult("
-                                + quote(requestId) + ", null, " + quote(describe(error)) + ")"));
+        evaluateJs("window.__parlanceFirebaseResult && window.__parlanceFirebaseResult("
+                + quote(requestId) + ", null, " + quote("Cloud analysis is not available.") + ")");
     }
 
     private void finishPurchase(String callback, String requestId, String transactionId, String error) {

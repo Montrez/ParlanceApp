@@ -18,19 +18,19 @@ struct PrivacyPolicyView: View {
         ),
         (
             "2. Cloud AI Analysis",
-            "When you choose to use cloud AI analysis, the sentence you submit is sent to Google Firebase Cloud Functions, which routes it to a third-party AI provider (such as Groq, Gemini, OpenAI, or others you select). Sentences are not stored by us after the response is returned. Third-party providers process your input under their own privacy policies."
+            "On the iPhone and Android apps, analysis runs on the device with Parlance Coach. Cloud AI is optional on the web app only. If you add an API key there, your sentence goes directly to the provider you chose (such as Groq, Gemini, or OpenAI). We do not proxy that request through our servers. Third-party providers process your input under their own privacy policies."
         ),
         (
             "3. Authentication",
-            "Parlance uses Sign in with Apple and Google Sign-In (Firebase Authentication). We use an anonymous User ID (UID) solely to associate your usage quota and call packs with your account. Review Apple's and Google's privacy policies for how they handle sign-in."
+            "The iPhone and Android apps do not require an account. Purchases use your App Store or Google Play account. Optional Sign in with Apple or Google may still appear on the web app. Review Apple's and Google's privacy policies for how they handle sign-in."
         ),
         (
-            "4. Usage Counter",
-            "We store a single counter in Firestore (Google Cloud) tied to your UID. It tracks how many cloud analysis calls you have made in the current calendar month. It resets monthly and is used only to enforce the 30-call free tier and apply purchased call packs. This counter is never used for advertising, analytics, or any purpose beyond app functionality."
+            "4. Feedback Counter",
+            "On the phones, the number of Coach analyses you have used is stored only on your device. The first 15 analyses are free. After that you can buy more analyses or subscribe to Parlance Plus. This count is not sent to our servers and is not used for advertising."
         ),
         (
             "5. In-App Purchases and Parlance Plus",
-            "Call pack purchases and Parlance Plus subscriptions are processed by Apple on iPhone and by Google Play on Android. After a successful purchase, the store provides a signed transaction that we can verify. We store a record of the transaction and, for call packs, the number of remaining calls in Firestore under your UID. We do not receive or store your payment information.\n\nParlance Plus is an auto-renewing monthly subscription. We use it only to unlock unlimited cloud AI coaching and the medical and legal interpreting guides. Billing, renewal, and cancellation are handled by Apple in your Apple Account settings, or by Google Play in your Google account subscriptions. We never receive your payment information."
+            "Parlance Plus and analysis packs are processed by Apple on iPhone and by Google Play on Android. After a successful purchase, the store keeps the receipt on your device. We do not receive or store your payment information.\n\nParlance Plus is an auto-renewing monthly subscription. On the phones it unlocks unlimited Coach analyses and the medical and legal interpreting guides. Billing, renewal, and cancellation are handled by Apple in your Apple Account settings, or by Google Play in your Google account subscriptions. We never receive your payment information."
         ),
         (
             "6. Journal Entries",
@@ -42,7 +42,7 @@ struct PrivacyPolicyView: View {
         ),
         (
             "8. Data Retention and Deletion",
-            "Your usage and pack records in Firestore are retained as long as your account is active.\n\nYou can delete your account and all of its data from inside the app at any time: open AI settings while signed in, tap Delete account, and confirm. This immediately and permanently removes your Firebase Authentication account, your user profile, your monthly usage counter, your call pack balances, and your Parlance Plus record. It cannot be undone, and remaining call pack balances are not refundable. Journal entries are stored only on your device and are unaffected, so delete them from Past Entries if you also want them gone. If you subscribed to Parlance Plus, cancel the subscription separately in your Apple Account settings or Google Play subscriptions so billing stops.\n\nIf you cannot access the app, you can also contact us at the address below and we will remove your records within 30 days."
+            "Journal entries and the on-device analysis count stay on your device. You can delete journal entries from Past Entries.\n\nIf you signed in on the web, you can delete that account from AI settings. That removes the sign-in account. It cannot be undone. If you subscribed to Parlance Plus, cancel the subscription separately in your Apple Account settings or Google Play subscriptions so billing stops.\n\nIf you cannot access the app, you can also contact us at the address below and we will remove any leftover account records within 30 days."
         ),
         (
             "9. Children",
@@ -82,7 +82,7 @@ struct PrivacyPolicyView: View {
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("Last updated: August 15, 2026")
+                        Text("Last updated: August 16, 2026")
                             .font(.footnote)
                             .foregroundColor(Color("Muted"))
 

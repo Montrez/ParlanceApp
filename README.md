@@ -34,29 +34,6 @@ No account is required on the phones. Purchases go through the App Store or Goog
 
 ---
 
-## Tech stack
-
-One web frontend. Two native hosts. Do not fork the UI.
-
-| Layer | What we use |
-|---|---|
-| **Shared UI** | `Parlance/web/` — HTML, CSS, vanilla JS. Journal, guides, settings, i18n. Source of truth. |
-| **GitHub Pages** | `docs/`, generated with `python3 scripts/sync_web.py`. Never edit app UI there. |
-| **iOS** | SwiftUI + WKWebView. Bundle ID `com.parlance.interpreterguide`. StoreKit 2 for Plus. Coach via MLX (Qwen 0.5B). Firebase iOS SDK for leftover auth/functions. |
-| **Android** | Capacitor 8 WebView + Java bridge. Same bundle ID. Play Billing Library 7. Coach via `net.ladenthin:llama` GGUF in the `parlance_models` install-time asset pack. minSdk 28, target 36. |
-| **Native bridge** | Same `{action}` messages and `window.__parlance*` callbacks. iOS: `ContentView.swift`. Android: `ParlanceBridge.java`. `python3 scripts/check_platform_sync.py` fails CI if they drift. |
-| **Coach model** | Fine-tuned Qwen 0.5B. Spanish/French weights plus English prompts and `coach-rules-en.js`. Rules engine is a post-pass, not the coach. Training and export live in `training/`. |
-| **Cloud AI (web only)** | Groq, OpenAI, Anthropic, Gemini, DeepSeek, Kimi, OpenRouter, WebLLM. Phones do not take an API key. |
-| **Backend** | Firebase project `parlance-926ef` (Blaze). Auth, Cloud Functions (Node 22), Firestore usage/Plus records, Secret Manager for provider keys. |
-| **Purchases** | iOS: `com.parlance.interpreterguide.plusmonthly`. Play: `plusmonthly` (base plan `plus-monthly`). Entitlement is the store receipt, not a login. |
-| **i18n** | `Parlance/web/locales/{en,es,fr}.json`. `python3 scripts/sync_i18n_embedded.py` and `check_i18n.py`. |
-| **Ship** | `python3 scripts/bump_version.py` only. `fastlane both` from this Mac: Play internal + App Store Connect. GitHub Actions tags a release and Claire posts to Discord `#announcements`. Do not upload from Xcode Cloud (no Coach weights). |
-| **Stores** | TestFlight / App Store Connect team `9869W49GYJ`. Play internal via service account `play-publisher@parlance-926ef.iam.gserviceaccount.com`. |
-
-Also in the repo, not in the phone apps: Discord bots under `scripts/discord_bots/`, Fastlane under `fastlane/`, and `astro-pilot/` (separate).
-
----
-
 ## Quick Start
 
 ### iOS
@@ -159,41 +136,6 @@ Optional Mac dev server: `python3 training/parlance_slm_server.py`.
 The phones do not take an API key. On GitHub Pages you can still use a cloud provider. The default there is **Groq** (free, fast). Get a key at [console.groq.com/keys](https://console.groq.com/keys) and set it in **AI Settings**.
 
 Supported on the web: Groq, OpenAI, Anthropic, Google Gemini, DeepSeek, Kimi, OpenRouter, and in-browser WebLLM.
-
----
-
-## Firebase Console setup
-
-Use a Firebase project (default in `firebase/.firebaserc`: `parlance-926ef`) with the **Blaze** plan for Cloud Functions secrets and outbound API calls.
-
-### 1. Authentication
-
-1. [Firebase Console](https://console.firebase.google.com/) → your project → **Build** → **Authentication** → **Sign-in method**
-2. Enable **Apple** and **Google**
-3. For Apple: add your iOS bundle ID `com.parlance.interpreterguide` and configure Sign in with Apple in [Apple Developer](https://developer.apple.com/) (Services ID / key as required by Firebase docs)
-4. For Google: add the iOS client; download config below
-
-### 2. iOS app
-
-1. **Project settings** → **Your apps** → add **iOS** app with bundle ID `com.parlance.interpreterguide`
-2. Download **GoogleService-Info.plist** → copy to `Parlance/GoogleService-Info.plist` (see `Parlance/GoogleService-Info.plist.example`)
-3. In Xcode: add the plist to the Parlance target if not already present
-4. Replace `REPLACE_WITH_REVERSED_CLIENT_ID` in `Parlance/Info.plist` **CFBundleURLSchemes** with the `REVERSED_CLIENT_ID` value from the plist
-5. Enable **Sign in with Apple** capability on the Parlance target
-
-### 3. Web (GitHub Pages)
-
-1. Register a **Web** app in the same Firebase project
-2. Copy `docs/firebase-config.example.js` → `docs/firebase-config.js` and fill in the web config object
-3. Deploy `docs/` as usual; the site loads Firebase compat SDK from the CDN (see `docs/index.html`)
-
-### 4. Cloud Functions
-
-1. Install CLI: `npm install -g firebase-tools`
-2. Set provider API keys as secrets (see [firebase/README.md](firebase/README.md))
-3. Deploy: `cd firebase && firebase deploy --only functions`
-
-Signed-in users call the **`analyzeText`** callable; API keys stay in Secret Manager, not on devices.
 
 ---
 

@@ -111,7 +111,6 @@ dependencies {
     // web popup cannot work inside Capacitor — sign-in has to happen in Java.
     implementation platform("com.google.firebase:firebase-bom:$firebaseBomVersion")
     implementation "com.google.firebase:firebase-auth"
-    implementation "com.google.firebase:firebase-functions"
     implementation "androidx.credentials:credentials:$androidxCredentialsVersion"
     implementation "androidx.credentials:credentials-play-services-auth:$androidxCredentialsVersion"
     implementation "com.google.android.libraries.identity.googleid:googleid:$googleIdVersion"

@@ -2,7 +2,6 @@ import AuthenticationServices
 import CryptoKit
 import FirebaseAuth
 import FirebaseCore
-import FirebaseFunctions
 import GoogleSignIn
 import Observation
 import UIKit
@@ -14,7 +13,6 @@ enum AuthManagerError: LocalizedError {
     case noPresenter
     case missingIDToken
     case notSignedIn
-    case serverDataDeleteFailed
 
     var errorDescription: String? {
         switch self {
@@ -28,8 +26,6 @@ enum AuthManagerError: LocalizedError {
             return "Sign-in did not return an ID token."
         case .notSignedIn:
             return "You are not signed in."
-        case .serverDataDeleteFailed:
-            return "Could not delete your Parlance data. Check your connection and try again."
         }
     }
 }
@@ -214,8 +210,6 @@ final class AuthManager: NSObject {
             try await reauthenticateWithGoogle()
         }
 
-        try await deleteServerData()
-
         if providers.contains("apple.com"), let code = lastAppleAuthorizationCode {
             do {
                 try await Auth.auth().revokeToken(withAuthorizationCode: code)
@@ -247,19 +241,6 @@ final class AuthManager: NSObject {
         self.user = nil
         isSignedIn = false
         authError = nil
-    }
-
-    /// Wipes `users/{uid}`, `usage/*`, and `packs/*`. Firestore rules block all
-    /// client writes to those paths, so this has to run with the Admin SDK.
-    private func deleteServerData() async throws {
-        let callable = Functions.functions().httpsCallable("deleteAccountData")
-        do {
-            _ = try await callable.call([:])
-        } catch {
-            print("[Auth] deleteAccountData failed:", error)
-            authError = AuthManagerError.serverDataDeleteFailed.localizedDescription
-            throw AuthManagerError.serverDataDeleteFailed
-        }
     }
 
     private func reauthenticateWithGoogle() async throws {
