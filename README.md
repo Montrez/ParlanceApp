@@ -27,8 +27,33 @@
 - **Regional Guide**: regional vocabulary, pronouns, and dialect traps, with a "your region vs. theirs" picker.
 - **Medical and Legal Guides**: domain interpreting references. On the phones these two require Parlance Plus.
 - **Parlance Coach**: on-device grammar coaching for English, Spanish, and French. Qwen 0.5B runs fully offline (MLX on iPhone, GGUF on Android). Phones are Coach-only. The web app can still use a cloud provider.
-- **Parlance Plus**: unlocks medical and legal guides on the phones, plus unlimited cloud coaching on the web.
+- **Parlance Plus**: monthly subscription. On the phones it unlocks the medical and legal guides. Writing and saving journal entries stay free. Coach feedback is what we charge for.
 - Dark mode and interface language (EN/ES/FR) that apply across the journal, guides, and regional content.
+
+No account is required on the phones. Purchases go through the App Store or Google Play. Restore purchase is on the AI settings sheet.
+
+---
+
+## Tech stack
+
+One web frontend. Two native hosts. Do not fork the UI.
+
+| Layer | What we use |
+|---|---|
+| **Shared UI** | `Parlance/web/` — HTML, CSS, vanilla JS. Journal, guides, settings, i18n. Source of truth. |
+| **GitHub Pages** | `docs/`, generated with `python3 scripts/sync_web.py`. Never edit app UI there. |
+| **iOS** | SwiftUI + WKWebView. Bundle ID `com.parlance.interpreterguide`. StoreKit 2 for Plus. Coach via MLX (Qwen 0.5B). Firebase iOS SDK for leftover auth/functions. |
+| **Android** | Capacitor 8 WebView + Java bridge. Same bundle ID. Play Billing Library 7. Coach via `net.ladenthin:llama` GGUF in the `parlance_models` install-time asset pack. minSdk 28, target 36. |
+| **Native bridge** | Same `{action}` messages and `window.__parlance*` callbacks. iOS: `ContentView.swift`. Android: `ParlanceBridge.java`. `python3 scripts/check_platform_sync.py` fails CI if they drift. |
+| **Coach model** | Fine-tuned Qwen 0.5B. Spanish/French weights plus English prompts and `coach-rules-en.js`. Rules engine is a post-pass, not the coach. Training and export live in `training/`. |
+| **Cloud AI (web only)** | Groq, OpenAI, Anthropic, Gemini, DeepSeek, Kimi, OpenRouter, WebLLM. Phones do not take an API key. |
+| **Backend** | Firebase project `parlance-926ef` (Blaze). Auth, Cloud Functions (Node 22), Firestore usage/Plus records, Secret Manager for provider keys. |
+| **Purchases** | iOS: `com.parlance.interpreterguide.plusmonthly`. Play: `plusmonthly` (base plan `plus-monthly`). Entitlement is the store receipt, not a login. |
+| **i18n** | `Parlance/web/locales/{en,es,fr}.json`. `python3 scripts/sync_i18n_embedded.py` and `check_i18n.py`. |
+| **Ship** | `python3 scripts/bump_version.py` only. `fastlane both` from this Mac: Play internal + App Store Connect. GitHub Actions tags a release and Claire posts to Discord `#announcements`. Do not upload from Xcode Cloud (no Coach weights). |
+| **Stores** | TestFlight / App Store Connect team `9869W49GYJ`. Play internal via service account `play-publisher@parlance-926ef.iam.gserviceaccount.com`. |
+
+Also in the repo, not in the phone apps: Discord bots under `scripts/discord_bots/`, Fastlane under `fastlane/`, and `astro-pilot/` (separate).
 
 ---
 
@@ -67,8 +92,8 @@ version number only lands on one side.
 
 Capabilities that genuinely differ are reported by the bridge rather than sniffed
 in JavaScript. Both phones report `inAppPurchase: true` (StoreKit on iOS, Play
-Billing on Android) and `coachOnly: true`. Android still uses the web settings
-modal (`nativeSettings: false`).
+Billing on Android) and `coachOnly: true`. AI settings live in the shared web
+layer so both phones stay on one layout.
 
 **Google Sign-In requires registered SHA-1 fingerprints.** Credential Manager will
 not issue an ID token for an app whose signing certificate is unknown to Firebase,
