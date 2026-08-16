@@ -18,6 +18,7 @@ public class MainActivity extends BridgeActivity {
         // window.ParlanceNative missing on the page the user actually sees.
         WebView webView = findViewById(R.id.webview);
         if (webView != null) {
+            webView.getSettings().setTextZoom(100);
             parlanceBridge = new ParlanceBridge(this, webView);
             webView.addJavascriptInterface(parlanceBridge, ParlanceBridge.JS_NAME);
         }

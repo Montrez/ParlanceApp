@@ -52,7 +52,7 @@ struct AISettingsView: View {
 
     private var plusBenefits: [String] {
         [
-            "Unlimited cloud AI coaching — no monthly cap",
+            "Unlimited Coach feedback — no analysis cap",
             "Medical interpreting guide — clinical vocabulary, register, and ethics",
             "Legal interpreting guide — court roles, rights language, and protocol",
             "Coach adds medical or legal context when a journal sentence uses those terms",
@@ -63,7 +63,7 @@ struct AISettingsView: View {
         Section {
             Text(storeKit.isPlusActive
                  ? "You have Parlance Plus. Here is what that includes."
-                 : "Parlance Plus unlocks domain guides and unlimited cloud coaching.")
+                 : "Parlance Plus unlocks unlimited feedback and the domain guides.")
                 .font(.subheadline)
                 .foregroundStyle(Color.secondary)
 

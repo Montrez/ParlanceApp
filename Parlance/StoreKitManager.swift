@@ -13,7 +13,8 @@ final class StoreKitManager: ObservableObject {
 
     static let callPack100 = "com.parlance.interpreterguide.callpack100"
     static let plusMonthly = "com.parlance.interpreterguide.plusmonthly"
-    private static let allProductIDs: Set<String> = [callPack100, plusMonthly]
+    static let feedbackPack15 = "com.parlance.interpreterguide.feedbackpack15"
+    private static let allProductIDs: Set<String> = [plusMonthly, feedbackPack15]
 
     // MARK: - Published state
 
@@ -75,6 +76,10 @@ final class StoreKitManager: ObservableObject {
         products.contains { $0.id == Self.callPack100 }
     }
 
+    var isFeedbackPackPurchasable: Bool {
+        products.contains { $0.id == Self.feedbackPack15 }
+    }
+
     /// Distinguishes "the App Store call failed" from "the App Store answered
     /// but this product is not in the catalog", which is an App Store Connect
     /// configuration problem the user can do nothing about.
@@ -120,6 +125,9 @@ final class StoreKitManager: ObservableObject {
                         transaction: transaction,
                         signedTransactionInfo: verification.jwsRepresentation
                     )
+                } else if transaction.productID == Self.feedbackPack15 {
+                    await transaction.finish()
+                    return .success(transactionId: String(transaction.id))
                 } else {
                     grantResult = await grantPackOnServer(
                         transaction: transaction,
@@ -146,6 +154,17 @@ final class StoreKitManager: ObservableObject {
             purchaseError = msg
             return .failed(msg)
         }
+    }
+
+    func purchaseFeedbackPack() async -> PurchaseResult {
+        guard let product = products.first(where: { $0.id == Self.feedbackPack15 }) else {
+            await loadProducts()
+            guard let product = products.first(where: { $0.id == Self.feedbackPack15 }) else {
+                return .failed(unavailableMessage())
+            }
+            return await purchase(product)
+        }
+        return await purchase(product)
     }
 
     func purchasePlus() async -> PurchaseResult {
@@ -200,6 +219,9 @@ final class StoreKitManager: ObservableObject {
                             transaction: transaction,
                             signedTransactionInfo: result.jwsRepresentation
                         )
+                    } else if transaction.productID == Self.feedbackPack15 {
+                        await transaction.finish()
+                        continue
                     } else {
                         grantResult = await self.grantPackOnServer(
                             transaction: transaction,
@@ -290,5 +312,9 @@ final class StoreKitManager: ObservableObject {
 
     var plusMonthlyDisplayPrice: String? {
         products.first(where: { $0.id == Self.plusMonthly })?.displayPrice
+    }
+
+    var feedbackPackDisplayPrice: String? {
+        products.first(where: { $0.id == Self.feedbackPack15 })?.displayPrice
     }
 }

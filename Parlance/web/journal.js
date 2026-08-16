@@ -946,14 +946,21 @@ window.__parlanceUpdateConfig = function (patch) {
     plusActiveOverride = null; // defer back to the (now current) config value
     if (patch.isPlusActive) refreshPlusPaywallPrice();
     refreshPlusStatusPanel();
+    refreshFeedbackMeter();
   }
   if ('plusMonthlyPriceDisplay' in patch) refreshPlusPaywallPrice();
   if ('plusPurchaseAvailable' in patch) refreshPlusPaywallPrice();
+  if ('feedbackPackPriceDisplay' in patch || 'feedbackPackPurchaseAvailable' in patch
+      || 'feedbackDebugTools' in patch) {
+    refreshPlusPaywallPrice();
+    refreshFeedbackMeter();
+  }
   if ('parlanceCoachAvailable' in patch || 'parlanceCoachLanguages' in patch
       || 'parlanceCoachInstalling' in patch || 'coachOnly' in patch) {
     renderProviderGrid();
     applyDefaultProvider();
     updateWaitingCard();
+    refreshCoachSettingsSummary();
   }
 };
 
@@ -1601,6 +1608,8 @@ function refreshDynamicI18nUI() {
   applyPlusStoreCopy();
   refreshPlusPaywallPrice();
   refreshPlusStatusPanel();
+  refreshFeedbackMeter();
+  applyCoachOnlySettingsChrome();
   updateLangSummary();
   updateEntryPager();
   if (typeof state !== 'undefined' && state.activeSentenceId) showFeedback(state.activeSentenceId);
@@ -1631,6 +1640,7 @@ function updateLangSummary() {
   const app = uiSelect.value.toUpperCase();
   const write = writeSelect.value.toUpperCase();
   summary.textContent = `${app} · ${write}`;
+  refreshLangChips();
   const btn = document.getElementById('langSummaryBtn');
   if (btn && typeof i18n !== 'undefined' && i18n.t) {
     const title = i18n.t('langSummaryTitle', { app, write });
@@ -1649,6 +1659,31 @@ function toggleLangControls() {
     controls.classList.add('expanded');
     btn.setAttribute('aria-expanded', 'true');
   }
+}
+
+function setUiLangFromChip(lang) {
+  const sel = document.getElementById('uiLangSelect');
+  if (!sel || sel.value === lang) return;
+  sel.value = lang;
+  onUILangChange();
+}
+
+function setWriteLangFromChip(lang) {
+  const sel = document.getElementById('langSelect');
+  if (!sel || sel.value === lang) return;
+  sel.value = lang;
+  onLanguageChange();
+}
+
+function refreshLangChips() {
+  const ui = document.getElementById('uiLangSelect')?.value;
+  const write = document.getElementById('langSelect')?.value;
+  document.querySelectorAll('#uiLangChips .lang-chip').forEach((btn) => {
+    btn.classList.toggle('selected', btn.dataset.lang === ui);
+  });
+  document.querySelectorAll('#writeLangChips .lang-chip').forEach((btn) => {
+    btn.classList.toggle('selected', btn.dataset.lang === write);
+  });
 }
 
 function closeLangControls() {
@@ -1762,6 +1797,29 @@ function applyCoachOnlySettingsChrome() {
   hide('apiKeySection');
   hide('modelSection');
   hide('corsWarning');
+  const card = document.querySelector('.ai-settings-card');
+  if (card) card.classList.toggle('is-coach-only', coachOnly);
+  const coachModel = document.getElementById('coachModelSection');
+  const coachAbout = document.getElementById('coachAboutSection');
+  if (coachModel) coachModel.hidden = !coachOnly;
+  if (coachAbout) coachAbout.hidden = !coachOnly;
+  const heading = document.getElementById('aiSettingsHeading');
+  if (heading) heading.textContent = i18n.t(coachOnly ? 'aiSettingsTitle' : 'aiProviderTitle');
+  const saveBtn = document.getElementById('aiSettingsSaveBtn');
+  if (saveBtn) saveBtn.textContent = i18n.t(coachOnly ? 'settingsDone' : 'saveAndClose');
+  refreshCoachSettingsSummary();
+}
+
+function refreshCoachSettingsSummary() {
+  const el = document.getElementById('coachLanguageSummary');
+  if (!el) return;
+  const langs = (window.__PARLANCE_CONFIG__ || {}).parlanceCoachLanguages || [];
+  const keys = { en: 'langNameEn', es: 'langNameEs', fr: 'langNameFr' };
+  if (!langs.length) {
+    el.textContent = i18n.t('coachLanguagesInstalling');
+    return;
+  }
+  el.textContent = langs.map((code) => i18n.t(keys[code] || 'langNameEn')).join(' · ');
 }
 
 /** Called by a native host after its own AI Settings sheet closes. */
@@ -1835,8 +1893,27 @@ function triggerCallPackPurchase() {
 // without waiting for the native config bridge to be re-injected.
 let plusActiveOverride = null;
 let pendingPlusGuideKind = null;
+let pendingFeedbackAnalyzeId = null;
+let paywallReason = 'quota';
+
+function debugIgnorePlus() {
+  if (!feedbackDebugToolsEnabled()) return false;
+  try { return localStorage.getItem(LS_DEBUG_IGNORE_PLUS) === '1'; } catch (_) { return false; }
+}
+
+function setDebugIgnorePlus(on) {
+  try { localStorage.setItem(LS_DEBUG_IGNORE_PLUS, on ? '1' : '0'); } catch (_) {}
+  plusActiveOverride = on ? false : null;
+  refreshPlusStatusPanel();
+  refreshFeedbackMeter();
+}
+
+function toggleDebugIgnorePlus() {
+  setDebugIgnorePlus(!debugIgnorePlus());
+}
 
 function isPlusActive() {
+  if (debugIgnorePlus()) return false;
   if (plusActiveOverride !== null) return plusActiveOverride;
   const cfg = window.__PARLANCE_CONFIG__ || {};
   return !!cfg.isPlusActive;
@@ -1873,11 +1950,21 @@ function applyPlusStoreCopy() {
 }
 
 function showPlusPaywall(kind) {
-  pendingPlusGuideKind = kind;
+  const isGuide = kind === 'medical' || kind === 'legal';
+  pendingPlusGuideKind = isGuide ? kind : null;
+  paywallReason = isGuide ? 'guide' : 'quota';
   const overlay = document.getElementById('plusPaywallOverlay');
   if (!overlay) return;
   const subscribeBtn = document.getElementById('plusPaywallSubscribeBtn');
   if (subscribeBtn) subscribeBtn.style.display = nativeSupportsPurchases() ? '' : 'none';
+  const desc = document.getElementById('plusPaywallDesc');
+  if (desc && typeof i18n !== 'undefined') {
+    desc.textContent = i18n.t(paywallReason === 'quota' ? 'plusPaywallDescQuota' : 'plusPaywallDesc');
+  }
+  const packBtn = document.getElementById('plusPaywallPackBtn');
+  if (packBtn) {
+    packBtn.style.display = (paywallReason === 'quota' && nativeSupportsPurchases()) ? '' : 'none';
+  }
   applyPlusStoreCopy();
   overlay.style.display = 'flex';
   refreshPlusPaywallPrice();
@@ -1908,6 +1995,8 @@ function refreshPlusStatusPanel() {
   if (actions) {
     actions.style.display = (!active && nativeSupportsPurchases()) ? 'flex' : 'none';
   }
+  const packBtn = document.getElementById('plusStatusPackBtn');
+  if (packBtn) packBtn.style.display = (!active && nativeSupportsPurchases()) ? '' : 'none';
 }
 
 function togglePlusStatusDetails() {
@@ -1922,6 +2011,7 @@ function togglePlusStatusDetails() {
 
 function closePlusPaywall() {
   pendingPlusGuideKind = null;
+  pendingFeedbackAnalyzeId = null;
   const overlay = document.getElementById('plusPaywallOverlay');
   if (overlay) overlay.style.display = 'none';
 }
@@ -1946,6 +2036,7 @@ function refreshPlusPaywallPrice() {
   const available = cfg.plusPurchaseAvailable !== false;
   if (subscribeBtn) subscribeBtn.disabled = !available;
   if (unavailableEl) unavailableEl.style.display = available ? 'none' : '';
+  applyFeedbackPackButtonCopy();
 }
 
 function triggerPlusPurchase() {
@@ -1971,8 +2062,7 @@ function triggerPlusPurchase() {
     }
     plusActiveOverride = true;
     showToast(i18n.t('plusSubscribed'), 'success');
-    closePlusPaywall();
-    if (pendingPlusGuideKind) openGuideOverlay(pendingPlusGuideKind);
+    finishPaidUnlock();
   };
   postToNative({ action: 'purchasePlus', requestId });
 }
@@ -1994,13 +2084,195 @@ function triggerPlusRestore() {
     if (data && data.restored) {
       plusActiveOverride = true;
       showToast(i18n.t('plusRestored'), 'success');
-      closePlusPaywall();
-      if (pendingPlusGuideKind) openGuideOverlay(pendingPlusGuideKind);
+      finishPaidUnlock();
     } else {
       showToast(i18n.t('plusNoneToRestore'));
     }
   };
   postToNative({ action: 'restorePlus', requestId });
+}
+
+const FREE_FEEDBACK_LIMIT = 15;
+const FEEDBACK_PACK_SIZE = 15;
+const LS_FEEDBACK_USED = 'parlance_feedback_used';
+const LS_FEEDBACK_PACK = 'parlance_feedback_pack';
+const LS_FEEDBACK_DEBUG = 'parlance_feedback_debug';
+const LS_DEBUG_IGNORE_PLUS = 'parlance_debug_ignore_plus';
+
+function feedbackQuotaApplies() {
+  return isNativeParlanceApp();
+}
+
+function feedbackDebugToolsEnabled() {
+  const cfg = window.__PARLANCE_CONFIG__ || {};
+  if (cfg.feedbackDebugTools) return true;
+  try { return localStorage.getItem(LS_FEEDBACK_DEBUG) === '1'; } catch (_) { return false; }
+}
+
+function readFeedbackInt(key) {
+  try {
+    const n = parseInt(localStorage.getItem(key) || '0', 10);
+    return Number.isFinite(n) && n > 0 ? n : 0;
+  } catch (_) {
+    return 0;
+  }
+}
+
+function writeFeedbackInt(key, n) {
+  try { localStorage.setItem(key, String(Math.max(0, n | 0))); } catch (_) {}
+}
+
+function feedbackUsedCount() {
+  return readFeedbackInt(LS_FEEDBACK_USED);
+}
+
+function feedbackPackRemaining() {
+  return readFeedbackInt(LS_FEEDBACK_PACK);
+}
+
+function feedbackFreeRemaining() {
+  return Math.max(0, FREE_FEEDBACK_LIMIT - feedbackUsedCount());
+}
+
+function feedbackRemaining() {
+  return feedbackFreeRemaining() + feedbackPackRemaining();
+}
+
+function canAnalyzeFeedback() {
+  if (!feedbackQuotaApplies()) return true;
+  if (isPlusActive()) return true;
+  return feedbackRemaining() > 0;
+}
+
+function consumeFeedbackCredit() {
+  if (!feedbackQuotaApplies() || isPlusActive()) return;
+  const used = feedbackUsedCount();
+  if (used < FREE_FEEDBACK_LIMIT) writeFeedbackInt(LS_FEEDBACK_USED, used + 1);
+  else writeFeedbackInt(LS_FEEDBACK_PACK, Math.max(0, feedbackPackRemaining() - 1));
+  refreshFeedbackMeter();
+}
+
+function grantFeedbackPack(n) {
+  const add = Number.isFinite(n) ? n : FEEDBACK_PACK_SIZE;
+  writeFeedbackInt(LS_FEEDBACK_PACK, feedbackPackRemaining() + add);
+  refreshFeedbackMeter();
+}
+
+function setFeedbackRemainingForDebug(remaining) {
+  setDebugIgnorePlus(true);
+  const n = Math.max(0, remaining | 0);
+  if (n >= FREE_FEEDBACK_LIMIT) {
+    writeFeedbackInt(LS_FEEDBACK_USED, 0);
+    writeFeedbackInt(LS_FEEDBACK_PACK, n - FREE_FEEDBACK_LIMIT);
+  } else {
+    writeFeedbackInt(LS_FEEDBACK_USED, FREE_FEEDBACK_LIMIT - n);
+    writeFeedbackInt(LS_FEEDBACK_PACK, 0);
+  }
+  refreshFeedbackMeter();
+  if (canAnalyzeFeedback() && pendingFeedbackAnalyzeId) finishPaidUnlock();
+}
+
+function debugGrantFeedbackPack() {
+  setDebugIgnorePlus(true);
+  grantFeedbackPack(FEEDBACK_PACK_SIZE);
+  showToast(i18n.t('feedbackPackAdded'), 'success');
+  finishPaidUnlock();
+}
+
+function feedbackMeterText() {
+  if (isPlusActive()) return i18n.t('feedbackMeterUnlimited');
+  const freeLeft = feedbackFreeRemaining();
+  if (freeLeft > 0) {
+    return i18n.t('feedbackMeterFreeLeft', { n: freeLeft, limit: FREE_FEEDBACK_LIMIT });
+  }
+  const packLeft = feedbackPackRemaining();
+  if (packLeft > 0) return i18n.t('feedbackMeterPackLeft', { n: packLeft });
+  return i18n.t('feedbackMeterNone');
+}
+
+function refreshFeedbackMeter() {
+  const meter = document.getElementById('feedbackMeter');
+  const debug = document.getElementById('feedbackDebug');
+  if (!feedbackQuotaApplies()) {
+    if (meter) meter.hidden = true;
+    if (debug) debug.hidden = true;
+    return;
+  }
+  if (meter) {
+    meter.hidden = false;
+    meter.textContent = feedbackMeterText();
+    meter.classList.toggle('is-empty', !canAnalyzeFeedback());
+  }
+  const showDebug = feedbackDebugToolsEnabled();
+  if (debug) debug.hidden = !showDebug;
+  const paywallDebug = document.getElementById('plusPaywallDebug');
+  if (paywallDebug) paywallDebug.hidden = !showDebug;
+  const ignoreLabel = i18n.t(debugIgnorePlus() ? 'feedbackDebugUsePlus' : 'feedbackDebugIgnorePlus');
+  ['feedbackDebugPlusBtn', 'plusPaywallDebugPlusBtn'].forEach((id) => {
+    const btn = document.getElementById(id);
+    if (btn) btn.textContent = ignoreLabel;
+  });
+  applyFeedbackPackButtonCopy();
+}
+
+function applyFeedbackPackButtonCopy() {
+  const cfg = window.__PARLANCE_CONFIG__ || {};
+  const price = cfg.feedbackPackPriceDisplay || '$2.99';
+  const label = i18n.t('plusPaywallPack', { price });
+  const storeReady = cfg.feedbackPackPurchaseAvailable === true;
+  const canTap = storeReady || feedbackDebugToolsEnabled();
+  ['plusPaywallPackBtn', 'plusStatusPackBtn'].forEach((id) => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    btn.textContent = label;
+    btn.disabled = !canTap;
+  });
+}
+
+function finishPaidUnlock() {
+  const guideKind = pendingPlusGuideKind;
+  const analyzeId = pendingFeedbackAnalyzeId;
+  pendingPlusGuideKind = null;
+  pendingFeedbackAnalyzeId = null;
+  const overlay = document.getElementById('plusPaywallOverlay');
+  if (overlay) overlay.style.display = 'none';
+  refreshFeedbackMeter();
+  refreshPlusStatusPanel();
+  if (guideKind) openGuideOverlay(guideKind);
+  else if (analyzeId && canAnalyzeFeedback()) analyzeSentence(analyzeId);
+}
+
+function triggerFeedbackPackPurchase() {
+  if (!nativeSupportsPurchases()) {
+    showToast(i18n.t('plusPaywallWebNotAvailable'));
+    return;
+  }
+  const cfg = window.__PARLANCE_CONFIG__ || {};
+  if (cfg.feedbackPackPurchaseAvailable !== true) {
+    if (feedbackDebugToolsEnabled()) {
+      debugGrantFeedbackPack();
+      return;
+    }
+    showToast(i18n.t('errPackPurchaseFailed', { err: i18n.t('plusPaywallUnavailable') }), 'error');
+    return;
+  }
+  const requestId = 'purchasePack_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+  window.__parlancePurchaseResult = (id, data, err) => {
+    if (id !== requestId) return;
+    delete window.__parlancePurchaseResult;
+    if (err === 'cancelled') {
+      showToast(i18n.t('purchaseCancelled'));
+      return;
+    }
+    if (err) {
+      showToast(i18n.t('errPackPurchaseFailed', { err }), 'error');
+      return;
+    }
+    grantFeedbackPack(FEEDBACK_PACK_SIZE);
+    showToast(i18n.t('feedbackPackAdded'), 'success');
+    finishPaidUnlock();
+  };
+  postToNative({ action: 'purchaseFeedbackPack', requestId });
 }
 
 /** Zero-setup or fastest-to-set-up options lead the grid; the rest live
@@ -2292,6 +2564,7 @@ async function init() {
   }
 
   updateWaitingCard();
+  refreshFeedbackMeter();
   renderPrompts();
   addSentence();
   loadSavedEntries();
@@ -2697,6 +2970,12 @@ async function analyzeSentence(id) {
     return;
   }
 
+  if (!canAnalyzeFeedback()) {
+    pendingFeedbackAnalyzeId = id;
+    showPlusPaywall('quota');
+    return;
+  }
+
   state.analyzingSentenceIds.add(id);
 
   const ta       = document.getElementById('ta-' + id);
@@ -2739,6 +3018,7 @@ async function analyzeSentence(id) {
     sentence.feedbackUnits = units;
     sentence.feedback = units[0].feedback;
     sentence.analysisSource = units[0].analysisSource;
+    consumeFeedbackCredit();
     applyParagraphFeedback(id, sentence, ta, statusEl);
 
   } catch (err) {

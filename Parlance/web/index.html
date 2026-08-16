@@ -6,7 +6,7 @@
 <title>Parlance</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Spectral:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css?v=1">
-<link rel="stylesheet" href="styles.css?v=22">
+<link rel="stylesheet" href="styles.css?v=24">
 </head>
 <body>
 
@@ -26,23 +26,33 @@
         <span id="langSummaryText">EN · ES</span><span class="lang-summary-chevron" aria-hidden="true">▾</span>
       </button>
       <div class="header-langs" id="headerLangs" role="group" data-i18n-title="langControlsTitle" title="Language settings">
-        <label class="lang-control lang-control-app" for="uiLangSelect">
+        <div class="lang-control lang-control-app">
           <span class="lang-control-label" id="uiLangLabel" data-i18n="interfaceLangLabel">App</span>
           <select class="header-select" id="uiLangSelect" onchange="onUILangChange()" data-i18n-title="interfaceLangTitle" title="App language (menus and guides)" aria-labelledby="uiLangLabel">
             <option value="en">EN</option>
             <option value="es">ES</option>
             <option value="fr">FR</option>
           </select>
-        </label>
+          <div class="lang-chip-row" id="uiLangChips" role="group" aria-labelledby="uiLangLabel">
+            <button type="button" class="lang-chip" data-lang="en" onclick="setUiLangFromChip('en')">EN</button>
+            <button type="button" class="lang-chip" data-lang="es" onclick="setUiLangFromChip('es')">ES</button>
+            <button type="button" class="lang-chip" data-lang="fr" onclick="setUiLangFromChip('fr')">FR</button>
+          </div>
+        </div>
         <span class="lang-control-sep" aria-hidden="true"></span>
-        <label class="lang-control lang-control-write" for="langSelect">
+        <div class="lang-control lang-control-write">
           <span class="lang-control-label" id="practiceLangLabel" data-i18n="practiceLangLabel">Write</span>
           <select class="header-select" id="langSelect" onchange="onLanguageChange()" data-i18n-title="practiceLangTitle" title="Practice language (what you write)" aria-labelledby="practiceLangLabel">
             <option value="es">Español</option>
             <option value="en">English</option>
             <option value="fr">Français</option>
           </select>
-        </label>
+          <div class="lang-chip-row" id="writeLangChips" role="group" aria-labelledby="practiceLangLabel">
+            <button type="button" class="lang-chip" data-lang="es" onclick="setWriteLangFromChip('es')">ES</button>
+            <button type="button" class="lang-chip" data-lang="en" onclick="setWriteLangFromChip('en')">EN</button>
+            <button type="button" class="lang-chip" data-lang="fr" onclick="setWriteLangFromChip('fr')">FR</button>
+          </div>
+        </div>
       </div>
     </div>
     <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" data-i18n-title="toggleTheme" aria-label="Toggle theme">☀</button>
@@ -58,7 +68,18 @@
   <div class="journal-panel">
     <div class="journal-header">
       <input class="journal-title-input" id="entryTitle" type="text" data-i18n-placeholder="entryTitlePlaceholder" placeholder="Entry title…" />
-      <div class="sentence-count" id="sentenceCount">0 sentences</div>
+      <div class="journal-header-meta">
+        <div class="sentence-count" id="sentenceCount">0 sentences</div>
+        <div class="feedback-meter" id="feedbackMeter" hidden></div>
+        <div class="feedback-debug" id="feedbackDebug" hidden>
+          <span class="feedback-debug-label" data-i18n="feedbackDebugTitle">Testing</span>
+          <button type="button" class="feedback-debug-btn" onclick="setFeedbackRemainingForDebug(0)" data-i18n="feedbackDebugZero">Set to 0</button>
+          <button type="button" class="feedback-debug-btn" onclick="setFeedbackRemainingForDebug(1)" data-i18n="feedbackDebugOne">Set to 1</button>
+          <button type="button" class="feedback-debug-btn" onclick="setFeedbackRemainingForDebug(15)" data-i18n="feedbackDebugReset">Reset 15</button>
+          <button type="button" class="feedback-debug-btn" onclick="debugGrantFeedbackPack()" data-i18n="feedbackDebugAddPack">Add 15</button>
+          <button type="button" class="feedback-debug-btn" id="feedbackDebugPlusBtn" onclick="toggleDebugIgnorePlus()" data-i18n="feedbackDebugIgnorePlus">Ignore Plus</button>
+        </div>
+      </div>
     </div>
     <div class="sentences-area" id="sentencesArea"></div>
     <div style="padding: 0 1.75rem 1rem;">
@@ -174,9 +195,9 @@
       <button class="modal-close" onclick="closePlusPaywall()">&times;</button>
     </div>
     <div class="modal-body">
-      <p data-i18n="plusPaywallDesc">Everything you need for domain interpreting, without the free-tier limits.</p>
+      <p id="plusPaywallDesc" data-i18n="plusPaywallDesc">Everything you need for domain interpreting, without the free-tier limits.</p>
       <ul class="plus-paywall-benefits">
-        <li><span class="plus-benefit-check" aria-hidden="true">✓</span><span data-i18n="plusBenefitUnlimited">Unlimited cloud AI coaching — no monthly cap</span></li>
+        <li><span class="plus-benefit-check" aria-hidden="true">✓</span><span data-i18n="plusBenefitUnlimited">Unlimited Coach feedback — no analysis cap</span></li>
         <li><span class="plus-benefit-check" aria-hidden="true">✓</span><span data-i18n="plusBenefitMedical">Medical interpreting guide — clinical vocabulary, register, and ethics</span></li>
         <li><span class="plus-benefit-check" aria-hidden="true">✓</span><span data-i18n="plusBenefitLegal">Legal interpreting guide — court roles, rights language, and protocol</span></li>
         <li><span class="plus-benefit-check" aria-hidden="true">✓</span><span data-i18n="plusBenefitRag">Coach adds medical or legal context when a journal sentence uses those terms</span></li>
@@ -185,8 +206,17 @@
       <p class="plus-paywall-terms" id="plusPaywallTerms" data-i18n="plusPaywallTerms">Parlance Plus is a monthly auto-renewing subscription. Payment is charged to your Apple Account at confirmation of purchase. It renews automatically unless you turn off auto-renew at least 24 hours before the end of the current period, and your account is charged for renewal within 24 hours before the period ends. You can manage or cancel your subscription in your Apple Account settings.</p>
       <p class="plus-paywall-unavailable" id="plusPaywallUnavailable" style="display:none" data-i18n="plusPaywallUnavailable">The subscription isn't available from the App Store right now. Please try again later.</p>
       <button type="button" class="btn btn-primary plus-paywall-subscribe" id="plusPaywallSubscribeBtn" onclick="triggerPlusPurchase()" data-i18n="plusPaywallSubscribe">Subscribe to Parlance Plus</button>
+      <button type="button" class="btn btn-tertiary plus-paywall-pack" id="plusPaywallPackBtn" onclick="triggerFeedbackPackPurchase()">15 more analyses — $2.99</button>
       <button type="button" class="btn btn-tertiary plus-paywall-restore" onclick="triggerPlusRestore()" data-i18n="plusPaywallRestore">Restore purchase</button>
       <button type="button" class="btn btn-tertiary plus-paywall-cancel" onclick="closePlusPaywall()" data-i18n="plusPaywallCancel">Not now</button>
+      <div class="feedback-debug plus-paywall-debug" id="plusPaywallDebug" hidden>
+        <span class="feedback-debug-label" data-i18n="feedbackDebugTitle">Testing</span>
+        <button type="button" class="feedback-debug-btn" onclick="setFeedbackRemainingForDebug(0)" data-i18n="feedbackDebugZero">Set to 0</button>
+        <button type="button" class="feedback-debug-btn" onclick="setFeedbackRemainingForDebug(1)" data-i18n="feedbackDebugOne">Set to 1</button>
+        <button type="button" class="feedback-debug-btn" onclick="setFeedbackRemainingForDebug(15)" data-i18n="feedbackDebugReset">Reset 15</button>
+        <button type="button" class="feedback-debug-btn" onclick="debugGrantFeedbackPack()" data-i18n="feedbackDebugAddPack">Add 15</button>
+        <button type="button" class="feedback-debug-btn" id="plusPaywallDebugPlusBtn" onclick="toggleDebugIgnorePlus()" data-i18n="feedbackDebugIgnorePlus">Ignore Plus</button>
+      </div>
       <p class="plus-paywall-legal-links">
         <button type="button" class="plus-paywall-legal-link" onclick="showPrivacyPolicy()" data-i18n="privacyPolicyLink">Privacy Policy</button>
         <span aria-hidden="true">·</span>
@@ -222,17 +252,17 @@
 <div id="aiSettingsOverlay" style="display:none" class="modal-overlay" onclick="if(event.target===this)closeAISettings()">
   <div class="modal-card ai-settings-card">
     <div class="modal-header">
-      <h2 data-i18n="aiProviderTitle">AI Provider</h2>
+      <h2 id="aiSettingsHeading" data-i18n="aiSettingsTitle">AI settings</h2>
       <button class="modal-close" onclick="closeAISettings()">&times;</button>
     </div>
     <div class="modal-body">
       <div class="settings-section" id="plusStatusSection">
         <div class="settings-label" data-i18n="plusStatusTitle">Your Parlance Plus</div>
-        <p class="settings-hint" id="plusStatusLead" data-i18n="plusStatusLeadLocked">Parlance Plus unlocks domain guides and unlimited cloud coaching.</p>
+        <p class="settings-hint" id="plusStatusLead" data-i18n="plusStatusLeadLocked">Parlance Plus unlocks unlimited feedback and the domain guides.</p>
         <button type="button" class="plus-status-toggle" id="plusStatusToggle" onclick="togglePlusStatusDetails()" data-i18n="plusStatusSeeFeatures">See what's included</button>
         <div id="plusStatusDetails" hidden>
           <ul class="plus-status-list" id="plusStatusList">
-            <li><span class="plus-status-mark" data-plus-mark></span><span data-i18n="plusBenefitUnlimited">Unlimited cloud AI coaching — no monthly cap</span></li>
+            <li><span class="plus-status-mark" data-plus-mark></span><span data-i18n="plusBenefitUnlimited">Unlimited Coach feedback — no analysis cap</span></li>
             <li><span class="plus-status-mark" data-plus-mark></span><span data-i18n="plusBenefitMedical">Medical interpreting guide — clinical vocabulary, register, and ethics</span></li>
             <li><span class="plus-status-mark" data-plus-mark></span><span data-i18n="plusBenefitLegal">Legal interpreting guide — court roles, rights language, and protocol</span></li>
             <li><span class="plus-status-mark" data-plus-mark></span><span data-i18n="plusBenefitRag">Coach adds medical or legal context when a journal sentence uses those terms</span></li>
@@ -240,6 +270,7 @@
         </div>
         <div class="plus-status-actions" id="plusStatusActions" style="display:none">
           <button type="button" class="auth-btn" onclick="triggerPlusPurchase()" data-i18n="plusPaywallSubscribe">Subscribe to Parlance Plus</button>
+          <button type="button" class="auth-btn auth-btn-outline" id="plusStatusPackBtn" onclick="triggerFeedbackPackPurchase()">15 more analyses — $2.99</button>
           <button type="button" class="auth-btn auth-btn-outline" onclick="triggerPlusRestore()" data-i18n="plusPaywallRestore">Restore purchase</button>
         </div>
       </div>
@@ -273,13 +304,36 @@
         <label class="settings-label" for="modalModelSelect" data-i18n="model">Model</label>
         <select id="modalModelSelect" class="settings-select"></select>
       </div>
+      <div class="settings-section" id="coachModelSection" hidden>
+        <div class="settings-label" data-i18n="model">Model</div>
+        <div class="settings-group-card">
+          <div class="settings-model-row">
+            <span class="settings-model-icon" aria-hidden="true">🧠</span>
+            <div>
+              <div class="settings-model-title" data-i18n="coachFollowsJournal">Follows journal language</div>
+              <div class="settings-model-langs" id="coachLanguageSummary">Spanish · French · English</div>
+            </div>
+          </div>
+        </div>
+        <p class="settings-hint" data-i18n="coachModelFooter">Parlance Coach runs on this phone. English, Spanish, and French switch with the language you write in. First analysis may take a minute while the model loads.</p>
+      </div>
+      <div class="settings-section" id="coachAboutSection" hidden>
+        <div class="settings-label" data-i18n="settingsAbout">About</div>
+        <div class="settings-group-card">
+          <div class="settings-about-row">
+            <span data-i18n="currentProvider">Current provider</span>
+            <span class="settings-about-value" data-i18n="parlanceCoachName">Parlance Coach</span>
+          </div>
+        </div>
+        <p class="settings-hint" data-i18n="coachAboutFooter">Parlance uses your sentences to provide grammar feedback. Your journal entries are stored only on this device.</p>
+      </div>
       <div class="settings-warning" id="corsWarning" style="display:none" data-i18n="corsWarning">
         This provider may block direct browser requests due to CORS restrictions. If analysis fails, try Groq, OpenAI, or Gemini — they all support browser access.
       </div>
     </div>
     <div class="modal-footer">
       <button class="settings-privacy-link" onclick="closeAISettings();showPrivacyPolicy()" data-i18n="privacy">Privacy Policy</button>
-      <button class="btn btn-primary settings-save-btn" onclick="saveAISettingsFromModal()" data-i18n="saveAndClose">Save &amp; Close</button>
+      <button class="btn btn-primary settings-save-btn" id="aiSettingsSaveBtn" onclick="saveAISettingsFromModal()" data-i18n="saveAndClose">Save &amp; Close</button>
     </div>
   </div>
 </div>
@@ -311,6 +365,6 @@
 <script src="coach-rules-en.js?v=14"></script>
 <script src="coach-rules-engine.js?v=14"></script>
 <script src="feedback-sanitize.js?v=15"></script>
-<script src="journal.js?v=25"></script>
+<script src="journal.js?v=27"></script>
 </body>
 </html>

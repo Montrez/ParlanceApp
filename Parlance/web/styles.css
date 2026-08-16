@@ -28,6 +28,7 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 /* ── ACCESSIBILITY PRIMITIVES ──
@@ -203,6 +204,33 @@ header {
 .lang-control-write .lang-control-label {
   color: var(--header-write-label);
 }
+.lang-chip-row {
+  display: none;
+  align-items: center;
+  gap: 0.3rem;
+}
+.lang-chip {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  line-height: 1;
+  padding: 0.35rem 0.55rem;
+  min-height: 36px;
+  min-width: 2.4rem;
+  border: 1px solid var(--header-border);
+  border-radius: 4px;
+  background: var(--header-select-bg);
+  color: var(--header-text);
+  cursor: pointer;
+}
+.lang-chip.selected {
+  border-color: var(--header-accent);
+  color: var(--header-accent);
+}
+.lang-control-write .lang-chip.selected {
+  border-color: var(--header-write-border);
+  color: var(--header-write-label);
+}
 
 /* ── THEME TOGGLE ── */
 .theme-toggle {
@@ -287,12 +315,56 @@ header {
   font-style: italic;
 }
 .journal-title-input::placeholder { color: var(--muted); }
+.journal-header-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.2rem;
+  flex: none;
+}
 .sentence-count {
   font-family: 'DM Mono', monospace;
   font-size: 0.68rem;
   color: var(--muted);
   white-space: nowrap;
   margin-left: 1rem;
+}
+.feedback-meter {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+  white-space: nowrap;
+  margin-left: 1rem;
+}
+.feedback-meter.is-empty {
+  color: var(--accent);
+}
+.feedback-debug {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.3rem;
+  max-width: 16rem;
+}
+.feedback-debug-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.feedback-debug-btn {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.02em;
+  padding: 0.2rem 0.4rem;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--paper2, transparent);
+  color: var(--ink);
+  cursor: pointer;
 }
 
 /* ── SENTENCE LIST ── */
@@ -980,6 +1052,13 @@ header {
 /* Fill/type come from .btn .btn-primary / .btn-tertiary in markup. */
 .plus-paywall-subscribe { display: block; width: 100%; padding: 0.65rem 1rem; }
 .plus-paywall-subscribe[disabled] { opacity: 0.45; cursor: not-allowed; }
+.plus-paywall-pack { display: block; width: 100%; margin: 0.45rem 0 0; }
+.plus-paywall-pack[disabled] { opacity: 0.45; cursor: not-allowed; }
+.plus-paywall-debug {
+  justify-content: center;
+  max-width: none;
+  margin-top: 0.85rem;
+}
 .plus-paywall-restore,
 .plus-paywall-cancel { display: block; width: 100%; text-align: center; }
 .plus-paywall-legal-links {
@@ -1381,6 +1460,56 @@ body.guide-open .feedback-sheet-backdrop {
 /* ── AI SETTINGS MODAL ── */
 .ai-settings-card {
   max-width: 560px;
+}
+.ai-settings-card.is-coach-only {
+  max-width: 440px;
+}
+.settings-group-card {
+  background: var(--paper2);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.settings-model-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.85rem 0.9rem;
+}
+.settings-model-icon {
+  font-size: 1.15rem;
+  line-height: 1.2;
+  flex: none;
+}
+.settings-model-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.settings-model-langs {
+  margin-top: 0.2rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.settings-about-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 0.9rem;
+  font-size: 0.92rem;
+  color: var(--ink);
+}
+.settings-about-value {
+  color: var(--muted);
+  font-size: 0.86rem;
+  text-align: right;
+}
+.ai-settings-card.is-coach-only .plus-status-list {
+  background: var(--paper2);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 0.35rem 0.75rem;
 }
 
 .settings-section {
@@ -1868,9 +1997,10 @@ body.guide-open .feedback-sheet-backdrop {
     font-size: 0.62rem;
   }
   .header-select {
-    font-size: 0.8rem;
-    padding: 0.4rem 0.5rem;
-    width: 100%;
+    display: none;
+  }
+  .lang-chip-row {
+    display: flex;
   }
   .privacy-link {
     padding: 0.25rem 0.4rem;
@@ -1933,7 +2063,8 @@ body.guide-open .feedback-sheet-backdrop {
   .journal-header {
     gap: 0.65rem;
   }
-  .sentence-count {
+  .sentence-count,
+  .feedback-meter {
     margin-left: 0;
     font-size: 0.62rem;
   }

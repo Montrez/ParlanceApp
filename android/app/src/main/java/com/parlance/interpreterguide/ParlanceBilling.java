@@ -7,6 +7,7 @@ import androidx.annotation.Nullable;
 
 import com.android.billingclient.api.AcknowledgePurchaseParams;
 import com.android.billingclient.api.BillingClient;
+import com.android.billingclient.api.ConsumeParams;
 import com.android.billingclient.api.BillingClientStateListener;
 import com.android.billingclient.api.BillingFlowParams;
 import com.android.billingclient.api.BillingResult;
@@ -33,6 +34,7 @@ public class ParlanceBilling implements PurchasesUpdatedListener {
     // Play product IDs cannot use the iOS reverse-DNS form.
     static final String PLUS_MONTHLY = "plusmonthly";
     static final String CALL_PACK_100 = "callpack100";
+    static final String FEEDBACK_PACK_15 = "feedbackpack15";
 
     interface Listener {
         void onBillingChanged();
@@ -52,6 +54,8 @@ public class ParlanceBilling implements PurchasesUpdatedListener {
     private volatile boolean plusActive;
     private volatile boolean plusPurchasable;
     private volatile String plusPrice;
+    private volatile boolean packPurchasable;
+    private volatile String packPrice;
     private volatile boolean ready;
 
     public ParlanceBilling(Activity activity) {
@@ -94,6 +98,19 @@ public class ParlanceBilling implements PurchasesUpdatedListener {
         launch(CALL_PACK_100, BillingClient.ProductType.INAPP, callback);
     }
 
+    public boolean isFeedbackPackPurchasable() {
+        return packPurchasable;
+    }
+
+    @Nullable
+    public String feedbackPackDisplayPrice() {
+        return packPrice;
+    }
+
+    public void purchaseFeedbackPack(PurchaseCallback callback) {
+        launch(FEEDBACK_PACK_15, BillingClient.ProductType.INAPP, callback);
+    }
+
     public void restorePlus(PurchaseCallback callback) {
         queryPurchases(() -> {
             if (callback != null) {
@@ -128,30 +145,39 @@ public class ParlanceBilling implements PurchasesUpdatedListener {
     }
 
     private void queryProducts() {
-        // Only query products that exist in Play Console. A missing INAPP id
-        // in the same request can empty the whole catalog, which hides Plus.
+        // Query SUBS and INAPP separately. A missing id in a mixed request
+        // can empty the whole catalog, which hides Plus.
+        queryProductType(BillingClient.ProductType.SUBS, PLUS_MONTHLY, () ->
+                queryProductType(BillingClient.ProductType.INAPP, FEEDBACK_PACK_15, this::notifyChanged));
+    }
+
+    private void queryProductType(String type, String productId, Runnable done) {
         List<QueryProductDetailsParams.Product> list = new ArrayList<>();
         list.add(QueryProductDetailsParams.Product.newBuilder()
-                .setProductId(PLUS_MONTHLY)
-                .setProductType(BillingClient.ProductType.SUBS)
+                .setProductId(productId)
+                .setProductType(type)
                 .build());
         client.queryProductDetailsAsync(
                 QueryProductDetailsParams.newBuilder().setProductList(list).build(),
                 (result, details) -> {
                     if (result.getResponseCode() != BillingClient.BillingResponseCode.OK) {
-                        Log.w(TAG, "Product query failed: " + result.getDebugMessage());
-                        plusPurchasable = false;
-                        notifyChanged();
-                        return;
+                        Log.w(TAG, type + " query failed: " + result.getDebugMessage());
+                    } else {
+                        products.removeIf(item -> productId.equals(item.getProductId()));
+                        products.addAll(details);
                     }
-                    products.clear();
-                    products.addAll(details);
-                    plusPurchasable = findProduct(PLUS_MONTHLY) != null;
-                    plusPrice = formattedPrice(findProduct(PLUS_MONTHLY));
-                    if (!plusPurchasable) {
-                        Log.w(TAG, "plusmonthly not in Play catalog. details=" + details.size());
+                    if (BillingClient.ProductType.SUBS.equals(type)) {
+                        plusPurchasable = findProduct(PLUS_MONTHLY) != null;
+                        plusPrice = formattedPrice(findProduct(PLUS_MONTHLY));
+                        if (!plusPurchasable) {
+                            Log.w(TAG, "plusmonthly not in Play catalog.");
+                        }
+                    } else {
+                        packPurchasable = findProduct(FEEDBACK_PACK_15) != null;
+                        packPrice = formattedPrice(findProduct(FEEDBACK_PACK_15));
                     }
-                    notifyChanged();
+                    if (done != null) done.run();
+                    else notifyChanged();
                 });
     }
 
@@ -238,9 +264,14 @@ public class ParlanceBilling implements PurchasesUpdatedListener {
         String transactionId = null;
         for (Purchase purchase : purchases) {
             if (purchase.getPurchaseState() != Purchase.PurchaseState.PURCHASED) continue;
-            acknowledge(purchase);
             if (purchase.getProducts().contains(PLUS_MONTHLY)) {
                 plusActive = true;
+                acknowledge(purchase);
+            } else if (purchase.getProducts().contains(FEEDBACK_PACK_15)
+                    || purchase.getProducts().contains(CALL_PACK_100)) {
+                consume(purchase);
+            } else {
+                acknowledge(purchase);
             }
             if (wanted == null || purchase.getProducts().contains(wanted)) {
                 transactionId = purchase.getOrderId();
@@ -251,6 +282,18 @@ public class ParlanceBilling implements PurchasesUpdatedListener {
         }
         notifyChanged();
         if (callback != null) callback.onResult(transactionId, null);
+    }
+
+    private void consume(Purchase purchase) {
+        client.consumeAsync(
+                ConsumeParams.newBuilder()
+                        .setPurchaseToken(purchase.getPurchaseToken())
+                        .build(),
+                (result, token) -> {
+                    if (result.getResponseCode() != BillingClient.BillingResponseCode.OK) {
+                        Log.w(TAG, "Consume failed: " + result.getDebugMessage());
+                    }
+                });
     }
 
     private void acknowledge(Purchase purchase) {

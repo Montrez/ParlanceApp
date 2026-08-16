@@ -79,8 +79,13 @@ public class ParlanceBridge {
             config.put("parlanceCoachLanguages", coachLangs);
             config.put("isPlusActive", billing.isPlusActive());
             config.put("plusPurchaseAvailable", billing.isPlusPurchasable());
+            config.put("feedbackPackPurchaseAvailable", billing.isFeedbackPackPurchasable());
+            config.put("feedbackDebugTools", BuildConfig.DEBUG);
             if (billing.plusMonthlyDisplayPrice() != null) {
                 config.put("plusMonthlyPriceDisplay", billing.plusMonthlyDisplayPrice());
+            }
+            if (billing.feedbackPackDisplayPrice() != null) {
+                config.put("feedbackPackPriceDisplay", billing.feedbackPackDisplayPrice());
             }
         } catch (JSONException e) {
             Log.e(TAG, "Failed to build config", e);
@@ -149,6 +154,10 @@ public class ParlanceBridge {
                 break;
             case "purchaseCallPack":
                 billing.purchaseCallPack((transactionId, error) ->
+                        finishPurchase("window.__parlancePurchaseResult", requestId, transactionId, error));
+                break;
+            case "purchaseFeedbackPack":
+                billing.purchaseFeedbackPack((transactionId, error) ->
                         finishPurchase("window.__parlancePurchaseResult", requestId, transactionId, error));
                 break;
             case "purchasePlus":
@@ -259,11 +268,16 @@ public class ParlanceBridge {
 
     void publishBillingConfig() {
         String price = billing.plusMonthlyDisplayPrice();
+        String packPrice = billing.feedbackPackDisplayPrice();
         StringBuilder js = new StringBuilder("window.__parlanceUpdateConfig && window.__parlanceUpdateConfig({");
         js.append("isPlusActive:").append(billing.isPlusActive()).append(',');
-        js.append("plusPurchaseAvailable:").append(billing.isPlusPurchasable());
+        js.append("plusPurchaseAvailable:").append(billing.isPlusPurchasable()).append(',');
+        js.append("feedbackPackPurchaseAvailable:").append(billing.isFeedbackPackPurchasable());
         if (price != null) {
             js.append(",plusMonthlyPriceDisplay:").append(quote(price));
+        }
+        if (packPrice != null) {
+            js.append(",feedbackPackPriceDisplay:").append(quote(packPrice));
         }
         js.append("})");
         evaluateJs(js.toString());

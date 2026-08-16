@@ -50,6 +50,13 @@ struct ContentView: View {
         .onChange(of: storeKit.isPlusPurchasable) { _, available in
             Self.pushConfigPatch(["plusPurchaseAvailable": available], webView: ParlanceWebView.activeWebView)
         }
+        .onChange(of: storeKit.isFeedbackPackPurchasable) { _, available in
+            Self.pushConfigPatch(["feedbackPackPurchaseAvailable": available], webView: ParlanceWebView.activeWebView)
+        }
+        .onChange(of: storeKit.feedbackPackDisplayPrice) { _, price in
+            guard let price else { return }
+            Self.pushConfigPatch(["feedbackPackPriceDisplay": price], webView: ParlanceWebView.activeWebView)
+        }
     }
 
     private static func pushPlusStatus(_ active: Bool, webView: WKWebView?) {
@@ -229,6 +236,12 @@ struct ParlanceWebView: UIViewRepresentable {
         let langsJSON = coachLangs.map { "\"\($0)\"" }.joined(separator: ",")
         let isPlusActive = StoreKitManager.shared.isPlusActive
         let plusPurchasable = StoreKitManager.shared.isPlusPurchasable
+        let packPurchasable = StoreKitManager.shared.isFeedbackPackPurchasable
+        #if DEBUG
+        let feedbackDebug = true
+        #else
+        let feedbackDebug = false
+        #endif
         let plusPriceJSON: String
         if let price = StoreKitManager.shared.plusMonthlyDisplayPrice,
            let data = try? JSONSerialization.data(withJSONObject: [price]),
@@ -237,8 +250,16 @@ struct ParlanceWebView: UIViewRepresentable {
         } else {
             plusPriceJSON = "null"
         }
+        let packPriceJSON: String
+        if let price = StoreKitManager.shared.feedbackPackDisplayPrice,
+           let data = try? JSONSerialization.data(withJSONObject: [price]),
+           let json = String(data: data, encoding: .utf8) {
+            packPriceJSON = String(json.dropFirst().dropLast())
+        } else {
+            packPriceJSON = "null"
+        }
         return """
-        {"mode":"unified","platform":"ios","capabilities":{"nativeAuth":true,"inAppPurchase":true,"nativeSettings":true},"onDeviceAvailable":false,"groqAvailable":false,"coachOnly":true,"activeProvider":"parlance","parlanceCoachAvailable":\(coachAvailable),"parlanceCoachLanguages":[\(langsJSON)],"isPlusActive":\(isPlusActive),"plusMonthlyPriceDisplay":\(plusPriceJSON),"plusPurchaseAvailable":\(plusPurchasable)}
+        {"mode":"unified","platform":"ios","capabilities":{"nativeAuth":true,"inAppPurchase":true,"nativeSettings":false},"onDeviceAvailable":false,"groqAvailable":false,"coachOnly":true,"activeProvider":"parlance","parlanceCoachAvailable":\(coachAvailable),"parlanceCoachLanguages":[\(langsJSON)],"isPlusActive":\(isPlusActive),"plusMonthlyPriceDisplay":\(plusPriceJSON),"plusPurchaseAvailable":\(plusPurchasable),"feedbackPackPriceDisplay":\(packPriceJSON),"feedbackPackPurchaseAvailable":\(packPurchasable),"feedbackDebugTools":\(feedbackDebug)}
         """
     }
 
@@ -320,6 +341,8 @@ struct ParlanceWebView: UIViewRepresentable {
                 handleSignOut(body)
             } else if action == "purchaseCallPack" {
                 handlePurchaseCallPack(body)
+            } else if action == "purchaseFeedbackPack" {
+                handlePurchaseFeedbackPack(body)
             } else if action == "purchasePlus" {
                 handlePurchasePlus(body)
             } else if action == "restorePlus" {
@@ -581,6 +604,29 @@ struct ParlanceWebView: UIViewRepresentable {
             guard let requestId = body["requestId"] as? String else { return }
             Task { @MainActor in
                 let result = await StoreKitManager.shared.purchaseCallPack()
+                switch result {
+                case .success(let transactionId):
+                    let escaped = Self.jsonEscaped(transactionId)
+                    self.webView?.evaluateJavaScript(
+                        "window.__parlancePurchaseResult(\"\(requestId)\", {success:true,transactionId:\"\(escaped)\"}, null)"
+                    ) { _, _ in }
+                case .cancelled:
+                    self.webView?.evaluateJavaScript(
+                        "window.__parlancePurchaseResult(\"\(requestId)\", null, \"cancelled\")"
+                    ) { _, _ in }
+                case .failed(let msg):
+                    let escaped = Self.jsonEscaped(msg)
+                    self.webView?.evaluateJavaScript(
+                        "window.__parlancePurchaseResult(\"\(requestId)\", null, \"\(escaped)\")"
+                    ) { _, _ in }
+                }
+            }
+        }
+
+        private func handlePurchaseFeedbackPack(_ body: [String: Any]) {
+            guard let requestId = body["requestId"] as? String else { return }
+            Task { @MainActor in
+                let result = await StoreKitManager.shared.purchaseFeedbackPack()
                 switch result {
                 case .success(let transactionId):
                     let escaped = Self.jsonEscaped(transactionId)
