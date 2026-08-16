@@ -462,7 +462,8 @@ public class ParlanceSLMEngine {
         try {
             out.put("status", "Excellent");
             out.put("grammar_rule", "");
-            out.put("explanation", "");
+            out.put("explanation",
+                    "The wording looks usable. Coach could not finish a full note for this sentence.");
         } catch (JSONException ignored) {
             // keys above are valid
         }

@@ -328,6 +328,7 @@
   function tipIsGeneric(tip) {
     if (!tip || tip.trim().length < 15) return true;
     const low = tip.toLowerCase();
+    if (/grammar rule not identified/i.test(tip)) return true;
     if (_GENERIC_TIP_PHRASES.some((p) => low.includes(p))) return true;
     // Tips under 60 chars with no target-language example (no «» or "e.g.") are too thin
     if (tip.trim().length < 60 && !/[«»]/.test(tip) && !/e\.g\./i.test(tip)) return true;
@@ -365,6 +366,10 @@
       return isInformal
         ? 'Add «¿» at the start of every question. E.g. «**¿**Cómo estás, amigo?» (informal) or «**¿**Cómo está usted?» (formal).'
         : 'Add «¿» at the start of every question. E.g. «**¿**Cómo está usted hoy, señor?» — especially in formal interpreter settings.';
+    if (/stem-chang|boot.?verb|e→ie|o→ue/.test(rule))
+      return 'Stem-changing verbs change the vowel in most present forms: querer → **quiero**, poder → **puedo**. Nosotros often stays regular (queremos).';
+    if (/object pronoun|clitic/.test(rule))
+      return 'lo/la are direct objects; le is indirect. E.g. «**la** veo» (I see it/her) vs «**le** hablo» (I speak to him/her).';
     if (/leísmo|direct object|acusativo/.test(rule))
       return 'Use lo/la for direct objects, not le. E.g. «**lo** echo de menos» (him) or «**la** echo de menos» (her).';
     if (/por.*para|para.*por/.test(rule))
@@ -394,7 +399,7 @@
         return `With «y» chains, add sequencing: e.g. «${left} y después ${right}.» or use subordination: «${left} antes de ir a ${right}.»`;
       }
     }
-    if (grammarRule && grammarRule.length > 12)
+    if (grammarRule && grammarRule.length > 12 && !isMissingGrammarRule(grammarRule))
       return `${grammarRule.charAt(0).toUpperCase() + grammarRule.slice(1)}. Apply this consistently when interpreting for precision.`;
     return isInformal
       ? 'In professional interpreting, shift to usted. E.g. «¿**Cómo está usted** hoy?»'
@@ -528,12 +533,54 @@
     return ['es', 'fr', 'en'].includes(language) ? language : 'es';
   }
 
+  function isMissingGrammarRule(rule) {
+    const t = String(rule || '').trim();
+    if (!t || t.length < 4) return true;
+    return /grammar rule not identified/i.test(t);
+  }
+
+  function firstUsefulRagTopic(topics) {
+    if (!Array.isArray(topics)) return null;
+    for (const topic of topics) {
+      const label = String(topic || '').trim();
+      if (!label) continue;
+      if (/^level_/i.test(label)) continue;
+      if (label === 'medical' || label === 'legal') continue;
+      if (/^en_from_/i.test(label) || /^English ←/.test(label)) continue;
+      return label;
+    }
+    return null;
+  }
+
+  function defaultGrammarRule(lang) {
+    if (typeof ParlanceCoachRules !== 'undefined' && ParlanceCoachRules.loadRules) {
+      const def = ParlanceCoachRules.loadRules(lang)?.grammar_rule_default;
+      if (def) return def;
+    }
+    if (lang === 'fr') return 'French agreement, prepositions, mood, and clause structure';
+    if (lang === 'en') return 'English articles, prepositions, conditionals, and register';
+    return 'Spanish agreement, prepositions, and clause structure';
+  }
+
+  function fillMissingCoachCopy(out, lang) {
+    if (isMissingGrammarRule(out.grammar_rule)) {
+      out.grammar_rule = firstUsefulRagTopic(out._rag_topics) || defaultGrammarRule(lang);
+    }
+    if (!String(out.explanation || '').trim()) {
+      out.explanation = 'The wording looks usable. Coach could not finish a full note for this sentence. Use the reference topics when they appear.';
+    }
+    if (/grammar rule not identified/i.test(out.tip || '')) {
+      delete out.tip;
+    }
+  }
+
   /** Sanitize provider JSON — strip bad CEFR, fill confident levels, drop verbatim alts. */
   function sanitizeFeedbackResult(sentence, result, language) {
     if (!result || typeof result !== 'object') return result;
     const out = { ...result };
     normalizeFeedbackFields(out);
     const lang = resolveLanguageCode(language);
+    fillMissingCoachCopy(out, lang);
     if (sentence && (lang === 'es' || lang === 'fr' || lang === 'en')) {
       applyCoachRules(sentence, out, lang);
     }
@@ -563,12 +610,15 @@
     if (fragmentAltDetected && sentence) {
       out.tip = synthesizeTip(sentence, out.grammar_rule, lang, out.register);
     }
+    fillMissingCoachCopy(out, lang);
     return out;
   }
 
   const api = {
     sanitizeFeedbackResult,
     applyCoachRules,
+    isMissingGrammarRule,
+    fillMissingCoachCopy,
     coerceFeedbackText,
     normalizeFeedbackFields,
     assessedLevelPlausible,

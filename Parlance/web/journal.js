@@ -86,7 +86,7 @@ function altVersionLabels(assessedLevel) {
 }
 
 function analysisCacheHash(sentence, language) {
-  return btoa(unescape(encodeURIComponent(sentence + '|' + language + '|fbv14'))).slice(0, 40);
+  return btoa(unescape(encodeURIComponent(sentence + '|' + language + '|fbv15'))).slice(0, 40);
 }
 
 function sanitizeFeedbackResult(sentence, result, language = 'es') {
@@ -1056,7 +1056,7 @@ async function runCoachFallback(sentence, language, reason) {
   const ragMeta = buildRAGMeta(language, null, sentence, true);
   const raw = await callNativeParlanceSLM(sentence, language, ragMeta.context);
   const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-  const result = attachRAGMeta(normalizeResult(parsed, sentence, language), ragMeta.topics);
+  const result = normalizeResult(attachRAGMeta(parsed, ragMeta.topics), sentence, language);
   result._actualSource = AI_PROVIDERS.parlance.name;
 
   const toastKey = {
@@ -1119,7 +1119,42 @@ function buildRAGMeta(language, level, sentence, condensed = false) {
 }
 
 function attachRAGMeta(result, topics) {
+  if (!result) return result;
   if (topics?.length) result._rag_topics = topics;
+  return result;
+}
+
+function detectWrittenLanguage(sentence) {
+  const text = String(sentence || '');
+  const padded = ` ${text.toLowerCase()} `;
+  const count = (re) => (padded.match(re) || []).length;
+  const es = count(/\b(hola|hoy|quiero|estoy|está|están|también|porque|pero|muy|una|unos|unas|los|las|del|voy|vamos|cine|película|gracias|señor|señora|usted|qué|más|buenos|días)\b/g)
+    + (/[áéíóúñ¿¡]/i.test(text) ? 2 : 0);
+  const fr = count(/\b(bonjour|aujourd|je|suis|veux|aussi|parce|mais|une|les|des|au|cinéma|merci|vous|madame|avec|pour)\b/g)
+    + (/[àâçéèêëîïôùûüœæ]/i.test(text) ? 1 : 0);
+  const en = count(/\b(hello|today|want|going|the|and|with|movie|thanks|please|this|that|would|because)\b/g);
+  const ranked = [['es', es], ['fr', fr], ['en', en]].sort((a, b) => b[1] - a[1]);
+  if (ranked[0][1] < 2 || ranked[0][1] === ranked[1][1]) return null;
+  return ranked[0][0];
+}
+
+function resolveAnalysisLanguage(sentence, writeLang) {
+  const write = parlanceLanguageInfo(writeLang).code;
+  const detected = detectWrittenLanguage(sentence);
+  if (detected && detected !== write) {
+    return { language: detected, mismatch: { write, detected } };
+  }
+  return { language: write, mismatch: null };
+}
+
+function applyWriteMismatchWarning(result, mismatch) {
+  if (!result || !mismatch) return result;
+  if (!result._coach_warning) {
+    result._coach_warning = i18n.t('coachWriteMismatch', {
+      detected: parlanceLanguageInfo(mismatch.detected).name,
+      write: parlanceLanguageInfo(mismatch.write).name,
+    });
+  }
   return result;
 }
 
@@ -1331,7 +1366,7 @@ function normalizeResult(raw, sentence = '', language = 'es') {
   if (complexity) result.complexity_note = complexity;
   result.status      = (raw.status === 'Excellent' || raw.status === 'Needs Improvement')
     ? raw.status : 'Excellent';
-  result.grammar_rule = raw.grammar_rule || raw.grammarRule || 'Grammar rule not identified';
+  result.grammar_rule = raw.grammar_rule || raw.grammarRule || '';
   result.explanation  = raw.explanation  || '';
   if (raw.correction)       result.correction      = raw.correction;
   if (raw.register)         result.register        = raw.register;
@@ -1347,16 +1382,20 @@ function normalizeResult(raw, sentence = '', language = 'es') {
 // ── UNIFIED ANALYSIS ─────────────────────────────────────────────
 // Called by analyzeSentence() — routes to the selected provider
 async function analyzeWithAI(sentence, language, progressCallback) {
+  const resolved = resolveAnalysisLanguage(sentence, language);
+  language = resolved.language;
+  const mismatch = resolved.mismatch;
+
   // Check offline cache first
   try {
     const cacheKey = 'parlance_analysis_cache';
     const cache = JSON.parse(localStorage.getItem(cacheKey) || '{}');
     const hash = analysisCacheHash(sentence, language);
     if (cache[hash]) {
-      return {
+      return applyWriteMismatchWarning({
         ...sanitizeFeedbackResult(sentence, cache[hash].feedback, language),
         _cachedSource: (cache[hash].source || 'cached') + ' (cached)',
-      };
+      }, mismatch);
     }
   } catch (_) {}
 
@@ -1366,7 +1405,7 @@ async function analyzeWithAI(sentence, language, progressCallback) {
 
   if (shouldUseFirebaseCloud(providerId)) {
     if (!navigator.onLine && coachCanCoverLanguage(language)) {
-      return runCoachFallback(sentence, language, 'offline');
+      return applyWriteMismatchWarning(await runCoachFallback(sentence, language, 'offline'), mismatch);
     }
     try {
       const ragMeta = buildRAGMeta(language, null, sentence, false);
@@ -1379,7 +1418,10 @@ async function analyzeWithAI(sentence, language, progressCallback) {
         timeoutPromise,
       ]);
       if (ragMeta.topics.length) attachRAGMeta(result, ragMeta.topics);
-      result = sanitizeFeedbackResult(sentence, result, language);
+      result = applyWriteMismatchWarning(
+        sanitizeFeedbackResult(sentence, result, language),
+        mismatch
+      );
       try {
         const cacheKey = 'parlance_analysis_cache';
         const cache = JSON.parse(localStorage.getItem(cacheKey) || '{}');
@@ -1396,7 +1438,7 @@ async function analyzeWithAI(sentence, language, progressCallback) {
     } catch (err) {
       const reason = cloudFallbackReason(err);
       if (!reason || !coachCanCoverLanguage(language)) throw err;
-      return runCoachFallback(sentence, language, reason);
+      return applyWriteMismatchWarning(await runCoachFallback(sentence, language, reason), mismatch);
     }
   }
 
@@ -1406,7 +1448,7 @@ async function analyzeWithAI(sentence, language, progressCallback) {
       && !isFirebaseSignedIn()
       && !getProviderKey(providerId)
       && coachCanCoverLanguage(language)) {
-    return runCoachFallback(sentence, language, 'signedOut');
+    return applyWriteMismatchWarning(await runCoachFallback(sentence, language, 'signedOut'), mismatch);
   }
 
   const ragMeta     = buildRAGMeta(language, null, sentence, providerId === 'parlance');
@@ -1437,7 +1479,11 @@ async function analyzeWithAI(sentence, language, progressCallback) {
         } catch (_) {
           nativeParsed = parseAIContent(String(nativeRaw || ''));
         }
-        return attachRAGMeta(normalizeResult(nativeParsed, sentence, language), ragMeta.topics);
+        return normalizeResult(
+          attachRAGMeta(nativeParsed, ragMeta.topics),
+          sentence,
+          language
+        );
       }
       rawContent = await callParlanceSLM(sentence, language, ragContext);
 
@@ -1481,9 +1527,11 @@ async function analyzeWithAI(sentence, language, progressCallback) {
   let result = (typeof analysisResult === 'object' && analysisResult?.status)
     ? sanitizeFeedbackResult(sentence, analysisResult, language)
     : normalizeResult(parseAIContent(analysisResult), sentence, language);
-  if (ragMeta.topics.length && !result._rag_topics) {
-    attachRAGMeta(result, ragMeta.topics);
-  }
+  if (ragMeta.topics.length) attachRAGMeta(result, ragMeta.topics);
+  result = applyWriteMismatchWarning(
+    sanitizeFeedbackResult(sentence, result, language),
+    mismatch
+  );
 
   // Cache the analysis result in localStorage
   try {
@@ -2669,7 +2717,12 @@ async function analyzeSentence(id) {
       } else {
         source = AI_PROVIDERS[providerId]?.name || providerId;
       }
-      units.push({ text: part, feedback: result, analysisSource: source });
+      units.push({
+        text: part,
+        feedback: result,
+        analysisSource: source,
+        language: resolveAnalysisLanguage(part, state.currentLanguage).language,
+      });
     }
     sentence.feedbackUnits = units;
     sentence.feedback = units[0].feedback;
@@ -2848,7 +2901,10 @@ function showFeedback(id) {
 }
 
 function buildFeedbackCard(unit, refLabel) {
-  const fb          = unit.feedback;
+  const rawFb = unit.feedback || {};
+  const fb = unit.text
+    ? sanitizeFeedbackResult(unit.text, { ...rawFb }, unit.language || state.currentLanguage)
+    : rawFb;
   const isExcellent = fb.status === 'Excellent';
   const statusLabel = isExcellent ? 'Excellent' : 'Needs Work';
   const statusClass = isExcellent ? 'score-excellent' : 'score-needs-work';

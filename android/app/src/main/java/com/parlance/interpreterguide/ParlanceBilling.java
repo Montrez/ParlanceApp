@@ -128,26 +128,29 @@ public class ParlanceBilling implements PurchasesUpdatedListener {
     }
 
     private void queryProducts() {
+        // Only query products that exist in Play Console. A missing INAPP id
+        // in the same request can empty the whole catalog, which hides Plus.
         List<QueryProductDetailsParams.Product> list = new ArrayList<>();
         list.add(QueryProductDetailsParams.Product.newBuilder()
                 .setProductId(PLUS_MONTHLY)
                 .setProductType(BillingClient.ProductType.SUBS)
-                .build());
-        list.add(QueryProductDetailsParams.Product.newBuilder()
-                .setProductId(CALL_PACK_100)
-                .setProductType(BillingClient.ProductType.INAPP)
                 .build());
         client.queryProductDetailsAsync(
                 QueryProductDetailsParams.newBuilder().setProductList(list).build(),
                 (result, details) -> {
                     if (result.getResponseCode() != BillingClient.BillingResponseCode.OK) {
                         Log.w(TAG, "Product query failed: " + result.getDebugMessage());
+                        plusPurchasable = false;
+                        notifyChanged();
                         return;
                     }
                     products.clear();
                     products.addAll(details);
                     plusPurchasable = findProduct(PLUS_MONTHLY) != null;
                     plusPrice = formattedPrice(findProduct(PLUS_MONTHLY));
+                    if (!plusPurchasable) {
+                        Log.w(TAG, "plusmonthly not in Play catalog. details=" + details.size());
+                    }
                     notifyChanged();
                 });
     }
@@ -275,6 +278,11 @@ public class ParlanceBilling implements PurchasesUpdatedListener {
     private static String offerToken(ProductDetails details) {
         List<ProductDetails.SubscriptionOfferDetails> offers = details.getSubscriptionOfferDetails();
         if (offers == null || offers.isEmpty()) return null;
+        for (ProductDetails.SubscriptionOfferDetails offer : offers) {
+            if ("plus-monthly".equals(offer.getBasePlanId())) {
+                return offer.getOfferToken();
+            }
+        }
         return offers.get(0).getOfferToken();
     }
 
@@ -284,8 +292,15 @@ public class ParlanceBilling implements PurchasesUpdatedListener {
         if (BillingClient.ProductType.SUBS.equals(details.getProductType())) {
             List<ProductDetails.SubscriptionOfferDetails> offers = details.getSubscriptionOfferDetails();
             if (offers == null || offers.isEmpty()) return null;
+            ProductDetails.SubscriptionOfferDetails chosen = offers.get(0);
+            for (ProductDetails.SubscriptionOfferDetails offer : offers) {
+                if ("plus-monthly".equals(offer.getBasePlanId())) {
+                    chosen = offer;
+                    break;
+                }
+            }
             List<ProductDetails.PricingPhase> phases =
-                    offers.get(0).getPricingPhases().getPricingPhaseList();
+                    chosen.getPricingPhases().getPricingPhaseList();
             if (phases.isEmpty()) return null;
             return phases.get(0).getFormattedPrice();
         }
