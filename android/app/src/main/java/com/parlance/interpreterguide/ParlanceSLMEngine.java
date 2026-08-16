@@ -27,9 +27,11 @@ import net.ladenthin.llama.parameters.InferenceParameters;
 import net.ladenthin.llama.parameters.ModelParameters;
 
 /**
- * Android counterpart to {@code ParlanceSLMEngine.swift}. Same prompts, same
- * JSON shape, same languages. Weights are GGUF exports of the HuggingFace
- * merges iOS already ships as MLX.
+ * Android counterpart to {@code ParlanceSLMEngine.swift}. Prompts match
+ * {@code ParlanceSLMFeedbackValidator} on iOS. JSON shape and languages
+ * are the same. Weights are GGUF exports of the HuggingFace merges iOS
+ * already ships as MLX. Thin or truncated model JSON is repaired here,
+ * then the shared web sanitizer writes sentence-citing copy.
  */
 public class ParlanceSLMEngine {
 
@@ -372,39 +374,72 @@ public class ParlanceSLMEngine {
         return "Analyze this Spanish sentence: \"" + sentence + "\"";
     }
 
+    private static final String CEFR_COMPLEXITY_PROMPT =
+            "CEFR & COMPLEXITY:\n"
+                    + "- Do NOT set assessed_level unless highly confident from specific structures in this sentence. When uncertain, omit it and describe complexity in complexity_note without a CEFR label.\n"
+                    + "- complexity_note: 1–2 English sentences on vocabulary, syntax, subordination, and register. Always include when possible, even without assessed_level.\n"
+                    + "- next_level_alt / target_level_alt: only when assessed_level is set; otherwise use next_level_alt as a stronger rewrite without a level label.\n";
+
     private static String systemPrompt(String language, String ragContext) {
-        String dialect;
         String langName;
-        if ("fr".equals(language)) {
-            dialect = "France and Canadian (Québec) dialect variation";
-            langName = "French";
-        } else if ("en".equals(language)) {
-            dialect = "US, UK, and other English variety differences";
-            langName = "English";
-        } else {
-            dialect = "Latin American dialect variation";
-            langName = "Spanish";
-        }
         StringBuilder prompt = new StringBuilder();
-        prompt.append("You are a ").append(langName)
-                .append(" grammar coach for interpreter training, with expertise in ")
-                .append(dialect)
-                .append(". Do NOT assume the learner picked a CEFR level.\n\n")
-                .append("CRITICAL ACCURACY RULES:\n")
-                .append("- Do NOT invent grammatical errors. Only flag real, clear mistakes.\n")
-                .append("- Grammatically correct sentences are \"Excellent\" — but explanation must still cite specific structures in the learner's words (not generic praise).\n")
-                .append("- Only mark \"Needs Improvement\" when there is an actual grammar error — not a style preference.\n")
-                .append("- complexity_note must describe THIS sentence's structures — never guess CEFR from word count alone.\n")
-                .append("- next_level_alt MUST rewrite the sentence at a higher level — never copy the input verbatim.\n")
-                .append("- tip MUST include at least one complete example sentence in ")
-                .append(langName)
-                .append(" showing a stronger phrasing.\n")
-                .append("- ALL example sentences (correction, next_level_alt, target_level_alt) MUST be complete sentences in ")
-                .append(langName).append(".\n")
-                .append("- grammar_rule, explanation, register, and tip MUST be in English.\n");
-        if ("en".equals(language)) {
-            prompt.append("- Never flag valid English variety features as errors (UK/US spelling, Indian English, collective agreement).\n")
-                    .append("- Watch for L1 calques: articles, do-support, if + would in the if-clause, and subject-verb agreement.\n");
+        if ("fr".equals(language)) {
+            langName = "French";
+            prompt.append("You are a French grammar coach for interpreter training, with expertise in ")
+                    .append("France and Canadian (Québec) dialect variation. Do NOT assume the learner picked a CEFR level.\n\n")
+                    .append(CEFR_COMPLEXITY_PROMPT)
+                    .append("CRITICAL ACCURACY RULES:\n")
+                    .append("- Do NOT invent grammatical errors. Only flag real, clear mistakes.\n")
+                    .append("- Grammatically correct sentences are \"Excellent\" — but explanation must still cite specific structures in the learner's words (not generic praise).\n")
+                    .append("- Only mark \"Needs Improvement\" when there is an actual grammar error — not a style preference.\n")
+                    .append("- complexity_note must describe THIS sentence's structures — never guess CEFR from word count alone.\n")
+                    .append("- next_level_alt MUST rewrite the sentence at a higher level — never copy the input verbatim.\n")
+                    .append("- tip MUST include at least one complete example sentence in French showing a stronger phrasing.\n")
+                    .append("- Never flag valid Canadian French (Québec) features as errors unless inappropriate for context.\n")
+                    .append("- With formal address (madame/monsieur + « vous »), do NOT « correct » to informal « tu » without context.\n")
+                    .append("- Si-clause: Si + imparfait → conditionnel (Si j'avais…, je ferais…) — NOT *Si j'aurais* in the protasis.\n")
+                    .append("- ALL example sentences (correction, next_level_alt, target_level_alt) MUST be complete sentences in French.\n")
+                    .append("- grammar_rule, explanation, register, and tip MUST be in English.\n")
+                    .append("- For next_level_alt: same idea one CEFR level above assessed_level.\n")
+                    .append("- For target_level_alt: same idea two levels above assessed_level (null at C1/C2).\n");
+        } else if ("en".equals(language)) {
+            langName = "English";
+            prompt.append("You are an English grammar coach for interpreter training. Learners are often ")
+                    .append("Spanish or French speakers writing English. Do NOT assume the learner picked a CEFR level.\n\n")
+                    .append(CEFR_COMPLEXITY_PROMPT)
+                    .append("CRITICAL ACCURACY RULES:\n")
+                    .append("- Do NOT invent grammatical errors. Only flag real, clear mistakes.\n")
+                    .append("- Grammatically correct sentences are \"Excellent\" — but explanation must still cite specific structures in the learner's words (not generic praise).\n")
+                    .append("- Only mark \"Needs Improvement\" when there is an actual grammar error — not a style preference.\n")
+                    .append("- complexity_note must describe THIS sentence's structures — never guess CEFR from word count alone.\n")
+                    .append("- next_level_alt MUST rewrite the sentence at a higher level — never copy the input verbatim.\n")
+                    .append("- tip MUST include at least one complete example sentence in English showing a stronger phrasing.\n")
+                    .append("- Never flag valid English variety features as errors (UK/US/Indian/Caribbean/South African English, spelling colour/color, collective agreement).\n")
+                    .append("- Do not \"correct\" a missing question mark or comma into a grammar error unless the sentence is otherwise unreadable.\n")
+                    .append("- Watch for L1 calques: articles (a/an/the), do-support, if + would in the if-clause, prepositions, and subject-verb agreement.\n")
+                    .append("- ALL example sentences (correction, next_level_alt, target_level_alt) MUST be complete sentences in English.\n")
+                    .append("- grammar_rule, explanation, register, and tip MUST be in English.\n")
+                    .append("- For next_level_alt: same idea one CEFR level above assessed_level.\n")
+                    .append("- For target_level_alt: same idea two levels above assessed_level (null at C1/C2).\n");
+        } else {
+            langName = "Spanish";
+            prompt.append("You are a Spanish grammar coach for interpreter training, with expertise in ")
+                    .append("Latin American dialect variation. Do NOT assume the learner picked a CEFR level.\n\n")
+                    .append(CEFR_COMPLEXITY_PROMPT)
+                    .append("CRITICAL ACCURACY RULES:\n")
+                    .append("- Do NOT invent grammatical errors. Only flag real, clear mistakes.\n")
+                    .append("- Grammatically correct sentences are \"Excellent\" — but explanation must still cite specific structures in the learner's words (not generic praise).\n")
+                    .append("- Only mark \"Needs Improvement\" when there is an actual grammar error — not a style preference.\n")
+                    .append("- complexity_note must describe THIS sentence's structures — never guess CEFR from word count alone.\n")
+                    .append("- next_level_alt MUST rewrite the sentence at a higher level — never copy the input verbatim.\n")
+                    .append("- tip MUST include at least one complete example sentence in Spanish showing a stronger phrasing.\n")
+                    .append("- Never flag valid dialect features as errors (e.g. voseo in Rioplatense, ustedes for all plural).\n")
+                    .append("- With formal address (señor/señora + «está»), do NOT «correct» to informal «estás».\n")
+                    .append("- After «si» in hypothetical clauses, use imperfect subjunctive (tuviera), NOT conditional (tendría).\n")
+                    .append("- ALL example sentences (correction, next_level_alt, target_level_alt) MUST be complete sentences in Spanish.\n")
+                    .append("- grammar_rule, explanation, register, and tip MUST be in English.\n")
+                    .append("- For next_level_alt: same idea one CEFR level above assessed_level.\n")
+                    .append("- For target_level_alt: same idea two levels above assessed_level (null at C1/C2).\n");
         }
         if (!ragContext.isEmpty()) {
             prompt.append("\nREFERENCE KNOWLEDGE (use these rules to verify accuracy — do not invent errors outside them):\n")
@@ -413,15 +448,25 @@ public class ParlanceSLMEngine {
         prompt.append("\nRespond with ONLY a valid JSON object (no markdown fences):\n")
                 .append("{\n")
                 .append("  \"assessed_level\": \"A1\" | \"A2\" | \"B1\" | \"B2\" | \"C1\" | \"C2\" | null,\n")
-                .append("  \"complexity_note\": \"1–2 English sentences on sentence complexity\",\n")
+                .append("  \"complexity_note\": \"1–2 English sentences on sentence complexity (vocabulary, syntax, subordination, register)\",\n")
                 .append("  \"status\": \"Excellent\" or \"Needs Improvement\",\n")
-                .append("  \"grammar_rule\": \"The specific grammar rule\",\n")
-                .append("  \"explanation\": \"WHY the sentence is correct or incorrect\",\n")
-                .append("  \"correction\": null or \"Corrected sentence\",\n")
-                .append("  \"register\": \"Formal or informal and whether appropriate\",\n")
-                .append("  \"next_level_alt\": \"Same idea one CEFR level above\",\n")
-                .append("  \"target_level_alt\": \"Same idea two levels above, or null\",\n")
-                .append("  \"tip\": \"Practical tip with a complete example sentence\"\n")
+                .append("  \"grammar_rule\": \"The specific grammar rule — always name the rule, even when correct\",\n")
+                .append("  \"explanation\": \"WHY the sentence is correct or incorrect — cite the learner's words\",\n")
+                .append("  \"correction\": null or \"Corrected sentence in ").append(langName)
+                .append(" (required when Needs Improvement)\",\n");
+        if ("fr".equals(language)) {
+            prompt.append("  \"register\": \"Formal (vous) or informal (tu) and whether appropriate for interpreter settings\",\n");
+        } else if ("en".equals(language)) {
+            prompt.append("  \"register\": \"Formal or informal and whether appropriate for interpreter settings\",\n");
+        } else {
+            prompt.append("  \"register\": \"Formal (usted) or informal (tú/vos) and whether appropriate for interpreter settings\",\n");
+        }
+        prompt.append("  \"next_level_alt\": \"Same idea rephrased one CEFR level above assessed_level, in ")
+                .append(langName).append("\",\n")
+                .append("  \"target_level_alt\": \"Same idea two levels above assessed_level, in ")
+                .append(langName).append(" (null at C1/C2 if N/A)\",\n")
+                .append("  \"tip\": \"Practical tip with a complete ").append(langName)
+                .append(" example sentence showing stronger phrasing\"\n")
                 .append("}\n");
         return prompt.toString();
     }
@@ -457,13 +502,17 @@ public class ParlanceSLMEngine {
         }
     }
 
+    /**
+     * Empty fields so the shared web sanitizer can write sentence-citing copy.
+     * Do not inject a generic "could not finish a full note" explanation here.
+     */
     static JSONObject fallbackFeedback() {
         JSONObject out = new JSONObject();
         try {
             out.put("status", "Excellent");
             out.put("grammar_rule", "");
-            out.put("explanation",
-                    "The wording looks usable. Coach could not finish a full note for this sentence.");
+            out.put("explanation", "");
+            out.put("_coach_incomplete", true);
         } catch (JSONException ignored) {
             // keys above are valid
         }
