@@ -1,5 +1,12 @@
 # Parlance Firebase
 
-Auth and Firestore config for leftover sign-in on the web. Cloud Functions are gone. Phones do not need an account.
+Website only. Signed-in GitHub Pages users call `analyzeText` so provider keys stay in Secret Manager. The iPhone and Android apps do not use these functions.
 
-See `GoogleService-Info.plist.example` and `docs/firebase-config.example.js` if you still need client config.
+```bash
+cd firebase/functions
+npm install
+cd ..
+firebase deploy --only functions
+```
+
+Callables: `analyzeText`, `getUsage`, `deleteAccountData`.

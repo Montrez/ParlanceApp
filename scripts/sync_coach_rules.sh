@@ -32,6 +32,7 @@ function syncRules(lang, globalName) {
   for (const rel of [
     \`Parlance/web/coach-rules-\${lang}.js\`,
     \`docs/coach-rules-\${lang}.js\`,
+    \`firebase/functions/lib/coach-rules-\${lang}.js\`,
   ]) {
     const p = path.join('$ROOT', rel);
     fs.writeFileSync(p, out);

@@ -169,6 +169,7 @@
   "loadSentenceToEditor": "Cargar esta oración en el editor",
   "plusUnlimited": "Feedback ilimitado — Parlance Plus",
   "feedbackMeterFreeLeft": "{n} de {limit} gratis",
+  "feedbackMeterFreeAndPack": "{n} de {limit} gratis · {pack} extra",
   "feedbackMeterPackLeft": "{n} análisis restantes",
   "feedbackMeterNone": "0 restantes",
   "feedbackMeterUnlimited": "Ilimitado",
