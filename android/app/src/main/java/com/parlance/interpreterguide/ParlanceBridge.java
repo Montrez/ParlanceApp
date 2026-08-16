@@ -80,7 +80,9 @@ public class ParlanceBridge {
             config.put("isPlusActive", billing.isPlusActive());
             config.put("plusPurchaseAvailable", billing.isPlusPurchasable());
             config.put("feedbackPackPurchaseAvailable", billing.isFeedbackPackPurchasable());
-            config.put("feedbackDebugTools", BuildConfig.DEBUG);
+            config.put("feedbackDebugTools",
+                    (activity.getApplicationInfo().flags
+                            & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0);
             if (billing.plusMonthlyDisplayPrice() != null) {
                 config.put("plusMonthlyPriceDisplay", billing.plusMonthlyDisplayPrice());
             }
