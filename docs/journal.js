@@ -2799,8 +2799,10 @@ function updateOnlineStatus(online) {
 }
 
 // ── PRIVACY POLICY ────────────────────────────────────────────────
-// Body content comes from privacy.html (canonical English). Modal title
-// stays i18n'd; full policy translations deferred with Swift i18n.
+// Canonical English source: privacy.html (mirrored to docs/ + PrivacyPolicyView).
+// On iOS, WKWebView fetch('privacy.html') from a file:// bundle often fails —
+// prefer the native PrivacyPolicyView. Elsewhere open the GitHub Pages copy.
+const PRIVACY_POLICY_URL = 'https://montrez.github.io/ParlanceApp/privacy.html';
 let _privacyBodyPromise = null;
 
 function loadPrivacyBody() {
@@ -2822,8 +2824,30 @@ function loadPrivacyBody() {
   return _privacyBodyPromise;
 }
 
+function openHostedPrivacyPolicy() {
+  if (postToNative({ action: 'openURL', url: PRIVACY_POLICY_URL })) {
+    return true;
+  }
+  window.open(PRIVACY_POLICY_URL, '_blank', 'noopener');
+  return true;
+}
+
 function showPrivacyPolicy() {
+  const cfg = window.__PARLANCE_CONFIG__ || {};
+  // iOS: native sheet already embeds the full policy (PrivacyPolicyView.swift).
+  if (cfg.platform === 'ios' && postToNative('showPrivacyPolicy')) {
+    return;
+  }
+  // Android / other native: open the hosted policy (no native sheet yet).
+  if (isNativeParlanceApp() && openHostedPrivacyPolicy()) {
+    return;
+  }
+
   const overlay = document.getElementById('privacyOverlay');
+  if (!overlay) {
+    openHostedPrivacyPolicy();
+    return;
+  }
   const header = overlay.querySelector('.modal-header h2');
   if (header) header.textContent = i18n.t('privacyTitle');
 
@@ -2841,7 +2865,9 @@ function showPrivacyPolicy() {
       body.dataset.loaded = '1';
     })
     .catch(() => {
-      body.innerHTML = '<p>' + i18n.t('privacyLoadError') + '</p>';
+      // Last resort for Safari/web: jump to the hosted page instead of a dead modal.
+      overlay.style.display = 'none';
+      openHostedPrivacyPolicy();
     });
 }
 
