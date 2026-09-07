@@ -1014,6 +1014,46 @@ header {
   flex-direction: column;
   gap: 0.45rem;
 }
+.plus-status-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.15rem;
+  color: var(--ink);
+  margin: 0.35rem 0 0;
+}
+.plus-status-length,
+.plus-paywall-length {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+  margin: 0 0 0.25rem;
+}
+.plus-status-price {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem;
+  color: var(--ink);
+  margin: 0 0 0.55rem;
+}
+.plus-status-terms {
+  font-size: 0.7rem;
+  line-height: 1.45;
+  color: var(--muted);
+  margin: 0 0 0.65rem;
+}
+.plus-status-unavailable {
+  font-size: 0.78rem;
+  color: var(--red, #a33);
+  margin: 0 0 0.45rem;
+}
+.plus-status-legal {
+  margin: 0.35rem 0 0;
+}
+.settings-footer-legal {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
 .plus-benefit-check {
   flex: none;
   display: inline-flex;

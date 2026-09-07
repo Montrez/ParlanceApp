@@ -79,6 +79,17 @@ struct AISettingsView: View {
             }
 
             if !storeKit.isPlusActive {
+                Text("Parlance Plus")
+                    .font(.headline)
+                Text("Length: 1 month, auto-renewing")
+                    .font(.caption)
+                    .foregroundStyle(Color.secondary)
+                Text(plusPriceLabel)
+                    .font(.title3.weight(.semibold))
+                Text(plusTermsCopy)
+                    .font(.caption2)
+                    .foregroundStyle(Color.secondary)
+
                 Button("Subscribe to Parlance Plus") {
                     plusBusy = true
                     Task {
@@ -96,10 +107,36 @@ struct AISettingsView: View {
                     }
                 }
                 .disabled(plusBusy)
+
+                HStack(spacing: 12) {
+                    Link("Privacy Policy", destination: privacyPolicyURL)
+                    Text("·").foregroundStyle(Color.secondary)
+                    Link("Terms of Use", destination: appleStandardEULA)
+                }
+                .font(.caption)
             }
         } header: {
             Text("Your Parlance Plus")
         }
+    }
+
+    private var plusPriceLabel: String {
+        if let product = storeKit.products.first(where: { $0.id == StoreKitManager.plusMonthly }) {
+            return "\(product.displayPrice)/month"
+        }
+        return "$9.99/month"
+    }
+
+    private var plusTermsCopy: String {
+        "Parlance Plus is a monthly auto-renewing subscription. Payment is charged to your Apple Account at confirmation of purchase. It renews automatically unless you turn off auto-renew at least 24 hours before the end of the current period, and your account is charged for renewal within 24 hours before the period ends. You can manage or cancel your subscription in your Apple Account settings."
+    }
+
+    private var privacyPolicyURL: URL {
+        URL(string: "https://montrez.github.io/ParlanceApp/privacy.html")!
+    }
+
+    private var appleStandardEULA: URL {
+        URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
     }
 
     private var plusBenefitList: some View {

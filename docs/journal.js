@@ -1931,14 +1931,21 @@ function openTermsOfUse() {
 
 function applyPlusStoreCopy() {
   const play = isPlayStoreApp();
-  const terms = document.getElementById('plusPaywallTerms');
-  if (terms && typeof i18n !== 'undefined') {
-    terms.textContent = i18n.t(play ? 'plusPaywallTermsPlay' : 'plusPaywallTerms');
-  }
-  const unavailable = document.getElementById('plusPaywallUnavailable');
-  if (unavailable && typeof i18n !== 'undefined') {
-    unavailable.textContent = i18n.t(play ? 'plusPaywallUnavailablePlay' : 'plusPaywallUnavailable');
-  }
+  if (typeof i18n === 'undefined') return;
+  const termsKey = play ? 'plusPaywallTermsPlay' : 'plusPaywallTerms';
+  const unavailableKey = play ? 'plusPaywallUnavailablePlay' : 'plusPaywallUnavailable';
+  ['plusPaywallTerms', 'plusStatusTerms'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = i18n.t(termsKey);
+  });
+  ['plusPaywallUnavailable', 'plusStatusUnavailable'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = i18n.t(unavailableKey);
+  });
+  ['plusPaywallLength', 'plusStatusLength'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = i18n.t('plusPaywallLength');
+  });
 }
 
 function showPlusPaywall(kind) {
@@ -1989,6 +1996,7 @@ function refreshPlusStatusPanel() {
   }
   const packBtn = document.getElementById('plusStatusPackBtn');
   if (packBtn) packBtn.style.display = (!active && nativeSupportsPurchases()) ? '' : 'none';
+  if (!active) refreshPlusPaywallPrice();
 }
 
 function togglePlusStatusDetails() {
@@ -2010,24 +2018,30 @@ function closePlusPaywall() {
 
 function refreshPlusPaywallPrice() {
   const cfg = window.__PARLANCE_CONFIG__ || {};
-  const priceEl = document.getElementById('plusPaywallPrice');
-  if (priceEl && cfg.plusMonthlyPriceDisplay) {
-    priceEl.textContent = i18n.t('plusPaywallPriceMonthly', {
-      price: cfg.plusMonthlyPriceDisplay,
-    });
-  }
+  const priceLabel = cfg.plusMonthlyPriceDisplay
+    ? i18n.t('plusPaywallPriceMonthly', { price: cfg.plusMonthlyPriceDisplay })
+    : i18n.t('plusPaywallPrice');
+  ['plusPaywallPrice', 'plusStatusPrice'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = priceLabel;
+  });
 
   // Don't offer a Subscribe button that can only fail: StoreKit hasn't
   // returned the product, so a tap would surface a raw store error.
-  const subscribeBtn = document.getElementById('plusPaywallSubscribeBtn');
-  const unavailableEl = document.getElementById('plusPaywallUnavailable');
+  const subscribeBtns = ['plusPaywallSubscribeBtn', 'plusStatusSubscribeBtn']
+    .map((id) => document.getElementById(id))
+    .filter(Boolean);
+  const unavailableEls = ['plusPaywallUnavailable', 'plusStatusUnavailable']
+    .map((id) => document.getElementById(id))
+    .filter(Boolean);
   if (!nativeSupportsPurchases()) {
-    if (unavailableEl) unavailableEl.style.display = 'none';
+    unavailableEls.forEach((el) => { el.style.display = 'none'; });
     return;
   }
   const available = cfg.plusPurchaseAvailable !== false;
-  if (subscribeBtn) subscribeBtn.disabled = !available;
-  if (unavailableEl) unavailableEl.style.display = available ? 'none' : '';
+  subscribeBtns.forEach((btn) => { btn.disabled = !available; });
+  unavailableEls.forEach((el) => { el.style.display = available ? 'none' : ''; });
+  applyPlusStoreCopy();
   applyFeedbackPackButtonCopy();
 }
 
@@ -2097,9 +2111,14 @@ function feedbackQuotaApplies() {
 }
 
 function feedbackDebugToolsEnabled() {
+  // Release / TestFlight / App Store / GitHub Pages must never show the Testing
+  // row. Only native Debug (or Android debuggable) sets feedbackDebugTools.
+  // Do not unlock via localStorage — that stuck on devices after Debug testing
+  // and would ship into App Review screenshots.
   const cfg = window.__PARLANCE_CONFIG__ || {};
-  if (cfg.feedbackDebugTools) return true;
-  try { return localStorage.getItem(LS_FEEDBACK_DEBUG) === '1'; } catch (_) { return false; }
+  if (cfg.feedbackDebugTools === true) return true;
+  try { localStorage.removeItem(LS_FEEDBACK_DEBUG); } catch (_) {}
+  return false;
 }
 
 function readFeedbackInt(key) {
@@ -2238,9 +2257,15 @@ function refreshFeedbackMeter() {
     meter.classList.toggle('is-empty', !canAnalyzeFeedback());
   }
   const showDebug = feedbackDebugToolsEnabled();
-  if (debug) debug.hidden = !showDebug;
+  if (debug) {
+    debug.hidden = !showDebug;
+    debug.style.display = showDebug ? '' : 'none';
+  }
   const paywallDebug = document.getElementById('plusPaywallDebug');
-  if (paywallDebug) paywallDebug.hidden = !showDebug;
+  if (paywallDebug) {
+    paywallDebug.hidden = !showDebug;
+    paywallDebug.style.display = showDebug ? '' : 'none';
+  }
   const ignoreLabel = i18n.t(debugIgnorePlus() ? 'feedbackDebugUsePlus' : 'feedbackDebugIgnorePlus');
   ['feedbackDebugPlusBtn', 'plusPaywallDebugPlusBtn'].forEach((id) => {
     const btn = document.getElementById(id);

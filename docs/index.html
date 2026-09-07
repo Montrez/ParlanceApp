@@ -202,6 +202,7 @@
         <li><span class="plus-benefit-check" aria-hidden="true">✓</span><span data-i18n="plusBenefitLegal">Legal interpreting guide — court roles, rights language, and protocol</span></li>
         <li><span class="plus-benefit-check" aria-hidden="true">✓</span><span data-i18n="plusBenefitRag">Coach adds medical or legal context when a journal sentence uses those terms</span></li>
       </ul>
+      <p class="plus-paywall-length" id="plusPaywallLength" data-i18n="plusPaywallLength">Length: 1 month, auto-renewing</p>
       <p class="plus-paywall-price" id="plusPaywallPrice" data-i18n="plusPaywallPrice">$9.99/month</p>
       <p class="plus-paywall-terms" id="plusPaywallTerms" data-i18n="plusPaywallTerms">Parlance Plus is a monthly auto-renewing subscription. Payment is charged to your Apple Account at confirmation of purchase. It renews automatically unless you turn off auto-renew at least 24 hours before the end of the current period, and your account is charged for renewal within 24 hours before the period ends. You can manage or cancel your subscription in your Apple Account settings.</p>
       <p class="plus-paywall-unavailable" id="plusPaywallUnavailable" style="display:none" data-i18n="plusPaywallUnavailable">The subscription isn't available from the App Store right now. Please try again later.</p>
@@ -269,9 +270,19 @@
           </ul>
         </div>
         <div class="plus-status-actions" id="plusStatusActions" style="display:none">
-          <button type="button" class="auth-btn" onclick="triggerPlusPurchase()" data-i18n="plusPaywallSubscribe">Subscribe to Parlance Plus</button>
+          <p class="plus-status-title" data-i18n="plusPaywallTitle">Parlance Plus</p>
+          <p class="plus-status-length" id="plusStatusLength" data-i18n="plusPaywallLength">Length: 1 month, auto-renewing</p>
+          <p class="plus-status-price" id="plusStatusPrice" data-i18n="plusPaywallPrice">$9.99/month</p>
+          <p class="plus-status-terms" id="plusStatusTerms" data-i18n="plusPaywallTerms">Parlance Plus is a monthly auto-renewing subscription. Payment is charged to your Apple Account at confirmation of purchase. It renews automatically unless you turn off auto-renew at least 24 hours before the end of the current period, and your account is charged for renewal within 24 hours before the period ends. You can manage or cancel your subscription in your Apple Account settings.</p>
+          <p class="plus-status-unavailable" id="plusStatusUnavailable" style="display:none" data-i18n="plusPaywallUnavailable">The subscription isn't available from the App Store right now. Please try again later.</p>
+          <button type="button" class="auth-btn" id="plusStatusSubscribeBtn" onclick="triggerPlusPurchase()" data-i18n="plusPaywallSubscribe">Subscribe to Parlance Plus</button>
           <button type="button" class="auth-btn auth-btn-outline" id="plusStatusPackBtn" onclick="triggerFeedbackPackPurchase()">15 more analyses — $2.99</button>
           <button type="button" class="auth-btn auth-btn-outline" onclick="triggerPlusRestore()" data-i18n="plusPaywallRestore">Restore purchase</button>
+          <p class="plus-paywall-legal-links plus-status-legal">
+            <button type="button" class="plus-paywall-legal-link" onclick="showPrivacyPolicy()" data-i18n="privacyPolicyLink">Privacy Policy</button>
+            <span aria-hidden="true">·</span>
+            <button type="button" class="plus-paywall-legal-link" onclick="openTermsOfUse()" data-i18n="termsOfUseLink">Terms of Use</button>
+          </p>
         </div>
       </div>
       <div class="settings-section" id="authSection" style="display:none">
@@ -332,7 +343,11 @@
       </div>
     </div>
     <div class="modal-footer">
-      <button class="settings-privacy-link" onclick="closeAISettings();showPrivacyPolicy()" data-i18n="privacy">Privacy Policy</button>
+      <div class="settings-footer-legal">
+        <button type="button" class="settings-privacy-link" onclick="closeAISettings();showPrivacyPolicy()" data-i18n="privacyPolicyLink">Privacy Policy</button>
+        <span aria-hidden="true">·</span>
+        <button type="button" class="settings-privacy-link" onclick="openTermsOfUse()" data-i18n="termsOfUseLink">Terms of Use</button>
+      </div>
       <button class="btn btn-primary settings-save-btn" id="aiSettingsSaveBtn" onclick="saveAISettingsFromModal()" data-i18n="saveAndClose">Save &amp; Close</button>
     </div>
   </div>
