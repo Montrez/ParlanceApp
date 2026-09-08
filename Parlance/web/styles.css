@@ -2006,26 +2006,34 @@ body.guide-open .feedback-sheet-backdrop {
     gap: 0.3rem;
   }
   /* Collapse App/Write language controls behind one tappable summary
-     button instead of shrinking both selects to near-illegible sizes. */
+     button instead of shrinking both selects to near-illegible sizes.
+     When open, expand inside the sticky dark header (full header
+     background) — do not float a popover over the beige journal. */
   .lang-summary-btn {
     display: flex;
   }
+  .header-right:has(.header-langs.expanded) {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .lang-summary-wrap:has(.header-langs.expanded) {
+    flex: 1 1 100%;
+    width: 100%;
+  }
   .header-langs {
     display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    margin-top: 0.4rem;
+    position: static;
     flex-direction: column;
     align-items: stretch;
     gap: 0.5rem;
-    background: var(--header-bg);
+    width: 100%;
+    margin-top: 0.45rem;
+    background: var(--header-select-bg);
     border: 1px solid var(--header-border);
     border-radius: 8px;
     padding: 0.65rem 0.75rem;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-    z-index: 110;
-    min-width: 200px;
+    box-shadow: none;
+    min-width: 0;
   }
   .header-langs.expanded {
     display: flex;
@@ -2098,7 +2106,7 @@ body.guide-open .feedback-sheet-backdrop {
   }
   .header-langs {
     min-width: 0;
-    width: min(260px, 100%);
+    width: 100%;
   }
   .journal-header {
     gap: 0.65rem;
