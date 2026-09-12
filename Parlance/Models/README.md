@@ -13,6 +13,6 @@ Run before archiving (exports MLX if missing, smoke tests, rsyncs both):
 ./training/prepare_ios_coach_model.sh
 ```
 
-Expected size: ~294 MB per language (4-bit MLX). Xcode **Copy Bundle Resources** includes blue folder references `parlance-es-mlx` and `parlance-fr-mlx` so weights appear at the app bundle root.
+Spanish is Qwen 0.5B (~294 MB). French is the fused Gemma 4 GEC model (~2.5 GB) staged from `training/models/parlance-gec-fr` into the same `parlance-fr-mlx` folder name Xcode already copies.
 
-App size increase: ~300 MB per bundled language (~600 MB for Spanish + French).
+Xcode **Copy Bundle Resources** includes blue folder references `parlance-es-mlx` and `parlance-fr-mlx` so weights appear at the app bundle root.

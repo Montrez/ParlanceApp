@@ -339,6 +339,48 @@ do {
     check("verbatim_alt: stripped when identical to sentence", out["next_level_alt"] == nil)
 }
 
+// MARK: - French native-tester repairs (issue #39)
+
+do {
+    let a = sanitized(
+        "Le point négatif que je me suis mal préparé et renseigner sur la société.",
+        language: "fr",
+        feedback: ["status": "Excellent", "explanation": "Looks fine."]
+    )
+    check("fr_point_negatif: status flipped", a["status"] as? String == "Needs Improvement")
+    let corrA = a["correction"] as? String ?? ""
+    check("fr_point_negatif: est que", corrA.localizedCaseInsensitiveContains("est que"))
+    check("fr_point_negatif: renseigné", corrA.localizedCaseInsensitiveContains("renseigné"))
+
+    let b = sanitized(
+        "Merci à vous. Cordialement",
+        language: "fr",
+        feedback: [
+            "status": "Needs Improvement",
+            "explanation": "Vocabulary error ('Cordialement' instead of 'Cordialement') and syntax ('Merci à vous' instead of 'Merci vous').",
+            "correction": "Merci vous, Cordialement",
+            "grammar_rule": "Vocabulary and syntax errors",
+        ]
+    )
+    let corrB = (b["correction"] as? String ?? "").lowercased()
+    check("fr_merci: must not become merci vous", !corrB.contains("merci vous") || corrB.contains("merci à vous") || corrB.contains("merci a vous") || b["status"] as? String == "Excellent")
+
+    let c = sanitized(
+        "Est-il possible de m'envoyer l'appel d'offr s'il vous plaît ?",
+        language: "fr",
+        feedback: [
+            "status": "Needs Improvement",
+            "grammar_rule": "Subjonctif vs indicatif",
+            "explanation": "The sentence incorrectly uses 'il vous plaît' instead of 'il vous plaît'.",
+            "correction": "Est-il possible de m'envoyer l'offre d'offre si vous le savez ?",
+        ]
+    )
+    let corrC = c["correction"] as? String ?? ""
+    check("fr_offre: status NI", c["status"] as? String == "Needs Improvement")
+    check("fr_offre: d'offre", corrC.localizedCaseInsensitiveContains("d'offre") || corrC.localizedCaseInsensitiveContains("d’offre"))
+    check("fr_offre: keep s'il vous plaît", corrC.localizedCaseInsensitiveContains("s'il vous plaît") || corrC.localizedCaseInsensitiveContains("s'il vous plait"))
+}
+
 print("\n\(passed) / \(passed + failures) passed\n")
 if failures > 0 {
     exit(1)

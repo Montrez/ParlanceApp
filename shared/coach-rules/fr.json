@@ -470,6 +470,82 @@
       },
       "cefr": { "teach_from": "A2", "band": "A2-B1" },
       "regression": ["partitive_pas_des"]
+    },
+    {
+      "id": "point_negatif_est_que",
+      "category": "clause_structure",
+      "priority": 24,
+      "detect": {
+        "pattern": "\\b(le|un)\\s+point\\s+(n[ée]gatif|positif)\\s+que\\s+(?!est\\b)",
+        "flags": "i"
+      },
+      "issue": "English calque: «the negative point that…» needs the copula in French — «le point négatif est que…».",
+      "mention": ["est que", "copula", "le point négatif est que"],
+      "repair": [
+        {
+          "pattern": "\\b(le|un)(\\s+point\\s+(?:n[ée]gatif|positif)\\s+)que\\b",
+          "replace": "\\1\\2est que",
+          "flags": "gi"
+        }
+      ],
+      "grammar_rule": "Copula in identifying clauses: «le point négatif est que…», not «le point négatif que…»",
+      "source": {
+        "authority": "Le Bon Usage (Grevisse)",
+        "topic": "Phrases identificatrices avec être",
+        "url": "https://www.lebonusage.com/"
+      },
+      "cefr": { "teach_from": "B1", "band": "B1" },
+      "regression": ["point_negatif_est_que"]
+    },
+    {
+      "id": "coordinated_infinitive_after_etre",
+      "category": "agreement",
+      "priority": 25,
+      "detect": {
+        "pattern": "\\b(suis|es|est|sommes|êtes|sont)\\b[^.!?]{0,80}\\bet\\s+(renseigner|préparer|preparer|informer|inscrire|habituer|dépêcher|depecher|présenter|presenter)\\b",
+        "flags": "i"
+      },
+      "issue": "After a passé composé with «être» / «se», a coordinated second verb is a past participle, not an infinitive: «je me suis préparé et renseigné», not «et renseigner».",
+      "mention": ["participe passé", "renseigné", "infinitive after être"],
+      "repair": [
+        { "pattern": "\\bet\\s+renseigner\\b", "replace": "et renseigné", "flags": "gi" },
+        { "pattern": "\\bet\\s+pr[ée]parer\\b", "replace": "et préparé", "flags": "gi" },
+        { "pattern": "\\bet\\s+informer\\b", "replace": "et informé", "flags": "gi" },
+        { "pattern": "\\bet\\s+inscrire\\b", "replace": "et inscrit", "flags": "gi" },
+        { "pattern": "\\bet\\s+habituer\\b", "replace": "et habitué", "flags": "gi" },
+        { "pattern": "\\bet\\s+d[ée]p[êe]cher\\b", "replace": "et dépêché", "flags": "gi" },
+        { "pattern": "\\bet\\s+pr[ée]senter\\b", "replace": "et présenté", "flags": "gi" }
+      ],
+      "grammar_rule": "Coordinated participle after «être» / pronominal passé composé (not infinitive)",
+      "source": {
+        "authority": "Le Bon Usage (Grevisse)",
+        "topic": "Accord et forme du participe passé avec être",
+        "url": "https://www.lebonusage.com/"
+      },
+      "cefr": { "teach_from": "A2", "band": "A2-B1" },
+      "regression": ["coordinated_infinitive_renseigner"]
+    },
+    {
+      "id": "appel_doffre_truncation",
+      "category": "spelling",
+      "priority": 26,
+      "detect": {
+        "pattern": "(l'|d')offr(?![a-zA-ZÀ-ÿ])",
+        "flags": "i"
+      },
+      "issue": "«Offre» is truncated. In a tender / «appel d'offres» context, write «offre» in full — do not rewrite the rest of a correct sentence.",
+      "mention": ["offre", "appel d'offre", "spelling"],
+      "repair": [
+        { "pattern": "(l'|d')offr(?![a-zA-ZÀ-ÿ])", "replace": "\\1offre", "flags": "gi" }
+      ],
+      "grammar_rule": "Complete the noun: «offre» (appel d'offre), not truncated «offr»",
+      "source": {
+        "authority": "Académie française",
+        "topic": "Orthographe des noms (offre)",
+        "url": "https://www.academie-francaise.fr/"
+      },
+      "cefr": { "teach_from": "A2", "band": "A2-B1" },
+      "regression": ["appel_doffr_typo"]
     }
   ]
 }

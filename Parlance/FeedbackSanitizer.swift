@@ -202,6 +202,20 @@ enum FeedbackSanitizer {
         return tidy(sentence) == tidy(correction)
     }
 
+    static func wrecksFrenchPoliteness(sentence: String, correction: String) -> Bool {
+        let c = correction.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !c.isEmpty else { return false }
+        let sent = sentence.lowercased()
+        let corr = c.lowercased()
+        let hasMerciAVous = sent.contains("merci à vous") || sent.contains("merci a vous")
+        let corrKeepsMerciAVous = corr.contains("merci à vous") || corr.contains("merci a vous")
+        if hasMerciAVous, corr.contains("merci vous"), !corrKeepsMerciAVous { return true }
+        let hasSilVousPlait = sent.contains("s'il vous plaît") || sent.contains("s'il vous plait")
+        let corrKeepsSilVousPlait = corr.contains("s'il vous plaît") || corr.contains("s'il vous plait")
+        if hasSilVousPlait, !corrKeepsSilVousPlait { return true }
+        return false
+    }
+
     private static let stopwords: Set<String> = [
         "the", "and", "for", "with", "requires", "appropriate", "correct", "formal",
         "informal", "professional", "grammar", "spanish", "french", "english", "sentence", "learner",
@@ -365,9 +379,12 @@ enum FeedbackSanitizer {
             .trimmingCharacters(in: .whitespacesAndNewlines)
         let existingCorrectionStillWrong = !existingCorrection.isEmpty
             && !detectKnownIssues(sentence: existingCorrection, language: language).isEmpty
+        let politenessWrecked = language == "fr"
+            && wrecksFrenchPoliteness(sentence: sentence, correction: existingCorrection)
         let correctionWeak = existingCorrection.isEmpty
             || isVerbatimCorrection(sentence, existingCorrection)
             || existingCorrectionStillWrong
+            || politenessWrecked
         if changed, correctionWeak {
             feedback["correction"] = correction
         }
@@ -459,6 +476,16 @@ enum FeedbackSanitizer {
                 : "Register mismatch: formal «está» should not become informal «estás»."
             feedback["explanation"] = (prior + " " + note).trimmingCharacters(in: .whitespaces)
             feedback.removeValue(forKey: "correction")
+        }
+
+        if language == "fr",
+           detectKnownIssues(sentence: sentence, language: language).isEmpty,
+           feedback["status"] as? String == "Needs Improvement" {
+            let corr = feedback["correction"] as? String ?? ""
+            if wrecksFrenchPoliteness(sentence: sentence, correction: corr) {
+                feedback["status"] = "Excellent"
+                feedback.removeValue(forKey: "correction")
+            }
         }
     }
 }

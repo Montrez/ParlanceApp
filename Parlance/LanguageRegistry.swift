@@ -19,8 +19,8 @@ enum LanguageRegistry {
     static let all: [LanguageInfo] = [
         LanguageInfo(code: "es", displayName: "Spanish", onDeviceModelFolder: "parlance-es-mlx"),
         LanguageInfo(code: "fr", displayName: "French", onDeviceModelFolder: "parlance-fr-mlx"),
-        // English uses the same multilingual Qwen 0.5B (Spanish export) until
-        // dedicated English weights ship. Prompts and sanitize are English-specific.
+        // English uses the Spanish on-device folder until dedicated English
+        // weights ship. Prompts and sanitize are English-specific.
         LanguageInfo(code: "en", displayName: "English", onDeviceModelFolder: "parlance-es-mlx"),
     ]
 

@@ -85,10 +85,10 @@ enum AIProvider: String, CaseIterable, Codable {
         case .parlanceCoach:
             var list: [(id: String, name: String)] = []
             if ParlanceSLMAnalyzer.isOnDeviceModelAvailable(language: "es") {
-                list.append(("parlance-es", "Parlance Spanish (Qwen 0.5B)"))
+                list.append(("parlance-es", "Parlance Spanish (Gemma 4)"))
             }
             if ParlanceSLMAnalyzer.isOnDeviceModelAvailable(language: "fr") {
-                list.append(("parlance-fr", "Parlance French (Qwen 0.5B)"))
+                list.append(("parlance-fr", "Parlance French (Gemma 4)"))
             }
             if list.isEmpty {
                 list.append(("parlance-es", "Parlance Coach (not bundled)"))

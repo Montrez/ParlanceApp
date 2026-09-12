@@ -503,6 +503,11 @@ def french_coach_system_prompt(level: str = "", rag_context: str = "") -> str:
         '- Only mark "Needs Improvement" when there is an actual grammar error — not a style preference.\n'
         "- Never flag valid Canadian French features as errors unless inappropriate for context.\n"
         "- Si-clause: Si + imparfait → conditionnel — NOT *Si j'aurais* in the protasis.\n"
+        "- Do NOT rewrite «merci à vous», «s'il vous plaît», or «cordialement» unless they are misspelled.\n"
+        "- «Est-il possible de» + infinitive is correct. Do not invent a subjunctive error.\n"
+        "- After être/se + participle, a coordinated verb is a participle («renseigné»), not an infinitive.\n"
+        "- «Le point négatif est que…» needs the copula «est».\n"
+        "- Never write 'X' instead of 'X'. If you cannot name two different forms, do not flag a vocabulary error.\n"
         "- ALL example sentences must be complete sentences in French.\n"
         "- grammar_rule, explanation, register, and tip MUST be in English.\n"
         "- For next_level_alt: same idea one CEFR level above assessed_level.\n"
@@ -559,6 +564,73 @@ def _quoted_terms(text: str) -> list[str]:
         if len(term) >= 3:
             terms.append(term)
     return terms
+
+
+_IDENTITY_INSTEAD = re.compile(
+    r"'([^']{2,})'\s+instead of\s+'([^']{2,})'"
+    r'|«([^»]{2,})»\s+(?:instead of|au lieu de)\s+«([^»]{2,})»',
+    re.I,
+)
+
+_FR_SUBJUNCTIVE_TRIGGERS = (
+    "il faut que",
+    "je veux que",
+    "je voudrais que",
+    "j'aimerais que",
+    "bien que",
+    "pour que",
+    "avant que",
+    "sans que",
+    "quoique",
+    "douter que",
+    "je ne pense pas que",
+    "le meilleur",
+    "le seul",
+)
+
+
+def _has_identity_instead_pair(text: str) -> bool:
+    for m in _IDENTITY_INSTEAD.finditer(text or ""):
+        groups = [g for g in m.groups() if g]
+        if len(groups) >= 2 and _normalize(groups[0]) == _normalize(groups[1]):
+            return True
+    return False
+
+
+def _wrecks_french_politeness(sentence: str, correction: str) -> bool:
+    corr = (correction or "").strip()
+    if not corr:
+        return False
+    sent = sentence.lower()
+    c = corr.lower()
+    if ("merci à vous" in sent or "merci a vous" in sent) and "merci vous" in c and "merci à vous" not in c and "merci a vous" not in c:
+        return True
+    if ("s'il vous plaît" in sent or "s'il vous plait" in sent) and "s'il vous pla" not in c:
+        return True
+    return False
+
+
+def _invented_french_subjunctive(sentence: str, grammar_rule: str, explanation: str) -> bool:
+    joined = f"{grammar_rule} {explanation}".lower()
+    if "subjonctif" not in joined and "subjunctive" not in joined:
+        return False
+    sent = sentence.lower()
+    return not any(t in sent for t in _FR_SUBJUNCTIVE_TRIGGERS)
+
+
+def _french_model_invented_error(sentence: str, feedback: dict[str, Any]) -> bool:
+    if str(feedback.get("status") or "") != "Needs Improvement":
+        return False
+    expl = str(feedback.get("explanation") or "")
+    rule = str(feedback.get("grammar_rule") or "")
+    corr = str(feedback.get("correction") or "")
+    if _has_identity_instead_pair(expl) or _has_identity_instead_pair(rule):
+        return True
+    if _wrecks_french_politeness(sentence, corr):
+        return True
+    if _invented_french_subjunctive(sentence, rule, expl):
+        return True
+    return False
 
 
 def _term_reflected_in_sentence(sent_norm: str, sent_tokens: set[str], core: str) -> bool:
@@ -1482,6 +1554,9 @@ def _sanitize_french_feedback(sentence: str, feedback: dict[str, Any], level: st
         return _preserve_inferred_fields(dict(known), sentence, lang="fr")
 
     if _has_french_typography_issue(sentence):
+        return french_heuristic_feedback(sentence, level)
+
+    if _french_model_invented_error(sentence, feedback):
         return french_heuristic_feedback(sentence, level)
 
     feedback = _strip_unrelated_alts(sentence, feedback)

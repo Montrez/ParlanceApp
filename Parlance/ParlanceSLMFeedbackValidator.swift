@@ -162,7 +162,7 @@ enum ParlanceSLMFeedbackValidator {
         out.removeValue(forKey: "sentence_level")
         let note = (out["complexity_note"] as? String ?? out["complexityNote"] as? String)?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        if note.isEmpty {
+        if note.isEmpty || isSchemaPlaceholderNote(note) {
             out.removeValue(forKey: "complexity_note")
         } else {
             out["complexity_note"] = note
@@ -255,7 +255,7 @@ enum ParlanceSLMFeedbackValidator {
         - next_level_alt / target_level_alt: only when assessed_level is set; otherwise use next_level_alt as a stronger rewrite without a level label.
         """
 
-    static func spanishSystemPrompt(level: String = "", dialect: String = defaultDialect, ragContext: String = "") -> String {
+    static func spanishLegacySystemPrompt(level: String = "", dialect: String = defaultDialect, ragContext: String = "") -> String {
         var prompt = """
         You are a Spanish grammar coach for interpreter training, with expertise in \
         \(dialect) dialect variation. Do NOT assume the learner picked a CEFR level.
@@ -306,7 +306,31 @@ enum ParlanceSLMFeedbackValidator {
         "Analyze this Spanish sentence: \"\(sentence)\""
     }
 
-    static func frenchSystemPrompt(level: String = "", ragContext: String = "") -> String {
+    static func spanishSystemPrompt(level: String = "", dialect: String = defaultDialect, ragContext: String = "") -> String {
+        var prompt = """
+        You are a Spanish grammar coach for interpreter training. \
+        Decide if the sentence has a real grammar, spelling, agreement, or \
+        word-form error. Do not invent errors. Do not rewrite politeness, \
+        style, or meaning. Prefer the smallest correction.
+        Respond with ONLY a JSON object:
+        {
+          "status": "Excellent" or "Needs Improvement",
+          "explanation": "one or two sentences naming the real issue, or why it is correct",
+          "correction": null or "the minimally corrected sentence"
+        }
+        """
+        if !ragContext.isEmpty {
+            prompt += """
+
+
+            REFERENCE KNOWLEDGE (use these rules to verify accuracy — do not invent errors outside them):
+            \(ragContext)
+            """
+        }
+        return prompt
+    }
+
+    static func frenchLegacySystemPrompt(level: String = "", ragContext: String = "") -> String {
         var prompt = """
         You are a French grammar coach for interpreter training, with expertise in \
         France and Canadian (Québec) dialect variation. Do NOT assume the learner picked a CEFR level.
@@ -318,10 +342,15 @@ enum ParlanceSLMFeedbackValidator {
         - Only mark "Needs Improvement" when there is an actual grammar error — not a style preference.
         - complexity_note must describe THIS sentence's structures — never guess CEFR from word count alone.
         - next_level_alt MUST rewrite the sentence at a higher level — never copy the input verbatim.
-        - tip MUST include at least one complete example sentence in Spanish showing a stronger phrasing.
+        - tip MUST include at least one complete example sentence in French showing a stronger phrasing.
         - Never flag valid Canadian French (Québec) features as errors unless inappropriate for context.
         - With formal address (madame/monsieur + « vous »), do NOT « correct » to informal « tu » without context.
         - Si-clause: Si + imparfait → conditionnel (Si j'avais…, je ferais…) — NOT *Si j'aurais* in the protasis.
+        - Do NOT rewrite «merci à vous», «s'il vous plaît», or «cordialement» unless they are misspelled.
+        - «Est-il possible de» + infinitive is correct. Do not invent a subjunctive error.
+        - After être/se + participle, a coordinated verb is a participle («renseigné»), not an infinitive.
+        - «Le point négatif est que…» needs the copula «est».
+        - Never write 'X' instead of 'X'. If you cannot name two different forms, do not flag a vocabulary error.
         - ALL example sentences (correction, next_level_alt, target_level_alt) MUST be complete sentences in French.
         - grammar_rule, explanation, register, and tip MUST be in English.
         - For next_level_alt: same idea one CEFR level above assessed_level.
@@ -339,7 +368,7 @@ enum ParlanceSLMFeedbackValidator {
         Respond with ONLY a valid JSON object (no markdown fences):
         {
           "assessed_level": "A1" | "A2" | "B1" | "B2" | "C1" | "C2" | null,
-          "complexity_note": "1–2 English sentences on sentence complexity (vocabulary, syntax, subordination, register)",
+          "complexity_note": "What makes THIS French sentence simple or advanced (syntax, mood, register)",
           "status": "Excellent" or "Needs Improvement",
           "grammar_rule": "The specific grammar rule — always name the rule, even when correct",
           "explanation": "WHY the sentence is correct or incorrect — cite the learner's words",
@@ -353,11 +382,35 @@ enum ParlanceSLMFeedbackValidator {
         return prompt
     }
 
+    static func frenchSystemPrompt(level: String = "", ragContext: String = "") -> String {
+        var prompt = """
+        You are a French grammar coach for interpreter training. \
+        Decide if the sentence has a real grammar, spelling, agreement, or \
+        word-form error. Do not invent errors. Do not rewrite politeness, \
+        style, or meaning. Prefer the smallest correction.
+        Respond with ONLY a JSON object:
+        {
+          "status": "Excellent" or "Needs Improvement",
+          "explanation": "one or two sentences naming the real issue, or why it is correct",
+          "correction": null or "the minimally corrected sentence"
+        }
+        """
+        if !ragContext.isEmpty {
+            prompt += """
+
+
+            REFERENCE KNOWLEDGE (use these rules to verify accuracy — do not invent errors outside them):
+            \(ragContext)
+            """
+        }
+        return prompt
+    }
+
     static func frenchUserPrompt(sentence: String, level: String = "") -> String {
         "Analyze this French sentence: \"\(sentence)\""
     }
 
-    static func englishSystemPrompt(level: String = "", ragContext: String = "") -> String {
+    static func englishLegacySystemPrompt(level: String = "", ragContext: String = "") -> String {
         var prompt = """
         You are an English grammar coach for interpreter training. Learners are often \
         Spanish or French speakers writing English. Do NOT assume the learner picked a CEFR level.
@@ -406,6 +459,30 @@ enum ParlanceSLMFeedbackValidator {
 
     static func englishUserPrompt(sentence: String, level: String = "") -> String {
         "Analyze this English sentence: \"\(sentence)\""
+    }
+
+    static func englishSystemPrompt(level: String = "", ragContext: String = "") -> String {
+        var prompt = """
+        You are an English grammar coach for interpreter training. \
+        Decide if the sentence has a real grammar, spelling, agreement, or \
+        word-form error. Do not invent errors. Do not rewrite politeness, \
+        style, or meaning. Prefer the smallest correction.
+        Respond with ONLY a JSON object:
+        {
+          "status": "Excellent" or "Needs Improvement",
+          "explanation": "one or two sentences naming the real issue, or why it is correct",
+          "correction": null or "the minimally corrected sentence"
+        }
+        """
+        if !ragContext.isEmpty {
+            prompt += """
+
+
+            REFERENCE KNOWLEDGE (use these rules to verify accuracy — do not invent errors outside them):
+            \(ragContext)
+            """
+        }
+        return prompt
     }
 
     /// Rule-based fallback exposed for parse failures in the SLM engine.
@@ -635,11 +712,12 @@ enum ParlanceSLMFeedbackValidator {
         if hasFrenchTypographyIssue(sentence: sentence) {
             return frenchHeuristicFeedback(sentence: sentence, level: level)
         }
-        if modelInventedError(sentence: sentence, feedback: feedback) {
+        if frenchModelInventedError(sentence: sentence, feedback: feedback)
+            || modelInventedError(sentence: sentence, feedback: feedback) {
             return frenchGenericExcellentFeedback(sentence: sentence, level: level)
         }
         if needsRepairFrench(sentence: sentence, feedback: feedback) {
-            if modelInventedError(sentence: sentence, feedback: feedback) {
+            if frenchModelInventedError(sentence: sentence, feedback: feedback) {
                 return frenchGenericExcellentFeedback(sentence: sentence, level: level)
             }
             if let known = knownFrenchErrorFeedback(sentence: sentence, level: level) {
@@ -784,6 +862,7 @@ enum ParlanceSLMFeedbackValidator {
         if isUnrelatedRewrite(sentence: sentence, alt: feedback["next_level_alt"] as? String) { return true }
         if isUnrelatedRewrite(sentence: sentence, alt: feedback["target_level_alt"] as? String) { return true }
         if grammarRuleLooksLikeMetaCommentary(grammarRule) { return true }
+        if frenchModelInventedError(sentence: sentence, feedback: feedback) { return true }
         if status == "Needs Improvement" {
             if explanation.trimmingCharacters(in: .whitespacesAndNewlines).count < 24 { return true }
             if correction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return true }
@@ -796,18 +875,9 @@ enum ParlanceSLMFeedbackValidator {
     }
 
     private static func frenchGenericExcellentFeedback(sentence: String, level: String) -> [String: Any] {
-        [
-            "status": "Excellent",
-            "grammar_rule": "General French grammar",
-            "explanation": """
-            No confirmed grammar error in your sentence. \
-            The on-device coach rejected an unreliable correction — review register and word choice for your setting.
-            """,
-            "register": "Confirm tu/vous matches the interpreting context (clinical, legal, or casual).",
-            "next_level_alt": sentence,
-            "tip": "Re-read pronouns (le/la/l') and register (tu/vous) against your interpreting context.",
-            "_coach_repaired": true,
-        ]
+        // Known-error rules already ran. If we got here, do not claim we "rejected a
+        // correction" — that copy told testers a broken sentence was error-free.
+        frenchHeuristicFeedback(sentence: sentence, level: level)
     }
 
     private static func frenchHeuristicFeedback(sentence: String, level: String) -> [String: Any] {
@@ -877,6 +947,75 @@ enum ParlanceSLMFeedbackValidator {
             return true
         }
         return !findHallucinatedTerms(sentence: sentence, texts: fields).isEmpty
+    }
+
+    /// Tiny-model French hallucinations that are not generic "quoted term missing from sentence."
+    private static func frenchModelInventedError(sentence: String, feedback: [String: Any]) -> Bool {
+        guard feedback["status"] as? String == "Needs Improvement" else { return false }
+        let explanation = feedback["explanation"] as? String ?? ""
+        let grammarRule = feedback["grammar_rule"] as? String ?? ""
+        let correction = feedback["correction"] as? String ?? ""
+        if hasIdentityInsteadPair(explanation) || hasIdentityInsteadPair(grammarRule) { return true }
+        if wrecksFrenchPoliteness(sentence: sentence, correction: correction) { return true }
+        if inventedFrenchSubjunctive(sentence: sentence, grammarRule: grammarRule, explanation: explanation) {
+            return true
+        }
+        return false
+    }
+
+    private static func isSchemaPlaceholderNote(_ note: String) -> Bool {
+        let low = note.lowercased()
+        return low.contains("english sentences on sentence complexity")
+            || low.contains("1–2 english sentences")
+            || low.contains("1-2 english sentences")
+    }
+
+    private static func hasIdentityInsteadPair(_ text: String) -> Bool {
+        let pattern = #"'([^']{2,})'\s+instead of\s+'([^']{2,})'|"([^"]{2,})"\s+instead of\s+"([^"]{2,})"|"([^"]{2,})"\s+instead of\s+"([^"]{2,})"|«([^»]{2,})»\s+instead of\s+«([^»]{2,})»"#
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else { return false }
+        let ns = text as NSString
+        let matches = regex.matches(in: text, range: NSRange(location: 0, length: ns.length))
+        for m in matches {
+            var left = ""
+            var right = ""
+            for i in 1..<m.numberOfRanges {
+                guard m.range(at: i).location != NSNotFound else { continue }
+                let part = ns.substring(with: m.range(at: i))
+                if left.isEmpty { left = part }
+                else { right = part; break }
+            }
+            guard !left.isEmpty, !right.isEmpty else { continue }
+            if normalize(left) == normalize(right) { return true }
+        }
+        return false
+    }
+
+    private static func wrecksFrenchPoliteness(sentence: String, correction: String) -> Bool {
+        let c = correction.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !c.isEmpty else { return false }
+        let sent = sentence.lowercased()
+        let corr = c.lowercased()
+        let hasMerciAVous = sent.contains("merci à vous") || sent.contains("merci a vous")
+        let corrKeepsMerciAVous = corr.contains("merci à vous") || corr.contains("merci a vous")
+        if hasMerciAVous, corr.contains("merci vous"), !corrKeepsMerciAVous { return true }
+        let hasSilVousPlait = sent.contains("s'il vous plaît") || sent.contains("s'il vous plait")
+        let corrKeepsSilVousPlait = corr.contains("s'il vous plaît") || corr.contains("s'il vous plait")
+        if hasSilVousPlait, !corrKeepsSilVousPlait { return true }
+        return false
+    }
+
+    private static func inventedFrenchSubjunctive(sentence: String, grammarRule: String, explanation: String) -> Bool {
+        let joined = (grammarRule + " " + explanation).lowercased()
+        let mentionsMood = joined.contains("subjonctif") || joined.contains("subjunctive")
+        guard mentionsMood else { return false }
+        let sent = sentence.lowercased()
+        let triggers = [
+            "il faut que", "je veux que", "je voudrais que", "j'aimerais que",
+            "bien que", "pour que", "avant que", "sans que", "quoique",
+            "douter que", "je ne pense pas que", "le meilleur", "le seul",
+        ]
+        if triggers.contains(where: { sent.contains($0) }) { return false }
+        return true
     }
 
     private static func salvageFeedback(sentence: String, feedback: [String: Any]) -> [String: Any]? {

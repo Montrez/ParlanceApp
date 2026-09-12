@@ -24,6 +24,7 @@ DerivedData/
 !default.perspectivev3
 
 # Training data and model artifacts
+training/.venv/
 training/data/
 training/adapters/
 training/models/

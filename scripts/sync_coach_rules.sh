@@ -42,6 +42,7 @@ function syncRules(lang, globalName) {
 
 syncStandard('es', 'ParlanceCoachStandardES');
 syncStandard('en', 'ParlanceCoachStandardEN');
+syncStandard('fr', 'ParlanceCoachStandardFR');
 syncRules('es', 'ParlanceCoachRulesES');
 syncRules('fr', 'ParlanceCoachRulesFR');
 syncRules('en', 'ParlanceCoachRulesEN');

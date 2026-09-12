@@ -58,6 +58,7 @@ ANDROID_GRADLE = ROOT / "android" / "app" / "build.gradle"
 # reason; removing the reason means the gap was never a decision.
 IOS_ONLY_ACTIONS: dict[str, str] = {
     "showAISettings": "Android uses the web AI settings modal (capability nativeSettings=false).",
+    "showPrivacyPolicy": "iOS opens PrivacyPolicyView; Android/web open the GitHub Pages privacy URL.",
 }
 
 IOS_ONLY_CALLBACKS: dict[str, str] = {}
@@ -126,10 +127,38 @@ def check_protocol(failures: list[str]) -> None:
             )
 
 
+def _pbx_versions() -> tuple[str, str]:
+    pbx = read(ROOT / "Parlance.xcodeproj" / "project.pbxproj")
+    marketing = re.search(r"MARKETING_VERSION = ([^;]+);", pbx)
+    build = re.search(r"CURRENT_PROJECT_VERSION = ([^;]+);", pbx)
+    if not marketing or not build:
+        return "", ""
+    return marketing.group(1).strip(), build.group(1).strip()
+
+
 def check_versions(failures: list[str]) -> None:
     plist = plistlib.loads(INFO_PLIST.read_bytes())
     ios_build = str(plist.get("CFBundleVersion", "")).strip()
     ios_marketing = str(plist.get("CFBundleShortVersionString", "")).strip()
+    pbx_marketing, pbx_build = _pbx_versions()
+
+    # Info.plist may use $(MARKETING_VERSION) / $(CURRENT_PROJECT_VERSION).
+    # Resolve those against the Xcode project so the check matches what archives.
+    if ios_marketing == "$(MARKETING_VERSION)":
+        ios_marketing = pbx_marketing
+    if ios_build == "$(CURRENT_PROJECT_VERSION)":
+        ios_build = pbx_build
+
+    if pbx_marketing and ios_marketing != pbx_marketing:
+        failures.append(
+            f"Version drift: Info.plist marketing is {ios_marketing} but "
+            f"project.pbxproj MARKETING_VERSION is {pbx_marketing}."
+        )
+    if pbx_build and ios_build != pbx_build:
+        failures.append(
+            f"Version drift: Info.plist build is {ios_build} but "
+            f"project.pbxproj CURRENT_PROJECT_VERSION is {pbx_build}."
+        )
 
     gradle = read(ANDROID_GRADLE)
     code_match = re.search(r"versionCode\s+(\d+)", gradle)

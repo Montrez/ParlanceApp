@@ -1,31 +1,26 @@
 #!/usr/bin/env bash
-# Prepare Spanish + French Parlance Coach for iOS archive (MLX 4-bit, ~294 MB each).
+# Prepare Spanish + French Gemma 4 GEC for iOS archive.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-prepare_lang() {
+prepare_gec() {
   local lang="$1"
-  local mlx_dir="training/models/parlance-${lang}-mlx"
+  local fused="training/models/parlance-gec-${lang}"
   local bundle_dir="Parlance/Models/parlance-${lang}-mlx"
 
   echo ""
-  echo "==> [$lang] Export merged HF weights to MLX (if needed)"
-  if [[ ! -f "${mlx_dir}/config.json" ]]; then
-    python3 training/export_parlance_mlx.py --lang "$lang"
+  echo "==> [${lang}] Stage fused Gemma 4 GEC into the iOS folder name"
+  if [[ ! -f "${fused}/config.json" ]]; then
+    echo "Missing ${fused}. Fuse adapters/parlance-gec-${lang} first." >&2
+    exit 1
   fi
-
-  echo "==> [$lang] Smoke test (Python reference)"
-  python3 training/smoke_test_slm.py "$lang"
-
-  echo "==> [$lang] Sync MLX weights into Parlance/Models for Xcode bundle"
-  mkdir -p Parlance/Models
-  rsync -a --delete "${mlx_dir}/" "${bundle_dir}/"
+  python3 training/export_gec.py --lang "${lang}"
   du -sh "${bundle_dir}"
 }
 
-prepare_lang es
-prepare_lang fr
+prepare_gec es
+prepare_gec fr
 
 echo ""
 echo "OK. Xcode Copy Bundle Resources bundles:"

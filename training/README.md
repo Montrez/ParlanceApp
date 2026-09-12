@@ -1,5 +1,26 @@
 # Parlance SLM Training
 
+## Next coach (Gemma 4 E2B, grammar only)
+
+The shipping 0.5B models stay as they are. This path trains a bigger on-device
+model to leave correct sentences alone or make the smallest real fix.
+
+```bash
+cd training
+./run_gec_bootstrap.sh
+# Needs Homebrew Python 3.13 (Xcode python3 is 3.9 and cannot load Gemma 4):
+python3.13 -m venv .venv
+.venv/bin/pip install -U 'mlx-lm>=0.31'
+# Accept https://huggingface.co/google/gemma-4-E2B-it then:
+python3 finetune_gec.py --lang fr
+```
+
+Data: COWS-L2H (Spanish), graelo/cancre (French), multilingual-gec (ES/FR/EN),
+plus existing Parlance seeds. FRIDA and cLang-8 are not used (not public / not
+commercial). Judgment cases in `golden/gec_judgment.jsonl` are held out.
+
+---
+
 Per-language small language models for interpreter training feedback. Two separate Qwen 2.5 0.5B models — one for Spanish, one for French — fine-tuned with LoRA on dialect-aware grammar feedback data.
 
 ## Data Pipeline

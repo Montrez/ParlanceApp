@@ -551,6 +551,60 @@
     if (low.includes('no clear errors detected')) return true;
     if (low.includes('no confirmed grammar error')) return true;
     if (low === 'no grammar error stands out.') return true;
+    if (low.includes('rejected an unreliable correction')) return true;
+    return false;
+  }
+
+  function isSchemaPlaceholderNote(note) {
+    const low = String(note || '').toLowerCase();
+    return low.includes('english sentences on sentence complexity')
+      || low.includes('1–2 english sentences')
+      || low.includes('1-2 english sentences');
+  }
+
+  function hasIdentityInsteadPair(text) {
+    const re = /'([^']{2,})'\s+instead of\s+'([^']{2,})'|«([^»]{2,})»\s+(?:instead of|au lieu de)\s+«([^»]{2,})»/gi;
+    let m;
+    while ((m = re.exec(String(text || '')))) {
+      const groups = m.slice(1).filter(Boolean);
+      if (groups.length >= 2 && normalizeTextForCompare(groups[0]) === normalizeTextForCompare(groups[1])) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function wrecksFrenchPoliteness(sentence, correction) {
+    const corr = String(correction || '').trim();
+    if (!corr) return false;
+    const sent = String(sentence || '').toLowerCase();
+    const c = corr.toLowerCase();
+    const hasMerci = sent.includes('merci à vous') || sent.includes('merci a vous');
+    const keepsMerci = c.includes('merci à vous') || c.includes('merci a vous');
+    if (hasMerci && c.includes('merci vous') && !keepsMerci) return true;
+    const hasSvp = sent.includes("s'il vous plaît") || sent.includes("s'il vous plait");
+    const keepsSvp = c.includes("s'il vous plaît") || c.includes("s'il vous plait");
+    if (hasSvp && !keepsSvp) return true;
+    return false;
+  }
+
+  function inventedFrenchSubjunctive(sentence, grammarRule, explanation) {
+    const joined = `${grammarRule || ''} ${explanation || ''}`.toLowerCase();
+    if (!joined.includes('subjonctif') && !joined.includes('subjunctive')) return false;
+    const sent = String(sentence || '').toLowerCase();
+    const triggers = [
+      'il faut que', 'je veux que', 'je voudrais que', "j'aimerais que",
+      'bien que', 'pour que', 'avant que', 'sans que', 'quoique',
+      'douter que', 'je ne pense pas que', 'le meilleur', 'le seul',
+    ];
+    return !triggers.some((t) => sent.includes(t));
+  }
+
+  function frenchModelInventedError(sentence, out) {
+    if (String(out.status || '') !== 'Needs Improvement') return false;
+    if (hasIdentityInsteadPair(out.explanation) || hasIdentityInsteadPair(out.grammar_rule)) return true;
+    if (wrecksFrenchPoliteness(sentence, out.correction)) return true;
+    if (inventedFrenchSubjunctive(sentence, out.grammar_rule, out.explanation)) return true;
     return false;
   }
 
@@ -742,8 +796,24 @@
     normalizeFeedbackFields(out);
     const lang = resolveLanguageCode(language);
     stripPlaceholderCoachCopy(out, lang);
+    if (isSchemaPlaceholderNote(out.complexity_note || out.complexityNote)) {
+      delete out.complexity_note;
+      delete out.complexityNote;
+    }
     if (sentence && (lang === 'es' || lang === 'fr' || lang === 'en')) {
       applyCoachRules(sentence, out, lang);
+    }
+    if (sentence && lang === 'fr' && wrecksFrenchPoliteness(sentence, out.correction)
+        && typeof ParlanceCoachRules !== 'undefined' && ParlanceCoachRules.analyzeSentence) {
+      const ground = ParlanceCoachRules.analyzeSentence(sentence, 'fr');
+      if (ground && ground.correction) {
+        out.correction = ground.correction;
+      }
+    }
+    if (sentence && lang === 'fr' && frenchModelInventedError(sentence, out) && !out._coach_enhanced && !out._coach_repaired) {
+      out.status = 'Excellent';
+      delete out.correction;
+      fillExcellentCoachCopy(out, sentence, lang);
     }
     preserveInferredFields(out, sentence, lang);
     // Register/tip synthesis below is Spanish/French-specific (tú/vous morphology, RAE/

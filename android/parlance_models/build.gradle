@@ -5,6 +5,6 @@ plugins {
 assetPack {
     packName = "parlance_models"
     dynamicDelivery {
-        deliveryType = "install-time"
+        deliveryType = "fast-follow"
     }
 }

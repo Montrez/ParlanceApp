@@ -1,0 +1,12 @@
+{"id": "judge-01", "category": "politeness", "sentence": "Gracias a usted.", "status": "Excellent", "correction": null, "lang": "es"}
+{"id": "judge-02", "category": "copula", "sentence": "El punto negativo que no me preparé bien.", "status": "Needs Improvement", "correction": "El punto negativo es que no me preparé bien.", "must_include": ["es que"], "lang": "es"}
+{"id": "leave-01", "category": "leave_alone", "sentence": "Gracias por su mensaje.", "status": "Excellent", "correction": null, "lang": "es"}
+{"id": "leave-02", "category": "leave_alone", "sentence": "¿Podría llamarme mañana por la mañana?", "status": "Excellent", "correction": null, "lang": "es"}
+{"id": "leave-03", "category": "leave_alone", "sentence": "Por favor, ¿puede confirmar la hora?", "status": "Excellent", "correction": null, "lang": "es"}
+{"id": "copula-01", "category": "copula", "sentence": "La ventaja que todos pueden seguir a distancia.", "status": "Needs Improvement", "correction": "La ventaja es que todos pueden seguir a distancia.", "must_include": ["es que"], "lang": "es"}
+{"id": "copula-02", "category": "copula", "sentence": "El riesgo que lleguemos tarde al palacio.", "status": "Needs Improvement", "correction": "El riesgo es que lleguemos tarde al palacio.", "must_include": ["es que"], "lang": "es"}
+{"id": "copula-03", "category": "copula", "sentence": "La preocupación que el paciente no entendió la dosis.", "status": "Needs Improvement", "correction": "La preocupación es que el paciente no entendió la dosis.", "must_include": ["es que"], "lang": "es"}
+{"id": "agree-01", "category": "leave_alone", "sentence": "Las cartas que ella ha escrito están en el expediente.", "status": "Excellent", "correction": null, "lang": "es"}
+{"id": "agree-02", "category": "agreement", "sentence": "Me encanta mis primos de Valencia.", "status": "Needs Improvement", "correction": "Me encantan mis primos de Valencia.", "must_include": ["encantan"], "lang": "es"}
+{"id": "tense-01", "category": "tense", "sentence": "Ayer yo voy al juzgado.", "status": "Needs Improvement", "correction": "Ayer yo fui al juzgado.", "must_include": ["fui"], "lang": "es"}
+{"id": "tense-02", "category": "tense", "sentence": "Ayer ella va a la audiencia con la abogada.", "status": "Needs Improvement", "correction": "Ayer ella fue a la audiencia con la abogada.", "must_include": ["fue"], "lang": "es"}

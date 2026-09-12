@@ -112,9 +112,10 @@ public class ParlanceSLMEngine {
         }
         ensureLoaded(language, weights);
 
-        String system = systemPrompt(language, ragContext == null ? "" : ragContext);
+        boolean gemmaCoach = weights.length() > 800_000_000L;
+        String system = systemPrompt(language, ragContext == null ? "" : ragContext, gemmaCoach);
         String user = userPrompt(language, sentence);
-        String prompt = chatPrompt(system, user);
+        String prompt = chatPrompt(language, system, user, gemmaCoach);
 
         InferenceParameters infer = new InferenceParameters(prompt)
                 .withTemperature(0f)
@@ -358,7 +359,11 @@ public class ParlanceSLMEngine {
         }
     }
 
-    private static String chatPrompt(String system, String user) {
+    private static String chatPrompt(String language, String system, String user, boolean gemmaCoach) {
+        if (gemmaCoach) {
+            return "<start_of_turn>user\n" + system + "\n\n" + user
+                    + "<end_of_turn>\n<start_of_turn>model\n";
+        }
         return "<|im_start|>system\n" + system + "<|im_end|>\n"
                 + "<|im_start|>user\n" + user + "<|im_end|>\n"
                 + "<|im_start|>assistant\n";
@@ -380,10 +385,28 @@ public class ParlanceSLMEngine {
                     + "- complexity_note: 1–2 English sentences on vocabulary, syntax, subordination, and register. Always include when possible, even without assessed_level.\n"
                     + "- next_level_alt / target_level_alt: only when assessed_level is set; otherwise use next_level_alt as a stronger rewrite without a level label.\n";
 
-    private static String systemPrompt(String language, String ragContext) {
+    private static String systemPrompt(String language, String ragContext, boolean gemmaCoach) {
         String langName;
         StringBuilder prompt = new StringBuilder();
-        if ("fr".equals(language)) {
+        if (gemmaCoach) {
+            String name = "fr".equals(language) ? "French" : "en".equals(language) ? "English" : "Spanish";
+            prompt.append("You are a ").append(name)
+                    .append(" grammar coach for interpreter training. ")
+                    .append("Decide if the sentence has a real grammar, spelling, agreement, or ")
+                    .append("word-form error. Do not invent errors. Do not rewrite politeness, ")
+                    .append("style, or meaning. Prefer the smallest correction.\n")
+                    .append("Respond with ONLY a JSON object:\n")
+                    .append("{\n")
+                    .append("  \"status\": \"Excellent\" or \"Needs Improvement\",\n")
+                    .append("  \"explanation\": \"one or two sentences naming the real issue, or why it is correct\",\n")
+                    .append("  \"correction\": null or \"the minimally corrected sentence\"\n")
+                    .append("}");
+            if (!ragContext.isEmpty()) {
+                prompt.append("\n\nREFERENCE KNOWLEDGE (use these rules to verify accuracy — do not invent errors outside them):\n")
+                        .append(ragContext).append('\n');
+            }
+            return prompt.toString();
+        } else if ("fr".equals(language)) {
             langName = "French";
             prompt.append("You are a French grammar coach for interpreter training, with expertise in ")
                     .append("France and Canadian (Québec) dialect variation. Do NOT assume the learner picked a CEFR level.\n\n")
@@ -526,9 +549,10 @@ public class ParlanceSLMEngine {
         }
         JSONObject out = new JSONObject();
         out.put("status", status);
+        String explanation = raw.optString("explanation", "");
         String rule = raw.optString("grammar_rule", raw.optString("grammarRule", ""));
-        out.put("grammar_rule", rule);
-        out.put("explanation", raw.optString("explanation", ""));
+        out.put("grammar_rule", rule.isEmpty() ? explanation : rule);
+        out.put("explanation", explanation);
         String[] optional = {
             "correction", "register", "next_level_alt", "target_level_alt",
             "tip", "assessed_level", "complexity_note"

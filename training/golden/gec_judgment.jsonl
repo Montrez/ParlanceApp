@@ -1,0 +1,9 @@
+{"lang": "fr", "sentence": "Le point négatif que je me suis mal préparé et renseigner sur la société.", "status": "Needs Improvement", "correction": "Le point négatif est que je me suis mal préparé et renseigné sur la société.", "notes": "Laulita: missing est + renseigner→renseigné"}
+{"lang": "fr", "sentence": "Merci à vous. Cordialement", "status": "Excellent", "correction": null, "notes": "Laulita: do not strip à or rewrite Cordialement"}
+{"lang": "fr", "sentence": "Est-il possible de m'envoyer l'appel d'offr s'il vous plaît ?", "status": "Needs Improvement", "correction": "Est-il possible de m'envoyer l'appel d'offre s'il vous plaît ?", "notes": "Laulita: offr→offre only; keep s'il vous plaît"}
+{"lang": "fr", "sentence": "Est-il possible de m'envoyer l'appel d'offre s'il vous plaît ?", "status": "Excellent", "correction": null, "notes": "Correct polite request; no invented subjunctive"}
+{"lang": "fr", "sentence": "Je vous remercie.", "status": "Excellent", "correction": null, "notes": "Leave politeness alone"}
+{"lang": "es", "sentence": "Gracias a usted.", "status": "Excellent", "correction": null, "notes": "Do not rewrite politeness"}
+{"lang": "es", "sentence": "El punto negativo que no me preparé bien.", "status": "Needs Improvement", "correction": "El punto negativo es que no me preparé bien.", "notes": "Missing copula es"}
+{"lang": "en", "sentence": "Thank you very much.", "status": "Excellent", "correction": null, "notes": "Leave politeness alone"}
+{"lang": "en", "sentence": "The downside that I did not prepare well.", "status": "Needs Improvement", "correction": "The downside is that I did not prepare well.", "notes": "Missing copula is"}

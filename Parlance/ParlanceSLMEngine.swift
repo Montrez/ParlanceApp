@@ -47,7 +47,14 @@ actor ParlanceSLMEngine {
         }
 
         let model = try await loadContainer(language: language)
-        let (system, user) = Self.prompts(sentence: sentence, language: language, level: level, ragContext: ragContext)
+        let gemmaCoach = Self.bundledIsGemma(language: language)
+        let (system, user) = Self.prompts(
+            sentence: sentence,
+            language: language,
+            level: level,
+            ragContext: ragContext,
+            gemmaCoach: gemmaCoach
+        )
 
         var params = GenerateParameters()
         params.temperature = 0
@@ -82,6 +89,19 @@ actor ParlanceSLMEngine {
     /// Prompt-builder pairs (system, user) keyed by language code. `analyze(...)` already
     /// guards on `LanguageRegistry.onDeviceSupportedCodes`, so adding a language here (plus
     /// the model + registry row) is the only control-flow change needed — no switch/fatalError.
+    private static func bundledIsGemma(language: String) -> Bool {
+        guard let dir = ParlanceSLMModelLocator.resolvedModelDirectory(language: language) else {
+            return false
+        }
+        let config = dir.appendingPathComponent("config.json")
+        guard let data = try? Data(contentsOf: config),
+              let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let modelType = obj["model_type"] as? String else {
+            return false
+        }
+        return modelType.hasPrefix("gemma4")
+    }
+
     private static let promptProviders: [String: @Sendable (String, String, String) -> (String, String)] = [
         "es": { sentence, level, ragContext in
             (
@@ -103,7 +123,33 @@ actor ParlanceSLMEngine {
         },
     ]
 
-    private static func prompts(sentence: String, language: String, level: String, ragContext: String = "") -> (String, String) {
+    private static func prompts(
+        sentence: String,
+        language: String,
+        level: String,
+        ragContext: String = "",
+        gemmaCoach: Bool = false
+    ) -> (String, String) {
+        if !gemmaCoach {
+            if language == "fr" {
+                return (
+                    ParlanceSLMFeedbackValidator.frenchLegacySystemPrompt(level: level, ragContext: ragContext),
+                    ParlanceSLMFeedbackValidator.frenchUserPrompt(sentence: sentence, level: level)
+                )
+            }
+            if language == "es" {
+                return (
+                    ParlanceSLMFeedbackValidator.spanishLegacySystemPrompt(level: level, ragContext: ragContext),
+                    ParlanceSLMFeedbackValidator.spanishUserPrompt(sentence: sentence, level: level)
+                )
+            }
+            if language == "en" {
+                return (
+                    ParlanceSLMFeedbackValidator.englishLegacySystemPrompt(level: level, ragContext: ragContext),
+                    ParlanceSLMFeedbackValidator.englishUserPrompt(sentence: sentence, level: level)
+                )
+            }
+        }
         guard let provider = promptProviders[language] else {
             assertionFailure("ParlanceSLMEngine: no prompt provider registered for language '\(language)'")
             return promptProviders["es"]!(sentence, level, ragContext)
@@ -164,10 +210,12 @@ actor ParlanceSLMEngine {
             status = "Excellent"
         }
 
+        let explanation = raw["explanation"] as? String ?? ""
+        let rule = (raw["grammar_rule"] as? String) ?? (raw["grammarRule"] as? String) ?? ""
         var out: [String: Any] = [
             "status": status,
-            "grammar_rule": raw["grammar_rule"] ?? raw["grammarRule"] ?? "",
-            "explanation": raw["explanation"] ?? "",
+            "grammar_rule": rule.isEmpty ? explanation : rule,
+            "explanation": explanation,
         ]
 
         for key in ["correction", "register", "next_level_alt", "target_level_alt", "tip", "assessed_level", "complexity_note"] {

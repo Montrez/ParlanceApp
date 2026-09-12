@@ -65,7 +65,14 @@ function extractComplexityNote(obj) {
   const raw = obj.complexity_note || obj.complexityNote;
   if (!raw || typeof raw !== 'string') return null;
   const t = raw.trim();
-  return t.length ? t : null;
+  if (!t) return null;
+  const low = t.toLowerCase();
+  if (low.includes('english sentences on sentence complexity')
+      || low.includes('1–2 english sentences')
+      || low.includes('1-2 english sentences')) {
+    return null;
+  }
+  return t;
 }
 
 function altVersionLabels(assessedLevel) {
@@ -106,8 +113,8 @@ const AI_PROVIDERS = {
     local: true,
     corsNote: false,
     models: [
-      { id: 'parlance-es', name: 'Parlance Spanish (Qwen 0.5B)' },
-      { id: 'parlance-fr', name: 'Parlance French (Qwen 0.5B)' },
+      { id: 'parlance-es', name: 'Parlance Spanish (Gemma 4)' },
+      { id: 'parlance-fr', name: 'Parlance French (Gemma 4)' },
     ],
     defaultModel: 'parlance-es',
   },
@@ -751,6 +758,12 @@ ${ragContext}
 - ${exampleSentenceRule}
 - next_level_alt and target_level_alt must express the SAME idea as the original sentence rephrased with grammar and vocabulary appropriate for that CEFR level. Do NOT add new information or embellish.
 - grammar_rule, explanation, register, and tip must be in English (meta commentary), even when the practice language is English.
+${langKey === 'fr' ? `- Do NOT rewrite «merci à vous», «s'il vous plaît», or «cordialement» unless they are misspelled.
+- «Est-il possible de» + infinitive is correct. Do not invent a subjunctive error.
+- After être/se + participle, a coordinated verb is a participle («renseigné»), not an infinitive.
+- «Le point négatif est que…» needs the copula «est».
+- Never write 'X' instead of 'X'. If the two quoted forms are the same, you have not found an error.
+` : ''}- complexity_note must describe THIS sentence — never copy the schema example text.
 
 MULTIPLE ERRORS (very important for Browser AI):
 - If the sentence has more than one mistake, list EVERY error in explanation as separate bullet points (•), quoting the learner's exact words.
@@ -762,7 +775,7 @@ MULTIPLE ERRORS (very important for Browser AI):
 Respond with ONLY a valid JSON object. No markdown fences, no text outside the JSON, no <think> tags:
 {
   "assessed_level": "A1" | "A2" | "B1" | "B2" | "C1" | "C2" | null,
-  "complexity_note": "1–2 English sentences on sentence complexity (vocabulary, syntax, subordination, register)",
+  "complexity_note": "What makes THIS sentence simple or advanced (syntax, mood, register)",
   "status": "Excellent" or "Needs Improvement",
   "grammar_rule": "The specific grammar rule tested or applied — always explain, even when correct",
   "explanation": "WHY the sentence is correct or incorrect — be specific and actionable",
